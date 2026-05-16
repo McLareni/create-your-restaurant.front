@@ -8,7 +8,10 @@ async function fetchClient<T>(endpoint: string, options: RequestOptions = {}): P
   const { params, headers, ...customConfig } = options;
   
   const isLocalApi = endpoint.startsWith('/api');
-  const baseUrl = isLocalApi ? window.location.origin : API_URL;
+  const baseUrl = isLocalApi 
+    ? (typeof window !== 'undefined' ? window.location.origin : '') 
+    : API_URL;
+
   const url = new URL(`${baseUrl}${endpoint}`);
   
   if (params) {

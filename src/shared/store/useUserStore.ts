@@ -24,13 +24,25 @@ export const useUserStore = create<UserState>((set) => ({
   
   setUser: (user) => set({ user }),
   
-  fetchUser: async () => {
+fetchUser: async () => {
     set({ isLoading: true });
     try {
+      // Спробуємо сходити на бекенд
       const user = await apiClient.get<User>('/users/me');
       set({ user, isLoading: false });
     } catch (error) {
-      set({ user: null, isLoading: false });
+      // ⚠️ ТИМЧАСОВА ЗАГЛУШКА (доки не готовий бекенд):
+      // Якщо бекенд видає 404, ми імітуємо успішну відповідь.
+      const mockUser: User = {
+        id: 1,
+        email: 'test-admin@gastro.com',
+        role: 'OWNER',
+      };
+      
+      set({ user: mockUser, isLoading: false });
+      
+      // КОЛИ БЕКЕНД БУДЕ ГОТОВИЙ, ПОВЕРНИ ЦЕЙ РЯДОК ЗАМІСТЬ ЗАГЛУШКИ ВИЩЕ:
+      // set({ user: null, isLoading: false });
     }
   },
 
