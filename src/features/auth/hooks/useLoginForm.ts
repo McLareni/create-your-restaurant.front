@@ -1,11 +1,15 @@
 'use client';
+
 import { useState, useEffect } from 'react';
 import { z } from 'zod';
 import { emailSchema, verifySchema } from '@/features/auth/schemas/login.schema';
 import { useTranslation } from '@/shared/hooks/useTranslation';
+import { authApi } from '@/features/auth/api/auth.api';
+import { useRouter } from 'next/navigation';
 
 export const useLoginForm = () => {
   const { t } = useTranslation();
+  const router = useRouter();
 
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
@@ -72,7 +76,17 @@ export const useLoginForm = () => {
 
   const handleResendCode = async () => {
     if (timeLeft > 0) return;
-    setTimeLeft(120);
+    
+    setIsLoading(true);
+    try {
+      await authApi.requestLoginCode(email);
+      setTimeLeft(120);
+      setCodeError('');
+    } catch (error) {
+      setCodeError(error instanceof Error ? error.message : 'Error sending code');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -89,9 +103,11 @@ export const useLoginForm = () => {
 
       setIsLoading(true);
       try {
-        await new Promise((resolve) => setTimeout(resolve, 800));
+        await authApi.requestLoginCode(email);
         setStep(2);
         setTimeLeft(120);
+      } catch (error) {
+        setEmailError(error instanceof Error ? error.message : 'Something went wrong');
       } finally {
         setIsLoading(false);
       }
@@ -105,7 +121,11 @@ export const useLoginForm = () => {
 
       setIsLoading(true);
       try {
-        await new Promise((resolve) => setTimeout(resolve, 800));
+        await authApi.verifyLoginCode(email, code);
+        document.cookie = 'gustio_session=temporary_mock_token; path=/; max-age=3600; SameSite=Lax;';
+        router.push('/dashboard');
+      } catch (error) {
+        setCodeError('Невірний код або термін його дії минув');
       } finally {
         setIsLoading(false);
       }
