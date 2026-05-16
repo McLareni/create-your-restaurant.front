@@ -27,6 +27,9 @@ export const uk = {
       emailCyrillic: "Email не може містити кириличні літери (А-Я)",
       codeLength: "Код має містити 6 цифр",
       codeNumeric: "Код має складатися лише з цифр",
+      verifyFailed: "Невірний код або термін його дії минув",
+      serverError: "Внутрішня помилка сервера",
+      defaultError: "Щось пішло не так. Спробуйте ще раз."
     }
   },
   hero: {

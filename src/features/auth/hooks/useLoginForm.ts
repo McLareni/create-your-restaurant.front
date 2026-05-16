@@ -83,7 +83,7 @@ export const useLoginForm = () => {
       setTimeLeft(120);
       setCodeError('');
     } catch (error) {
-      setCodeError(error instanceof Error ? error.message : 'Error sending code');
+      setCodeError(error instanceof Error ? error.message : 'defaultError');
     } finally {
       setIsLoading(false);
     }
@@ -107,7 +107,7 @@ export const useLoginForm = () => {
         setStep(2);
         setTimeLeft(120);
       } catch (error) {
-        setEmailError(error instanceof Error ? error.message : 'Something went wrong');
+        setEmailError(t('auth.errors.serverError'));
       } finally {
         setIsLoading(false);
       }
@@ -122,10 +122,10 @@ export const useLoginForm = () => {
       setIsLoading(true);
       try {
         await authApi.verifyLoginCode(email, code);
-        document.cookie = 'gustio_session=temporary_mock_token; path=/; max-age=3600; SameSite=Lax;';
         router.push('/dashboard');
       } catch (error) {
-        setCodeError('Невірний код або термін його дії минув');
+        const errorKey = error instanceof Error ? error.message : 'defaultError';
+        setCodeError(t(`auth.errors.${errorKey}`));
       } finally {
         setIsLoading(false);
       }
