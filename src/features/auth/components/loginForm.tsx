@@ -41,6 +41,7 @@ export const LoginForm = () => {
           <Input
             id="email"
             type="email"
+            theme="dark"
             label={t('auth.login.emailLabel')}
             placeholder={t('auth.login.emailPlaceholder')}
             leftIcon={<Mail className="h-5 w-5" />}
@@ -65,6 +66,7 @@ export const LoginForm = () => {
               <Input
                 id="code"
                 type="text"
+                theme="dark"
                 maxLength={7}
                 label={t('auth.login.codeLabel')}
                 placeholder={t('auth.login.codePlaceholder')}
