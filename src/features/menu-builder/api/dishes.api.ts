@@ -13,7 +13,10 @@ let mockDishes: Dish[] = [
     isSpicy: false,
     isLactoseFree: false,
     badge: 'HIT',
-    allergens: ['gluten', 'lactose']
+    allergens: ['gluten', 'lactose'],
+    isAvailable: true,
+    stockQuantity: null,
+    productionZone: 'HOT_KITCHEN'
   }
 ];
 

@@ -1,42 +1,35 @@
-import { useState, useEffect } from 'react';
-import { Dish, CreateDishDTO } from '../types/dishes.types';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Dish, CreateDishDTO, UpdateDishDTO } from '../types/dishes.types';
 import { dishesApi } from '../api/dishes.api';
 
 export const useDishes = () => {
-  const [dishes, setDishes] = useState<Dish[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  const fetchDishes = async () => {
-    setIsLoading(true);
-    const data = await dishesApi.getAll();
-    setDishes(data);
-    setIsLoading(false);
-  };
+  const { data: dishes = [], isLoading } = useQuery({
+    queryKey: ['dishes'],
+    queryFn: dishesApi.getAll,
+  });
 
-  useEffect(() => {
-    fetchDishes();
-  }, []);
+  const createMutation = useMutation({
+    mutationFn: (data: CreateDishDTO) => dishesApi.create(data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['dishes'] }),
+  });
 
-  const createDish = async (data: CreateDishDTO) => {
-    await dishesApi.create(data);
-    await fetchDishes();
-  };
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateDishDTO }) => dishesApi.update(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['dishes'] }),
+  });
 
-  const updateDish = async (id: string, data: CreateDishDTO) => {
-    await dishesApi.update(id, data);
-    await fetchDishes();
-  };
-
-  const deleteDish = async (id: string) => {
-    await dishesApi.delete(id);
-    await fetchDishes();
-  };
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => dishesApi.delete(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['dishes'] }),
+  });
 
   return {
     dishes,
     isLoading,
-    createDish,
-    updateDish,
-    deleteDish
+    createDish: createMutation.mutate,
+    updateDish: updateMutation.mutate,
+    deleteDish: deleteMutation.mutate,
   };
 };

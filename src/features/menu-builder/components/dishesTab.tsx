@@ -2,15 +2,17 @@
 
 import { useState } from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import { Button, Input, Modal, Checkbox, ConfirmModal } from '@/shared/ui';
+import { Button, Input, Select, Modal, Checkbox, ConfirmModal } from '@/shared/ui';
 import { Pizza, Plus, ImagePlus, Flame, Leaf, MilkOff } from 'lucide-react';
+import { MenuEmptyState } from './menuEmptyState';
 import { useDishes } from '../hooks/useDishes';
 import { Dish, CreateDishDTO } from '../types/dishes.types';
 import { DishCard } from './dishCard';
 
 const INITIAL_FORM_DATA: CreateDishDTO = {
   name: '', description: '', price: 0, weight: '', cookingTime: '', calories: '',
-  isVegan: false, isSpicy: false, isLactoseFree: false, badge: 'NONE', allergens: []
+  isVegan: false, isSpicy: false, isLactoseFree: false, badge: 'NONE', allergens: [],
+  isAvailable: true, stockQuantity: null, productionZone: null
 };
 
 export const DishesTab = () => {
@@ -20,43 +22,23 @@ export const DishesTab = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDish, setEditingDish] = useState<Dish | null>(null);
   const [formData, setFormData] = useState<CreateDishDTO>(INITIAL_FORM_DATA);
-  
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const openCreateModal = () => {
-    setEditingDish(null);
-    setFormData(INITIAL_FORM_DATA);
-    setIsModalOpen(true);
-  };
+  const openCreateModal = () => { setEditingDish(null); setFormData(INITIAL_FORM_DATA); setIsModalOpen(true); };
+  const openEditModal = (dish: Dish) => { setEditingDish(dish); setFormData({ ...dish }); setIsModalOpen(true); };
 
-  const openEditModal = (dish: Dish) => {
-    setEditingDish(dish);
-    setFormData({ ...dish });
-    setIsModalOpen(true);
-  };
-
-  const handleChange = (field: keyof CreateDishDTO, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
+  const handleChange = (field: keyof CreateDishDTO, value: any) => { setFormData(prev => ({ ...prev, [field]: value })); };
 
   const handleSave = () => {
     if (!formData.name.trim() || !formData.price) return;
-    if (editingDish) {
-      updateDish(editingDish.id, formData);
-    } else {
-      createDish(formData);
-    }
+    if (editingDish) updateDish({ id: editingDish.id, data: formData });
+    else createDish(formData);
     setIsModalOpen(false);
   };
 
   const confirmDelete = () => {
-    if (deleteId) {
-      deleteDish(deleteId);
-      setDeleteId(null);
-    }
+    if (deleteId) { deleteDish(deleteId); setDeleteId(null); }
   };
-
-  const selectBaseClasses = "h-12 w-full rounded-md border bg-white px-3 py-2 text-sm text-brand-espresso outline-none transition-colors border-brand-gray/30 focus:border-brand-copper focus:ring-1 focus:ring-brand-copper";
 
   return (
     <div className="flex h-full flex-col">
@@ -68,33 +50,16 @@ export const DishesTab = () => {
       </div>
 
       {dishes.length === 0 ? (
-        <div className="flex flex-1 flex-col items-center justify-center text-center border-2 border-dashed border-brand-gray/20 rounded-xl bg-brand-cream/30">
-          <Pizza className="h-12 w-12 text-brand-gray/40 mb-3" />
-          <h3 className="text-lg font-medium text-brand-espresso mb-1">
-            {t('menu.constructor.dishes.emptyTitle')}
-          </h3>
-          <p className="text-sm text-brand-gray max-w-sm mb-4">
-            {t('menu.constructor.dishes.emptyDesc')}
-          </p>
-          <Button variant="outline" onClick={openCreateModal}>
-            {t('menu.constructor.dishes.addBtn')}
-          </Button>
-        </div>
+        <MenuEmptyState icon={<Pizza />} title={t('menu.constructor.dishes.emptyTitle')} description={t('menu.constructor.dishes.emptyDesc')} actionLabel={t('menu.constructor.dishes.addBtn')} onAction={openCreateModal} />
       ) : (
         <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {dishes.map(dish => (
-              <DishCard key={dish.id} dish={dish} onEdit={openEditModal} onDelete={setDeleteId} />
-            ))}
+            {dishes.map(dish => <DishCard key={dish.id} dish={dish} onEdit={openEditModal} onDelete={setDeleteId} />)}
           </div>
         </div>
       )}
 
-      <Modal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)}
-        title={editingDish ? t('menu.constructor.dishes.modal.editTitle') : t('menu.constructor.dishes.modal.createTitle')}
-      >
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingDish ? t('menu.constructor.dishes.modal.editTitle') : t('menu.constructor.dishes.modal.createTitle')}>
         <div className="flex flex-col gap-6 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar -mr-2">
           <div>
             <h4 className="text-sm font-bold text-brand-espresso mb-3 uppercase tracking-wider">{t('menu.constructor.dishes.modal.media')}</h4>
@@ -127,26 +92,20 @@ export const DishesTab = () => {
               <Checkbox id="isLactoseFree" label={<span className="flex items-center gap-1.5"><MilkOff className="h-3 w-3 text-blue-400"/> {t('menu.constructor.dishes.modal.tags.lactoseFree')}</span>} checked={formData.isLactoseFree} onChange={(e) => handleChange('isLactoseFree', e.target.checked)} />
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-brand-espresso">{t('menu.constructor.dishes.modal.badgeLabel')}</label>
-                <select className={selectBaseClasses} value={formData.badge} onChange={(e) => handleChange('badge', e.target.value)}>
-                  <option value="NONE">{t('menu.constructor.badges.NONE')}</option>
-                  <option value="NEW">{t('menu.constructor.badges.NEW')}</option>
-                  <option value="HIT">{t('menu.constructor.badges.HIT')}</option>
-                  <option value="CHEF_CHOICE">{t('menu.constructor.badges.CHEF_CHOICE')}</option>
-                  <option value="TOP_RATED">{t('menu.constructor.badges.TOP_RATED')}</option>
-                </select>
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-brand-espresso">{t('menu.constructor.dishes.modal.allergensLabel')}</label>
-                <select className={selectBaseClasses} defaultValue="">
-                  <option value="" disabled>{t('menu.constructor.dishes.modal.allergensPlaceholder')}</option>
-                  <option value="gluten">Глютен</option>
-                  <option value="lactose">Лактоза</option>
-                  <option value="nuts">Горіхи</option>
-                  <option value="seafood">Морепродукти</option>
-                </select>
-              </div>
+              <Select id="dishBadge" label={t('menu.constructor.dishes.modal.badgeLabel')} value={formData.badge} onChange={(e) => handleChange('badge', e.target.value)}>
+                <option value="NONE">{t('menu.constructor.badges.NONE')}</option>
+                <option value="NEW">{t('menu.constructor.badges.NEW')}</option>
+                <option value="HIT">{t('menu.constructor.badges.HIT')}</option>
+                <option value="CHEF_CHOICE">{t('menu.constructor.badges.CHEF_CHOICE')}</option>
+                <option value="TOP_RATED">{t('menu.constructor.badges.TOP_RATED')}</option>
+              </Select>
+              <Select id="dishAllergens" label={t('menu.constructor.dishes.modal.allergensLabel')} defaultValue="">
+                <option value="" disabled>{t('menu.constructor.dishes.modal.allergensPlaceholder')}</option>
+                <option value="gluten">Глютен</option>
+                <option value="lactose">Лактоза</option>
+                <option value="nuts">Горіхи</option>
+                <option value="seafood">Морепродукти</option>
+              </Select>
             </div>
           </div>
         </div>
@@ -156,12 +115,7 @@ export const DishesTab = () => {
         </div>
       </Modal>
 
-      <ConfirmModal 
-        isOpen={!!deleteId} 
-        onClose={() => setDeleteId(null)} 
-        onConfirm={confirmDelete}
-        description="Ви впевнені, що хочете видалити цю страву? Вона зникне з меню для всіх гостей."
-      />
+      <ConfirmModal isOpen={!!deleteId} onClose={() => setDeleteId(null)} onConfirm={confirmDelete} description={t('menu.constructor.dishes.deleteConfirm')} />
     </div>
   );
 };

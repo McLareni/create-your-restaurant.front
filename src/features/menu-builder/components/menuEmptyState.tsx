@@ -1,0 +1,21 @@
+import { ReactNode } from 'react';
+import { Button } from '@/shared/ui';
+
+interface MenuEmptyStateProps {
+  icon: ReactNode;
+  title: string;
+  description: string;
+  actionLabel: string;
+  onAction: () => void;
+}
+
+export const MenuEmptyState = ({ icon, title, description, actionLabel, onAction }: MenuEmptyStateProps) => {
+  return (
+    <div className="flex flex-1 flex-col items-center justify-center text-center border-2 border-dashed border-brand-gray/20 rounded-xl bg-brand-cream/30">
+      <div className="text-brand-gray/40 mb-3 *:h-12 *:w-12">{icon}</div>
+      <h3 className="text-lg font-medium text-brand-espresso mb-1">{title}</h3>
+      <p className="text-sm text-brand-gray max-w-sm mb-4">{description}</p>
+      <Button variant="outline" onClick={onAction}>{actionLabel}</Button>
+    </div>
+  );
+};

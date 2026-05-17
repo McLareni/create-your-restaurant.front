@@ -1,36 +1,35 @@
-import { useState, useEffect } from 'react';
-import { ModifierGroup, CreateModifierDTO } from '../types/modifiers.types';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { ModifierGroup, CreateModifierDTO, UpdateModifierDTO } from '../types/modifiers.types';
 import { modifiersApi } from '../api/modifiers.api';
 
 export const useModifiers = () => {
-  const [modifiers, setModifiers] = useState<ModifierGroup[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  const fetchModifiers = async () => {
-    setIsLoading(true);
-    const data = await modifiersApi.getAll();
-    setModifiers(data);
-    setIsLoading(false);
+  const { data: modifiers = [], isLoading } = useQuery({
+    queryKey: ['modifiers'],
+    queryFn: modifiersApi.getAll,
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data: CreateModifierDTO) => modifiersApi.create(data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['modifiers'] }),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateModifierDTO }) => modifiersApi.update(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['modifiers'] }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => modifiersApi.delete(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['modifiers'] }),
+  });
+
+  return {
+    modifiers,
+    isLoading,
+    createModifier: createMutation.mutate,
+    updateModifier: updateMutation.mutate,
+    deleteModifier: deleteMutation.mutate,
   };
-
-  useEffect(() => {
-    fetchModifiers();
-  }, []);
-
-  const createModifier = async (data: CreateModifierDTO) => {
-    await modifiersApi.create(data);
-    await fetchModifiers();
-  };
-
-  const updateModifier = async (id: string, data: CreateModifierDTO) => {
-    await modifiersApi.update(id, data);
-    await fetchModifiers();
-  };
-
-  const deleteModifier = async (id: string) => {
-    await modifiersApi.delete(id);
-    await fetchModifiers();
-  };
-
-  return { modifiers, isLoading, createModifier, updateModifier, deleteModifier };
 };

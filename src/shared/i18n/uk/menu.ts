@@ -1,4 +1,5 @@
 export const menu = {
+  currency: "₴",
   constructor: {
     title: "Конструктор Меню",
     subtitle: "Керуйте категоріями, стравами та модифікаторами в єдиному просторі.",
@@ -15,6 +16,7 @@ export const menu = {
       addBtn: "Створити категорію",
       editBtn: "Редагувати",
       deleteBtn: "Видалити",
+      deleteConfirm: "Ви впевнені, що хочете видалити цю категорію? Страви, які до неї прив'язані, залишаться без категорії.",
       modal: {
         createTitle: "Нова категорія",
         editTitle: "Редагування категорії",
@@ -31,6 +33,7 @@ export const menu = {
       addBtn: "Додати страву",
       editBtn: "Редагувати",
       deleteBtn: "Видалити",
+      deleteConfirm: "Ви впевнені, що хочете видалити цю страву? Вона зникне з меню для всіх гостей.",
       modal: {
         createTitle: "Нова страва",
         editTitle: "Редагування страви",
@@ -68,6 +71,7 @@ export const menu = {
       addBtn: "Додати модифікатор",
       editBtn: "Редагувати",
       deleteBtn: "Видалити",
+      deleteConfirm: "Ви впевнені, що хочете видалити цей модифікатор? Він буде відв'язаний від усіх страв.",
       modal: {
         createTitle: "Створення модифікатора",
         editTitle: "Редагування модифікатора",
@@ -81,8 +85,8 @@ export const menu = {
         maxSelect: "Максимум",
         optionsLabel: "Варіанти (Опції)",
         addOptionBtn: "Додати варіант",
-        optionNamePlaceholder: "Назва (напр. 'Додати сир')",
-        optionPricePlaceholder: "Ціна (₴)",
+        optionNamePlaceholder: "Назва",
+        optionPricePlaceholder: "Ціна",
         cancel: "Скасувати",
         save: "Зберегти"
       }
@@ -94,6 +98,7 @@ export const menu = {
       addBtn: "Створити комбо",
       editBtn: "Редагувати",
       deleteBtn: "Видалити",
+      deleteConfirm: "Ви впевнені, що хочете видалити цей набір? Він зникне з меню для всіх гостей.",
       modal: {
         createTitle: "Створення комбо",
         editTitle: "Редагування комбо",
@@ -107,6 +112,8 @@ export const menu = {
         searchPlaceholder: "Почніть вводити назву страви...",
         includedDishes: "Склад комбо",
         emptyIncluded: "Додайте страви зі списку вище",
+        notFound: "Страви не знайдено",
+        originalPrice: "Вартість без комбо:",
         cancel: "Скасувати",
         save: "Зберегти"
       }
@@ -117,6 +124,29 @@ export const menu = {
       HIT: "Хіт",
       CHEF_CHOICE: "Вибір шефа",
       TOP_RATED: "Топ рейтинг"
-    }
+    },
+
+    inventory: {
+      title: "Інвентаризація та Стоп-листи",
+      subtitle: "Контроль залишків у реальному часі. Зміни миттєво відображаються у гостей.",
+      searchPlaceholder: "Пошук страв та модифікаторів...",
+      columns: {
+        name: "Позиція",
+        zone: "Цех (Маршрутизація)",
+        stock: "Залишок (порцій)",
+        status: "Доступність"
+      },
+      zones: {
+        NONE: "Не призначено",
+        HOT_KITCHEN: "Гарячий цех",
+        COLD_KITCHEN: "Холодний цех",
+        BAR: "Бар",
+        SUSHI: "Суші-бар",
+        HOOKAH: "Кальянна"
+      },
+      stockUnlimited: "Безліміт",
+      statusAvailable: "В меню",
+      statusStopped: "У стоп-листі"
+    },
   }
 };

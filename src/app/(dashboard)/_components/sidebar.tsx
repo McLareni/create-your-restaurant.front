@@ -68,7 +68,7 @@ export const Sidebar = () => {
         moduleKey: 'menu-engine',
         subItems: [
           { id: 'menu-constructor', href: '/dashboard/menu-builder', label: t('sidebar.nav.menuConstructor') },
-          { id: 'menu-inventory', href: '/dashboard/menu-builder#inventory', label: t('sidebar.nav.menuInventory') },
+          { id: 'menu-inventory', href: '/dashboard/menu-inventory', label: t('sidebar.nav.menuInventory') },
           { id: 'menu-prices', href: '/dashboard/menu-builder#prices', label: t('sidebar.nav.menuPrices') },
         ]
       },

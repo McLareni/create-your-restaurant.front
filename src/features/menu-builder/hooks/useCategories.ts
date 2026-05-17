@@ -1,61 +1,64 @@
-import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import { Category } from '../types/categories.types';
+import { Category, CreateCategoryDTO } from '../types/categories.types';
 import { categoriesApi } from '../api/categories.api';
 
 export const useCategories = () => {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  const fetchCategories = async () => {
-    setIsLoading(true);
-    const data = await categoriesApi.getAll();
-    setCategories(data);
-    setIsLoading(false);
-  };
+  const { data: categories = [], isLoading } = useQuery({
+    queryKey: ['categories'],
+    queryFn: categoriesApi.getAll,
+  });
 
-  useEffect(() => {
-    fetchCategories();
-  }, []);
+  const createMutation = useMutation({
+    mutationFn: (data: CreateCategoryDTO) => categoriesApi.create(data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['categories'] }),
+  });
 
-  const createCategory = async (name: string) => {
-    await categoriesApi.create({ name });
-    await fetchCategories();
-  };
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: CreateCategoryDTO }) => categoriesApi.update(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['categories'] }),
+  });
 
-  const updateCategory = async (id: string, name: string) => {
-    await categoriesApi.update(id, { name });
-    await fetchCategories();
-  };
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => categoriesApi.delete(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['categories'] }),
+  });
 
-  const deleteCategory = async (id: string) => {
-    await categoriesApi.delete(id);
-    await fetchCategories();
-  };
+  const reorderMutation = useMutation({
+    mutationFn: (items: Category[]) => categoriesApi.reorder(items),
+    onMutate: async (newItems) => {
+      await queryClient.cancelQueries({ queryKey: ['categories'] });
+      const previousItems = queryClient.getQueryData(['categories']);
+      queryClient.setQueryData(['categories'], newItems);
+      return { previousItems };
+    },
+    onError: (err, newItems, context) => {
+      queryClient.setQueryData(['categories'], context?.previousItems);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['categories'] }),
+  });
 
-  const handleDragEnd = async (event: DragEndEvent) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-
     if (over && active.id !== over.id) {
       const oldIndex = categories.findIndex((item) => item.id === active.id);
       const newIndex = categories.findIndex((item) => item.id === over.id);
-      
       const newArray = arrayMove(categories, oldIndex, newIndex).map(
         (item, index) => ({ ...item, sortOrder: index })
       );
-      
-      setCategories(newArray);
-      await categoriesApi.reorder(newArray);
+      reorderMutation.mutate(newArray);
     }
   };
 
   return {
     categories,
     isLoading,
-    createCategory,
-    updateCategory,
-    deleteCategory,
+    createCategory: createMutation.mutate,
+    updateCategory: updateMutation.mutate,
+    deleteCategory: deleteMutation.mutate,
     handleDragEnd
   };
 };

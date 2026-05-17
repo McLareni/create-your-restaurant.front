@@ -1,34 +1,35 @@
-import { useState, useEffect } from 'react';
-import { Combo, CreateComboDTO } from '../types/combos.types';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Combo, CreateComboDTO, UpdateComboDTO } from '../types/combos.types';
 import { combosApi } from '../api/combos.api';
 
 export const useCombos = () => {
-  const [combos, setCombos] = useState<Combo[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  const fetchCombos = async () => {
-    setIsLoading(true);
-    const data = await combosApi.getAll();
-    setCombos(data);
-    setIsLoading(false);
+  const { data: combos = [], isLoading } = useQuery({
+    queryKey: ['combos'],
+    queryFn: combosApi.getAll,
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data: CreateComboDTO) => combosApi.create(data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['combos'] }),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateComboDTO }) => combosApi.update(id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['combos'] }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => combosApi.delete(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['combos'] }),
+  });
+
+  return {
+    combos,
+    isLoading,
+    createCombo: createMutation.mutate,
+    updateCombo: updateMutation.mutate,
+    deleteCombo: deleteMutation.mutate,
   };
-
-  useEffect(() => { fetchCombos(); }, []);
-
-  const createCombo = async (data: CreateComboDTO) => {
-    await combosApi.create(data);
-    await fetchCombos();
-  };
-
-  const updateCombo = async (id: string, data: CreateComboDTO) => {
-    await combosApi.update(id, data);
-    await fetchCombos();
-  };
-
-  const deleteCombo = async (id: string) => {
-    await combosApi.delete(id);
-    await fetchCombos();
-  };
-
-  return { combos, isLoading, createCombo, updateCombo, deleteCombo };
 };
