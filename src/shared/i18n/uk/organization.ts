@@ -17,23 +17,35 @@ export const organization = {
     phoneLabel: "Контактний телефон (Опціонально)",
     phonePlaceholder: "+380...",
     submitBtn: "Створити заклад",
-    // ДОДАЄМО ОПЦІЇ СЮДИ:
     types: {
+      FAST_FOOD: "Фаст-фуд",
+      CASUAL_DINING: "Повсякденний ресторан",
+      FINE_DINING: "Ресторан високої кухні",
       CAFE: "Кав'ярня",
-      BAR: "Бар",
-      RESTAURANT: "Ресторан",
-      HOTEL: "Готель"
+      BUFFET: "Шведський стіл",
+      FOOD_TRUCK: "Фуд-трак"
     },
     currencies: {
-      UAH: "UAH (Гривня)",
-      PLN: "PLN (Злотий)",
-      USD: "USD (Долар)",
-      EUR: "EUR (Євро)"
+      USD: "USD (Долар США)",
+      EUR: "EUR (Євро)",
+      GBP: "GBP (Британський фунт)",
+      JPY: "JPY (Японська єна)",
+      CNY: "CNY (Китайський юань)",
+      RUB: "RUB (Російський рубль)",
+      PLN: "PLN (Польський злотий)",
+      UAH: "UAH (Українська гривня)"
     },
     languages: {
-      UK: "Українська",
-      PL: "Польська",
-      EN: "English"
+      EN: "English",
+      FR: "Français",
+      ES: "Español",
+      DE: "Deutsch",
+      IT: "Italiano",
+      RU: "Русский",
+      CN: "中文",
+      JP: "日本語",
+      PL: "Polski",
+      UA: "Українська"
     }
   },
   animation: {

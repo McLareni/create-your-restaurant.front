@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { z } from 'zod';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { createOrganizationSchema, CreateOrganizationValues } from '../schemas/organization.schema';
 import { organizationApi } from '../api/organizations.api';
@@ -54,16 +53,17 @@ export const useCreateOrganization = () => {
 
     debounceTimerRef.current = setTimeout(async () => {
       try {
-        const res = { available: formData.slug !== 'test' }; 
+        const res = await organizationApi.checkSlug(formData.slug!);
         
-        setSlugAvailable(res.available);
-        if (!res.available) {
+        setSlugAvailable(res.isAvailable);
+        if (!res.isAvailable) {
           setErrors(prev => ({ ...prev, slug: t('organization.errors.slugTaken') }));
         } else {
           setErrors(prev => ({ ...prev, slug: undefined }));
         }
       } catch (error) {
-        setSlugAvailable(null);
+        setSlugAvailable(true);
+        setErrors(prev => ({ ...prev, slug: undefined }));
       } finally {
         setIsCheckingSlug(false);
       }
@@ -72,7 +72,8 @@ export const useCreateOrganization = () => {
     return () => {
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     };
-  }, [formData.slug, t]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.slug]);
 
   const handleChange = (field: keyof CreateOrganizationValues, value: string) => {
     if (field === 'slug') setIsSlugManuallyEdited(true);
@@ -113,6 +114,7 @@ export const useCreateOrganization = () => {
     if (slugAvailable === false) return;
 
     try {
+      await organizationApi.create(validation.data);
       playSuccessAnimation();
     } catch (error) {
       setErrors({ name: t('organization.errors.serverError') });

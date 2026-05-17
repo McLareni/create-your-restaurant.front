@@ -1,7 +1,8 @@
+import { useCallback } from 'react';
 import { uk } from '@/shared/i18n/uk';
 
 export const useTranslation = () => {
-  const t = (key: string) => {
+  const t = useCallback((key: string) => {
     const keys = key.split('.');
     let value: any = uk;
     for (const k of keys) {
@@ -9,7 +10,7 @@ export const useTranslation = () => {
       value = value[k];
     }
     return value;
-  };
+  }, []);
 
   return { t };
 };
