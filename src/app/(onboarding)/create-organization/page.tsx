@@ -35,7 +35,7 @@ export default function CreateOrganizationPage() {
             <div 
               className="h-full bg-brand-copper transition-all duration-1000 ease-in-out"
               style={{ width: `${(animationStep / 4) * 100}%` }}
-                />
+            />
           </div>
         </div>
       </div>
@@ -104,10 +104,12 @@ export default function CreateOrganizationPage() {
                 onChange={(e) => handleChange('type', e.target.value)}
               >
                 <option value="" disabled>{t('organization.create.typePlaceholder')}</option>
+                <option value="FAST_FOOD">{t('organization.create.types.FAST_FOOD')}</option>
+                <option value="CASUAL_DINING">{t('organization.create.types.CASUAL_DINING')}</option>
+                <option value="FINE_DINING">{t('organization.create.types.FINE_DINING')}</option>
                 <option value="CAFE">{t('organization.create.types.CAFE')}</option>
-                <option value="BAR">{t('organization.create.types.BAR')}</option>
-                <option value="RESTAURANT">{t('organization.create.types.RESTAURANT')}</option>
-                <option value="HOTEL">{t('organization.create.types.HOTEL')}</option>
+                <option value="BUFFET">{t('organization.create.types.BUFFET')}</option>
+                <option value="FOOD_TRUCK">{t('organization.create.types.FOOD_TRUCK')}</option>
               </select>
               <div className="pointer-events-none absolute right-3 top-[38px] text-brand-gray/60">▼</div>
               {errors.type && <span className="text-xs text-red-500">{errors.type}</span>}
@@ -123,10 +125,14 @@ export default function CreateOrganizationPage() {
                 onChange={(e) => handleChange('currency', e.target.value)}
               >
                 <option value="" disabled>{t('organization.create.currencyPlaceholder')}</option>
-                <option value="UAH">{t('organization.create.currencies.UAH')}</option>
-                <option value="PLN">{t('organization.create.currencies.PLN')}</option>
                 <option value="USD">{t('organization.create.currencies.USD')}</option>
                 <option value="EUR">{t('organization.create.currencies.EUR')}</option>
+                <option value="GBP">{t('organization.create.currencies.GBP')}</option>
+                <option value="JPY">{t('organization.create.currencies.JPY')}</option>
+                <option value="CNY">{t('organization.create.currencies.CNY')}</option>
+                <option value="RUB">{t('organization.create.currencies.RUB')}</option>
+                <option value="PLN">{t('organization.create.currencies.PLN')}</option>
+                <option value="UAH">{t('organization.create.currencies.UAH')}</option>
               </select>
               <div className="pointer-events-none absolute right-3 top-[38px] text-brand-gray/60">▼</div>
               {errors.currency && <span className="text-xs text-red-500">{errors.currency}</span>}
@@ -142,9 +148,16 @@ export default function CreateOrganizationPage() {
                 onChange={(e) => handleChange('language', e.target.value)}
               >
                 <option value="" disabled>{t('organization.create.languagePlaceholder')}</option>
-                <option value="UK">{t('organization.create.languages.UK')}</option>
-                <option value="PL">{t('organization.create.languages.PL')}</option>
                 <option value="EN">{t('organization.create.languages.EN')}</option>
+                <option value="FR">{t('organization.create.languages.FR')}</option>
+                <option value="ES">{t('organization.create.languages.ES')}</option>
+                <option value="DE">{t('organization.create.languages.DE')}</option>
+                <option value="IT">{t('organization.create.languages.IT')}</option>
+                <option value="RU">{t('organization.create.languages.RU')}</option>
+                <option value="CN">{t('organization.create.languages.CN')}</option>
+                <option value="JP">{t('organization.create.languages.JP')}</option>
+                <option value="PL">{t('organization.create.languages.PL')}</option>
+                <option value="UA">{t('organization.create.languages.UA')}</option>
               </select>
               <div className="pointer-events-none absolute right-3 top-[38px] text-brand-gray/60">▼</div>
               {errors.language && <span className="text-xs text-red-500">{errors.language}</span>}

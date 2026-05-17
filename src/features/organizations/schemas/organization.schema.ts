@@ -8,9 +8,9 @@ export const createOrganizationSchema = z.object({
     .min(3, 'organization.errors.slugFormat')
     .regex(/^[a-z0-9-]+$/, 'organization.errors.slugFormat')
     .refine((val) => !RESERVED_SLUGS.includes(val), 'organization.errors.slugReserved'),
-  type: z.enum(['CAFE', 'BAR', 'RESTAURANT', 'HOTEL'], { message: 'organization.errors.required' }),
-currency: z.enum(['UAH', 'PLN', 'USD', 'EUR'], { message: 'organization.errors.required' }),
-language: z.enum(['UK', 'PL', 'EN'], { message: 'organization.errors.required' }),
+  type: z.enum(['FAST_FOOD', 'CASUAL_DINING', 'FINE_DINING', 'CAFE', 'BUFFET', 'FOOD_TRUCK'], { message: 'organization.errors.required' }),
+  currency: z.enum(['USD', 'EUR', 'GBP', 'JPY', 'CNY', 'RUB', 'PLN', 'UAH'], { message: 'organization.errors.required' }),
+  language: z.enum(['EN', 'FR', 'ES', 'DE', 'IT', 'RU', 'CN', 'JP', 'PL', 'UA'], { message: 'organization.errors.required' }),
   city: z.string()
     .regex(/^[^!@#$%^&*()_+={}\[\]|\\:;"'<>,.?/]+$/, 'organization.errors.cityFormat')
     .min(2, 'organization.errors.cityLength')
