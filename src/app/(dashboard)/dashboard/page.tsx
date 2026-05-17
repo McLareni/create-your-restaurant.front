@@ -20,7 +20,7 @@ export default function DashboardPage() {
             onClick={logout} 
             className="text-brand-espresso! border-brand-espresso/20! hover:bg-brand-espresso/5!"
           >
-            Вийти
+            {t('dashboard.logoutBtn')}
           </Button>
         </div>
         
@@ -30,8 +30,8 @@ export default function DashboardPage() {
 
         {user && (
           <div className="mt-6 rounded-xl bg-brand-cream p-5 border border-brand-copper/20 flex flex-col gap-2">
-            <p><strong>Email:</strong> {user.email}</p>
-            <p><strong>Роль:</strong> {user.role}</p>
+            <p><strong>{t('dashboard.emailLabel')}:</strong> {user.email}</p>
+            <p><strong>{t('dashboard.roleLabel')}:</strong> {user.role}</p>
           </div>
         )}
       </div>

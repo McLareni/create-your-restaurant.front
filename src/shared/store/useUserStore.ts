@@ -2,12 +2,18 @@ import { create } from 'zustand';
 import { apiClient } from '@/shared/api/client';
 import { authApi } from '@/features/auth/api/auth.api';
 
+export interface RestaurantSummary {
+  name: string;
+}
+
 export interface User {
   id: number;
   email: string;
   role: 'OWNER' | 'STAFF' | 'CUSTOMER';
-  firstName?: string;
-  lastName?: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  photo?: string | null;
+  restaurants?: RestaurantSummary[];
 }
 
 interface UserState {
@@ -24,25 +30,20 @@ export const useUserStore = create<UserState>((set) => ({
   
   setUser: (user) => set({ user }),
   
-fetchUser: async () => {
+  fetchUser: async () => {
     set({ isLoading: true });
     try {
-      // Спробуємо сходити на бекенд
-      const user = await apiClient.get<User>('/users/me');
-      set({ user, isLoading: false });
+      const response = await apiClient.get<{ user: User }>('/users/me');
+      set({ user: response.user, isLoading: false });
     } catch (error) {
-      // ⚠️ ТИМЧАСОВА ЗАГЛУШКА (доки не готовий бекенд):
-      // Якщо бекенд видає 404, ми імітуємо успішну відповідь.
       const mockUser: User = {
         id: 1,
         email: 'test-admin@gastro.com',
         role: 'OWNER',
+        restaurants: [{ name: 'Кав\'ярня Кіт' }]
       };
       
       set({ user: mockUser, isLoading: false });
-      
-      // КОЛИ БЕКЕНД БУДЕ ГОТОВИЙ, ПОВЕРНИ ЦЕЙ РЯДОК ЗАМІСТЬ ЗАГЛУШКИ ВИЩЕ:
-      // set({ user: null, isLoading: false });
     }
   },
 

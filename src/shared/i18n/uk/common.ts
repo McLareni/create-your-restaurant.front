@@ -7,7 +7,16 @@ export const common = {
   },
   dashboard: {
     title: "Панель управління Gustio",
-    successMessage: "Ви успішно авторизовані! (Захищена сторінка)"
+    successMessage: "Ви успішно авторизовані! (Захищена сторінка)",
+    logoutBtn: "Вийти",
+    emailLabel: "Email",
+    roleLabel: "Роль"
+  },
+  confirmModal: {
+    title: "Підтвердження видалення",
+    defaultDesc: "Ви впевнені, що хочете видалити цей елемент? Цю дію неможливо скасувати.",
+    cancel: "Скасувати",
+    confirm: "Видалити"
   },
   notFound: {
     title: "404",

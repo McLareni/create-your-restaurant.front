@@ -3,7 +3,7 @@
 import { Input, Button } from '@/shared/ui';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { useCreateOrganization } from '@/features/organizations/hooks/useCreateOrganization';
-import { Loader2, CheckCircle2, XCircle, Store } from 'lucide-react';
+import { Loader2, CheckCircle2, XCircle, Store, ChevronDown } from 'lucide-react';
 
 export default function CreateOrganizationPage() {
   const { t } = useTranslation();
@@ -26,7 +26,7 @@ export default function CreateOrganizationPage() {
           
           <h2 className="text-2xl font-serif font-medium transition-all duration-300">
             {animationStep === 1 && t('organization.animation.step1')}
-            {animationStep === 2 && `${t('organization.animation.step2')} ${formData.slug}.gastro.com...`}
+            {animationStep === 2 && `${t('organization.animation.step2')} ${formData.slug}${process.env.NEXT_PUBLIC_DOMAIN_SUFFIX || '.gastro.com'}...`}
             {animationStep === 3 && t('organization.animation.step3')}
             {animationStep === 4 && t('organization.animation.step4')}
           </h2>
@@ -85,7 +85,7 @@ export default function CreateOrganizationPage() {
                 className={slugAvailable ? 'border-green-500 focus:border-green-500 focus:ring-green-500' : ''}
                 rightElement={
                   <>
-                    <span>.gastro.com</span>
+                    <span>{process.env.NEXT_PUBLIC_DOMAIN_SUFFIX || '.gastro.com'}</span>
                     {isCheckingSlug && <Loader2 className="h-4 w-4 animate-spin text-brand-copper" />}
                     {slugAvailable === true && <CheckCircle2 className="h-4 w-4 text-green-500" />}
                     {slugAvailable === false && <XCircle className="h-4 w-4 text-red-500" />}
@@ -111,7 +111,7 @@ export default function CreateOrganizationPage() {
                 <option value="BUFFET">{t('organization.create.types.BUFFET')}</option>
                 <option value="FOOD_TRUCK">{t('organization.create.types.FOOD_TRUCK')}</option>
               </select>
-              <div className="pointer-events-none absolute right-3 top-[38px] text-brand-gray/60">▼</div>
+              <ChevronDown className="pointer-events-none absolute right-3 top-[38px] h-4 w-4 text-brand-gray/60" />
               {errors.type && <span className="text-xs text-red-500">{errors.type}</span>}
             </div>
 
@@ -134,7 +134,7 @@ export default function CreateOrganizationPage() {
                 <option value="PLN">{t('organization.create.currencies.PLN')}</option>
                 <option value="UAH">{t('organization.create.currencies.UAH')}</option>
               </select>
-              <div className="pointer-events-none absolute right-3 top-[38px] text-brand-gray/60">▼</div>
+              <ChevronDown className="pointer-events-none absolute right-3 top-[38px] h-4 w-4 text-brand-gray/60" />
               {errors.currency && <span className="text-xs text-red-500">{errors.currency}</span>}
             </div>
 
@@ -159,7 +159,7 @@ export default function CreateOrganizationPage() {
                 <option value="PL">{t('organization.create.languages.PL')}</option>
                 <option value="UA">{t('organization.create.languages.UA')}</option>
               </select>
-              <div className="pointer-events-none absolute right-3 top-[38px] text-brand-gray/60">▼</div>
+              <ChevronDown className="pointer-events-none absolute right-3 top-[38px] h-4 w-4 text-brand-gray/60" />
               {errors.language && <span className="text-xs text-red-500">{errors.language}</span>}
             </div>
 

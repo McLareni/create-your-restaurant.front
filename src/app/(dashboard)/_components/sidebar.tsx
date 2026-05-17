@@ -10,16 +10,23 @@ import {
   LayoutDashboard, BarChart3, BellRing, UtensilsCrossed, 
   QrCode, Users, ArrowRightLeft, FileClock, MessageSquareQuote, 
   Blocks, Palette, CreditCard, Moon, HelpCircle, ShieldAlert,
-  ChevronsUpDown, Plus, Lock, LogOut, Store
+  ChevronsUpDown, Plus, Lock, LogOut, Store, ChevronDown
 } from 'lucide-react';
+
+type SubMenuItem = {
+  id: string;
+  href: any;
+  label: string;
+};
 
 type MenuItem = {
   id: string;
-  href: string;
+  href?: string;
   icon: React.ElementType;
   label: string;
   moduleKey?: string;
   highlight?: boolean;
+  subItems?: SubMenuItem[];
 };
 
 export const Sidebar = () => {
@@ -27,7 +34,12 @@ export const Sidebar = () => {
   const pathname = usePathname();
   const { user, logout } = useUserStore();
   const { hasModule, fetchAccessData } = useAccessStore(); 
+  
   const [isOrgDropdownOpen, setIsOrgDropdownOpen] = useState(false);
+  const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({});
+
+  const currentOrgName = user?.restaurants?.[0]?.name || t('sidebar.orgSelector.current');
+  const orgInitial = currentOrgName ? currentOrgName[0].toUpperCase() : 'G';
 
   useEffect(() => {
     fetchAccessData('mock-restaurant-id');
@@ -38,6 +50,10 @@ export const Sidebar = () => {
     alert(`${t('sidebar.locked.title')}:\n${t('sidebar.locked.description')} (${moduleName})`);
   };
 
+  const toggleSubMenu = (id: string) => {
+    setExpandedMenus(prev => ({ ...prev, [id]: !prev[id] }));
+  };
+
   const menuGroups: MenuItem[][] = [
     [
       { id: 'dashboard', href: '/dashboard', icon: LayoutDashboard, label: t('sidebar.nav.dashboard') },
@@ -45,7 +61,17 @@ export const Sidebar = () => {
     ],
     [
       { id: 'live-calls', href: '/dashboard/live', icon: BellRing, label: t('sidebar.nav.liveCalls'), moduleKey: 'live-calls' },
-      { id: 'menu', href: '/dashboard/menu', icon: UtensilsCrossed, label: t('sidebar.nav.menuEngine'), moduleKey: 'menu-engine' },
+      { 
+        id: 'menu', 
+        icon: UtensilsCrossed, 
+        label: t('sidebar.nav.menu'), 
+        moduleKey: 'menu-engine',
+        subItems: [
+          { id: 'menu-constructor', href: '/dashboard/menu-builder', label: t('sidebar.nav.menuConstructor') },
+          { id: 'menu-inventory', href: '/dashboard/menu-builder#inventory', label: t('sidebar.nav.menuInventory') },
+          { id: 'menu-prices', href: '/dashboard/menu-builder#prices', label: t('sidebar.nav.menuPrices') },
+        ]
+      },
       { id: 'qr', href: '/dashboard/qr', icon: QrCode, label: t('sidebar.nav.qrTables'), moduleKey: 'qr-tables' },
       { id: 'staff', href: '/dashboard/staff', icon: Users, label: t('sidebar.nav.staff'), moduleKey: 'staff' },
       { id: 'pos', href: '/dashboard/pos', icon: ArrowRightLeft, label: t('sidebar.nav.posSync'), moduleKey: 'pos-sync', highlight: true },
@@ -73,11 +99,11 @@ export const Sidebar = () => {
         >
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-copper text-white font-serif text-lg font-bold">
-              К
+              {orgInitial}
             </div>
             <div className="flex flex-col items-start truncate">
               <span className="text-xs text-brand-gray font-medium uppercase tracking-wider">{t('sidebar.orgSelector.switch')}</span>
-              <span className="truncate font-medium text-brand-cream">{t('sidebar.orgSelector.current')}</span>
+              <span className="truncate font-medium text-brand-cream">{currentOrgName}</span>
             </div>
           </div>
           <ChevronsUpDown className="h-4 w-4 text-brand-gray shrink-0" />
@@ -88,7 +114,7 @@ export const Sidebar = () => {
             <div className="p-2">
               <button className="flex w-full items-center gap-3 rounded-lg p-2 transition-colors hover:bg-white/5">
                 <Store className="h-5 w-5 text-brand-gray" />
-                <span className="text-sm font-medium">{t('sidebar.orgSelector.current')}</span>
+                <span className="text-sm font-medium">{currentOrgName}</span>
               </button>
             </div>
             <div className="border-t border-brand-gray/20 p-2">
@@ -108,9 +134,55 @@ export const Sidebar = () => {
         {menuGroups.map((group, groupIdx) => (
           <div key={groupIdx} className={`px-3 py-2 ${groupIdx !== menuGroups.length - 1 ? 'border-b border-brand-gray/10 mb-2' : ''}`}>
             {group.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive = pathname === item.href || (item.subItems && item.subItems.some(sub => pathname === sub.href));
               const Icon = item.icon;
               const isLocked = item.moduleKey && !hasModule(item.moduleKey);
+              const isExpanded = expandedMenus[item.id];
+
+              if (item.subItems) {
+                return (
+                  <div key={item.id} className="mb-1">
+                    <button
+                      onClick={(e) => isLocked ? handleLockedClick(e, item.label) : toggleSubMenu(item.id)}
+                      className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-all outline-none ${
+                        isLocked ? 'text-brand-gray opacity-60 hover:bg-white/5' :
+                        isActive && !isExpanded ? 'bg-brand-copper text-white shadow-md' : 'text-brand-cream/80 hover:bg-white/10 hover:text-white'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon className={`h-5 w-5 shrink-0 ${isActive && !isExpanded && !isLocked ? 'text-white' : 'text-brand-gray'}`} />
+                        <span>{item.label}</span>
+                      </div>
+                      {isLocked ? (
+                        <Lock className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className={`h-4 w-4 shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                      )}
+                    </button>
+                    
+                    <div className={`grid transition-all duration-200 ease-in-out ${isExpanded && !isLocked ? 'grid-rows-[1fr] opacity-100 mt-1' : 'grid-rows-[0fr] opacity-0'}`}>
+                      <div className="overflow-hidden flex flex-col gap-1">
+                        {item.subItems.map(sub => {
+                          const isSubActive = pathname === sub.href;
+                          return (
+                            <Link
+                              key={sub.id}
+                              href={sub.href}
+                              className={`flex w-full items-center rounded-lg py-2 pl-11 pr-3 text-sm transition-colors outline-none ${
+                                isSubActive 
+                                  ? 'bg-white/10 text-white font-medium' 
+                                  : 'text-brand-gray hover:bg-white/5 hover:text-brand-cream'
+                              }`}
+                            >
+                              {sub.label}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                );
+              }
 
               if (isLocked) {
                 return (
@@ -131,7 +203,7 @@ export const Sidebar = () => {
               return (
                 <Link
                   key={item.id}
-                  href={item.href}
+                  href={item.href!}
                   className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-all mb-1 outline-none ${
                     isActive 
                       ? 'bg-brand-copper text-white shadow-md' 
