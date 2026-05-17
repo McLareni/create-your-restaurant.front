@@ -1,6 +1,6 @@
 'use client';
 
-import { Input, Button } from '@/shared/ui';
+import { Input, Button, Select } from '@/shared/ui';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { useCreateOrganization } from '@/features/organizations/hooks/useCreateOrganization';
 import { Loader2, CheckCircle2, XCircle, Store } from 'lucide-react';
@@ -26,7 +26,7 @@ export default function CreateOrganizationPage() {
           
           <h2 className="text-2xl font-serif font-medium transition-all duration-300">
             {animationStep === 1 && t('organization.animation.step1')}
-            {animationStep === 2 && `${t('organization.animation.step2')} ${formData.slug}.gastro.com...`}
+            {animationStep === 2 && `${t('organization.animation.step2')} ${formData.slug}${process.env.NEXT_PUBLIC_DOMAIN_SUFFIX || '.gastro.com'}...`}
             {animationStep === 3 && t('organization.animation.step3')}
             {animationStep === 4 && t('organization.animation.step4')}
           </h2>
@@ -41,8 +41,6 @@ export default function CreateOrganizationPage() {
       </div>
     );
   }
-
-  const selectBaseClasses = "h-12 w-full rounded-md border bg-white px-3 py-2 text-sm outline-none transition-colors focus:border-brand-copper focus:ring-1 focus:ring-brand-copper disabled:opacity-50 appearance-none";
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-brand-cream p-6">
@@ -85,7 +83,7 @@ export default function CreateOrganizationPage() {
                 className={slugAvailable ? 'border-green-500 focus:border-green-500 focus:ring-green-500' : ''}
                 rightElement={
                   <>
-                    <span>.gastro.com</span>
+                    <span>{process.env.NEXT_PUBLIC_DOMAIN_SUFFIX || '.gastro.com'}</span>
                     {isCheckingSlug && <Loader2 className="h-4 w-4 animate-spin text-brand-copper" />}
                     {slugAvailable === true && <CheckCircle2 className="h-4 w-4 text-green-500" />}
                     {slugAvailable === false && <XCircle className="h-4 w-4 text-red-500" />}
@@ -94,58 +92,50 @@ export default function CreateOrganizationPage() {
               />
             </div>
 
-            <div className="flex flex-col gap-1.5 relative">
-              <label className="text-sm font-medium text-brand-espresso">
-                {t('organization.create.typeLabel')}
-              </label>
-              <select 
-                className={`${selectBaseClasses} ${errors.type ? 'border-red-500' : 'border-brand-gray/30 text-brand-espresso'} ${!formData.type ? 'text-brand-gray/60' : ''}`}
-                value={formData.type || ''}
-                onChange={(e) => handleChange('type', e.target.value)}
-              >
-                <option value="" disabled>{t('organization.create.typePlaceholder')}</option>
-                <option value="FAST_FOOD">{t('organization.create.types.FAST_FOOD')}</option>
-                <option value="CASUAL_DINING">{t('organization.create.types.CASUAL_DINING')}</option>
-                <option value="FINE_DINING">{t('organization.create.types.FINE_DINING')}</option>
-                <option value="CAFE">{t('organization.create.types.CAFE')}</option>
-                <option value="BUFFET">{t('organization.create.types.BUFFET')}</option>
-                <option value="FOOD_TRUCK">{t('organization.create.types.FOOD_TRUCK')}</option>
-              </select>
-              <div className="pointer-events-none absolute right-3 top-[38px] text-brand-gray/60">▼</div>
-              {errors.type && <span className="text-xs text-red-500">{errors.type}</span>}
-            </div>
+            <Select 
+              id="type"
+              label={t('organization.create.typeLabel')}
+              value={formData.type || ''}
+              onChange={(e) => handleChange('type', e.target.value)}
+              error={errors.type}
+              className={!formData.type ? 'text-brand-gray/60' : ''}
+            >
+              <option value="" disabled>{t('organization.create.typePlaceholder')}</option>
+              <option value="FAST_FOOD">{t('organization.create.types.FAST_FOOD')}</option>
+              <option value="CASUAL_DINING">{t('organization.create.types.CASUAL_DINING')}</option>
+              <option value="FINE_DINING">{t('organization.create.types.FINE_DINING')}</option>
+              <option value="CAFE">{t('organization.create.types.CAFE')}</option>
+              <option value="BUFFET">{t('organization.create.types.BUFFET')}</option>
+              <option value="FOOD_TRUCK">{t('organization.create.types.FOOD_TRUCK')}</option>
+            </Select>
 
-            <div className="flex flex-col gap-1.5 relative">
-              <label className="text-sm font-medium text-brand-espresso">
-                {t('organization.create.currencyLabel')}
-              </label>
-              <select 
-                className={`${selectBaseClasses} ${errors.currency ? 'border-red-500' : 'border-brand-gray/30 text-brand-espresso'} ${!formData.currency ? 'text-brand-gray/60' : ''}`}
-                value={formData.currency || ''}
-                onChange={(e) => handleChange('currency', e.target.value)}
-              >
-                <option value="" disabled>{t('organization.create.currencyPlaceholder')}</option>
-                <option value="USD">{t('organization.create.currencies.USD')}</option>
-                <option value="EUR">{t('organization.create.currencies.EUR')}</option>
-                <option value="GBP">{t('organization.create.currencies.GBP')}</option>
-                <option value="JPY">{t('organization.create.currencies.JPY')}</option>
-                <option value="CNY">{t('organization.create.currencies.CNY')}</option>
-                <option value="RUB">{t('organization.create.currencies.RUB')}</option>
-                <option value="PLN">{t('organization.create.currencies.PLN')}</option>
-                <option value="UAH">{t('organization.create.currencies.UAH')}</option>
-              </select>
-              <div className="pointer-events-none absolute right-3 top-[38px] text-brand-gray/60">▼</div>
-              {errors.currency && <span className="text-xs text-red-500">{errors.currency}</span>}
-            </div>
+            <Select 
+              id="currency"
+              label={t('organization.create.currencyLabel')}
+              value={formData.currency || ''}
+              onChange={(e) => handleChange('currency', e.target.value)}
+              error={errors.currency}
+              className={!formData.currency ? 'text-brand-gray/60' : ''}
+            >
+              <option value="" disabled>{t('organization.create.currencyPlaceholder')}</option>
+              <option value="USD">{t('organization.create.currencies.USD')}</option>
+              <option value="EUR">{t('organization.create.currencies.EUR')}</option>
+              <option value="GBP">{t('organization.create.currencies.GBP')}</option>
+              <option value="JPY">{t('organization.create.currencies.JPY')}</option>
+              <option value="CNY">{t('organization.create.currencies.CNY')}</option>
+              <option value="RUB">{t('organization.create.currencies.RUB')}</option>
+              <option value="PLN">{t('organization.create.currencies.PLN')}</option>
+              <option value="UAH">{t('organization.create.currencies.UAH')}</option>
+            </Select>
 
-            <div className="col-span-1 md:col-span-2 flex flex-col gap-1.5 relative">
-              <label className="text-sm font-medium text-brand-espresso">
-                {t('organization.create.languageLabel')}
-              </label>
-              <select 
-                className={`${selectBaseClasses} ${errors.language ? 'border-red-500' : 'border-brand-gray/30 text-brand-espresso'} ${!formData.language ? 'text-brand-gray/60' : ''}`}
+            <div className="col-span-1 md:col-span-2">
+              <Select 
+                id="language"
+                label={t('organization.create.languageLabel')}
                 value={formData.language || ''}
                 onChange={(e) => handleChange('language', e.target.value)}
+                error={errors.language}
+                className={!formData.language ? 'text-brand-gray/60' : ''}
               >
                 <option value="" disabled>{t('organization.create.languagePlaceholder')}</option>
                 <option value="EN">{t('organization.create.languages.EN')}</option>
@@ -158,9 +148,7 @@ export default function CreateOrganizationPage() {
                 <option value="JP">{t('organization.create.languages.JP')}</option>
                 <option value="PL">{t('organization.create.languages.PL')}</option>
                 <option value="UA">{t('organization.create.languages.UA')}</option>
-              </select>
-              <div className="pointer-events-none absolute right-3 top-[38px] text-brand-gray/60">▼</div>
-              {errors.language && <span className="text-xs text-red-500">{errors.language}</span>}
+              </Select>
             </div>
 
             <div>

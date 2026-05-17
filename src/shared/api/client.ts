@@ -1,5 +1,3 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
 interface RequestOptions extends RequestInit {
   params?: Record<string, string>;
 }
@@ -7,15 +5,18 @@ interface RequestOptions extends RequestInit {
 async function fetchClient<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
   const { params, headers, ...customConfig } = options;
   
-  const isLocalApi = endpoint.startsWith('/api');
-  const baseUrl = isLocalApi 
-    ? (typeof window !== 'undefined' ? window.location.origin : '') 
-    : API_URL;
-
-  const url = new URL(`${baseUrl}${endpoint}`);
+  const isLocalAuth = endpoint.startsWith('/api/auth');
   
+  let urlStr = endpoint;
+  if (!isLocalAuth) {
+    // Направляємо всі запити на наш внутрішній сервер
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+    urlStr = `/api/proxy/${cleanEndpoint}`;
+  }
+
   if (params) {
-    Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+    const searchParams = new URLSearchParams(params);
+    urlStr += `?${searchParams.toString()}`;
   }
 
   const config: RequestInit = {
@@ -24,10 +25,9 @@ async function fetchClient<T>(endpoint: string, options: RequestOptions = {}): P
       'Content-Type': 'application/json',
       ...headers,
     },
-    credentials: 'include',
   };
 
-  const response = await fetch(url.toString(), config);
+  const response = await fetch(urlStr, config);
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
