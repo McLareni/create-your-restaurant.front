@@ -25,7 +25,8 @@ export default function DashboardLayout({
     }
 
     if (!isLoading && user) {
-      const hasOrganizations = true; // ТИМЧАСОВА ЗАГЛУШКА: Змінили на true, щоб пустило в дашборд і ми побачили сайдбар
+      // ПЕРЕВІРКА НА РЕАЛЬНИХ ДАНИХ:
+      const hasOrganizations = user.restaurants && user.restaurants.length > 0;
       
       if (!hasOrganizations) {
         router.replace('/create-organization');
@@ -39,6 +40,12 @@ export default function DashboardLayout({
         <Loader2 className="h-10 w-10 animate-spin text-brand-copper" />
       </div>
     );
+  }
+
+  // Якщо юзер є, але ще не має ресторанів, ми не рендеримо дашборд, 
+  // поки йде редірект на /create-organization
+  if (!user.restaurants || user.restaurants.length === 0) {
+    return null; 
   }
 
   return (

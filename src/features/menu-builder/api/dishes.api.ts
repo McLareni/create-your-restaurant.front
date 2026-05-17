@@ -44,5 +44,14 @@ export const dishesApi = {
 
   delete: async (id: string): Promise<void> => {
     mockDishes = mockDishes.filter(d => d.id !== id);
+  },
+
+  bulkUpdatePrices: async (updates: { id: string; price: number }[]): Promise<void> => {
+    updates.forEach(update => {
+      const index = mockDishes.findIndex(d => d.id === update.id);
+      if (index !== -1) {
+        mockDishes[index].price = update.price;
+      }
+    });
   }
 };

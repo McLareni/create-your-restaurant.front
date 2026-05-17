@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { useUserStore } from '@/shared/store/useUserStore';
 import { useAccessStore } from '@/shared/store/useAccessStore';
+import { Modal, Button } from '@/shared/ui';
 import { 
   LayoutDashboard, BarChart3, BellRing, UtensilsCrossed, 
   QrCode, Users, ArrowRightLeft, FileClock, MessageSquareQuote, 
@@ -37,6 +38,8 @@ export const Sidebar = () => {
   
   const [isOrgDropdownOpen, setIsOrgDropdownOpen] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({});
+  const [isLockModalOpen, setIsLockModalOpen] = useState(false);
+  const [lockedModuleName, setLockedModuleName] = useState('');
 
   const currentOrgName = user?.restaurants?.[0]?.name || t('sidebar.orgSelector.current');
   const orgInitial = currentOrgName ? currentOrgName[0].toUpperCase() : 'G';
@@ -47,7 +50,8 @@ export const Sidebar = () => {
 
   const handleLockedClick = (e: React.MouseEvent, moduleName: string) => {
     e.preventDefault();
-    alert(`${t('sidebar.locked.title')}:\n${t('sidebar.locked.description')} (${moduleName})`);
+    setLockedModuleName(moduleName);
+    setIsLockModalOpen(true);
   };
 
   const toggleSubMenu = (id: string) => {
@@ -69,7 +73,7 @@ export const Sidebar = () => {
         subItems: [
           { id: 'menu-constructor', href: '/dashboard/menu-builder', label: t('sidebar.nav.menuConstructor') },
           { id: 'menu-inventory', href: '/dashboard/menu-inventory', label: t('sidebar.nav.menuInventory') },
-          { id: 'menu-prices', href: '/dashboard/menu-builder#prices', label: t('sidebar.nav.menuPrices') },
+          { id: 'menu-prices', href: '/dashboard/menu-prices', label: t('sidebar.nav.menuPrices') },
         ]
       },
       { id: 'qr', href: '/dashboard/qr', icon: QrCode, label: t('sidebar.nav.qrTables'), moduleKey: 'qr-tables' },
@@ -241,6 +245,22 @@ export const Sidebar = () => {
           </button>
         </div>
       </div>
+
+      <Modal isOpen={isLockModalOpen} onClose={() => setIsLockModalOpen(false)} title={t('sidebar.locked.title')}>
+        <div className="flex flex-col gap-5">
+          <div className="rounded-xl bg-brand-cream/40 p-4 border border-brand-gray/10">
+            <span className="text-sm font-bold text-brand-espresso uppercase tracking-wider">{lockedModuleName}</span>
+          </div>
+          <p className="text-sm text-brand-gray leading-relaxed">
+            {t('sidebar.locked.description')}
+          </p>
+          <div className="flex justify-end pt-4 border-t border-brand-gray/10 mt-2">
+            <Button variant="brand" onClick={() => setIsLockModalOpen(false)}>
+              {t('common.confirmModal.cancel')}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </aside>
   );
 };

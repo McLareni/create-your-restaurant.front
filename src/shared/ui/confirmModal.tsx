@@ -19,22 +19,22 @@ export const ConfirmModal = ({ isOpen, onClose, onConfirm, title, description }:
     <Modal 
       isOpen={isOpen} 
       onClose={onClose} 
-      title={title || t('common.confirmModal.title')}
+      title={title || t('confirmModal.title')}
     >
       <div className="flex flex-col gap-6">
         <p className="text-brand-gray">
-          {description || t('common.confirmModal.defaultDesc')}
+          {description || t('confirmModal.defaultDesc')}
         </p>
         <div className="flex justify-end gap-3 pt-2 border-t border-brand-gray/10">
           <Button variant="ghost" onClick={onClose}>
-            {t('common.confirmModal.cancel')}
+            {t('confirmModal.cancel')}
           </Button>
           <Button 
             variant="brand" 
             className="bg-red-500 hover:bg-red-600 border-red-500 text-white" 
             onClick={onConfirm}
           >
-            {t('common.confirmModal.confirm')}
+            {t('confirmModal.confirm')}
           </Button>
         </div>
       </div>

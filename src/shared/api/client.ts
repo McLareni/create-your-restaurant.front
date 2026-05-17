@@ -1,15 +1,16 @@
 interface RequestOptions extends RequestInit {
   params?: Record<string, string>;
+  timeout?: number; // Додаємо можливість вказати таймаут
 }
 
 async function fetchClient<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-  const { params, headers, ...customConfig } = options;
+  // Ставимо 5 секунд за замовчуванням
+  const { params, headers, timeout = 5000, ...customConfig } = options;
   
   const isLocalAuth = endpoint.startsWith('/api/auth');
   
   let urlStr = endpoint;
   if (!isLocalAuth) {
-    // Направляємо всі запити на наш внутрішній сервер
     const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
     urlStr = `/api/proxy/${cleanEndpoint}`;
   }
@@ -19,22 +20,40 @@ async function fetchClient<T>(endpoint: string, options: RequestOptions = {}): P
     urlStr += `?${searchParams.toString()}`;
   }
 
+  // Створюємо контролер для обриву завислих запитів
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+
   const config: RequestInit = {
     ...customConfig,
     headers: {
       'Content-Type': 'application/json',
       ...headers,
     },
+    signal: controller.signal, // Прив'язуємо сигнал до fetch
   };
 
-  const response = await fetch(urlStr, config);
+  try {
+    const response = await fetch(urlStr, config);
+    clearTimeout(timeoutId);
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(error.errorCode || error.message || 'defaultError');
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.errorCode || error.message || 'defaultError');
+    }
+
+    return await response.json();
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+    
+    // Якщо помилка виникла через наш AbortController
+    if (error.name === 'AbortError') {
+      console.warn(`[API Timeout]: Запит до ${endpoint} перевищив час очікування (${timeout}ms)`);
+      throw new Error('serverError'); 
+    }
+    
+    throw error;
   }
-
-  return response.json();
 }
 
 export const apiClient = {

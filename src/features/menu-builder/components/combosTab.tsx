@@ -2,38 +2,53 @@
 
 import { useState } from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import { Button, Input, Select, Modal, ConfirmModal } from '@/shared/ui';
+import { Button, Input, Select, Modal, ConfirmModal, EmptyState } from '@/shared/ui';
 import { PackagePlus, Plus, Search, X } from 'lucide-react';
-import { MenuEmptyState } from './menuEmptyState';
 import { useCombos } from '../hooks/useCombos';
 import { mockAvailableDishes } from '../api/combos.api';
 import { Combo, CreateComboDTO, ComboDish } from '../types/combos.types';
 import { ComboCard } from './comboCard';
+import { useCrudModal } from '@/shared/hooks/useCrudModal';
 
 const INITIAL_FORM_DATA: CreateComboDTO = { name: '', priceType: 'FIXED', priceValue: 0, dishes: [] };
 
 export const CombosTab = () => {
   const { t } = useTranslation();
   const { combos, createCombo, updateCombo, deleteCombo } = useCombos();
-  
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingCombo, setEditingCombo] = useState<Combo | null>(null);
-  const [formData, setFormData] = useState<CreateComboDTO>(INITIAL_FORM_DATA);
   const [searchQuery, setSearchQuery] = useState('');
-  const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const openCreateModal = () => { setEditingCombo(null); setFormData(INITIAL_FORM_DATA); setSearchQuery(''); setIsModalOpen(true); };
-  const openEditModal = (combo: Combo) => { setEditingCombo(combo); setFormData({ ...combo }); setSearchQuery(''); setIsModalOpen(true); };
+  const {
+    isModalOpen,
+    setIsModalOpen,
+    editingItem: editingCombo,
+    formData,
+    setFormData,
+    deleteId,
+    setDeleteId,
+    openCreateModal,
+    openEditModal,
+    handleSave,
+    confirmDelete,
+  } = useCrudModal<Combo, CreateComboDTO>({
+    initialFormData: INITIAL_FORM_DATA,
+    createItem: createCombo,
+    updateItem: updateCombo,
+    deleteItem: deleteCombo,
+  });
 
-  const handleSave = () => {
-    if (!formData.name.trim()) return;
-    if (editingCombo) updateCombo({ id: editingCombo.id, data: formData });
-    else createCombo(formData);
-    setIsModalOpen(false);
+  const onOpenCreate = () => {
+    setSearchQuery('');
+    openCreateModal();
   };
 
-  const confirmDelete = () => {
-    if (deleteId) { deleteCombo(deleteId); setDeleteId(null); }
+  const onOpenEdit = (combo: Combo) => {
+    setSearchQuery('');
+    openEditModal(combo, (item) => ({ ...item }));
+  };
+
+  const onSave = () => {
+    if (!formData.name.trim()) return;
+    handleSave();
   };
 
   const addDishToCombo = (dish: ComboDish) => {
@@ -51,25 +66,30 @@ export const CombosTab = () => {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-brand-gray/10">
+      <div className="flex items-center justify-between mb-6 pb-4 border-b border-brand-gray/10 shrink-0">
         <h2 className="text-xl font-semibold text-brand-espresso">{t('menu.constructor.combos.title')}</h2>
-        <Button variant="brand" icon={<Plus className="h-4 w-4" />} onClick={openCreateModal}>
+        <Button variant="brand" icon={<Plus className="h-4 w-4" />} onClick={onOpenCreate}>
           {t('menu.constructor.combos.addBtn')}
         </Button>
       </div>
 
       {combos.length === 0 ? (
-        <MenuEmptyState icon={<PackagePlus />} title={t('menu.constructor.combos.emptyTitle')} description={t('menu.constructor.combos.emptyDesc')} actionLabel={t('menu.constructor.combos.addBtn')} onAction={openCreateModal} />
+        <EmptyState icon={<PackagePlus />} title={t('menu.constructor.combos.emptyTitle')} description={t('menu.constructor.combos.emptyDesc')} actionLabel={t('menu.constructor.combos.addBtn')} onAction={onOpenCreate} />
       ) : (
-        <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 content-start">
-          {combos.map(combo => <ComboCard key={combo.id} combo={combo} onEdit={openEditModal} onDelete={setDeleteId} />)}
+        <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar pb-4">
+          <div
+            className="grid gap-5"
+            style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}
+          >
+            {combos.map(combo => <ComboCard key={combo.id} combo={combo} onEdit={onOpenEdit} onDelete={setDeleteId} />)}
+          </div>
         </div>
       )}
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingCombo ? t('menu.constructor.combos.modal.editTitle') : t('menu.constructor.combos.modal.createTitle')}>
         <div className="flex flex-col gap-5 max-h-[75vh] overflow-y-auto pr-2 custom-scrollbar -mr-2">
           <Input id="comboName" label={t('menu.constructor.combos.modal.nameLabel')} placeholder={t('menu.constructor.combos.modal.namePlaceholder')} value={formData.name} onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))} />
-          
+
           <div className="grid grid-cols-2 gap-4">
             <Select id="comboType" label={t('menu.constructor.combos.modal.priceTypeLabel')} value={formData.priceType} onChange={(e) => setFormData(prev => ({ ...prev, priceType: e.target.value as 'FIXED' | 'DISCOUNT' }))}>
               <option value="FIXED">{t('menu.constructor.combos.modal.typeFixed')}</option>
@@ -117,7 +137,7 @@ export const CombosTab = () => {
         </div>
         <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-brand-gray/10">
           <Button variant="ghost" onClick={() => setIsModalOpen(false)}>{t('menu.constructor.combos.modal.cancel')}</Button>
-          <Button variant="brand" onClick={handleSave} disabled={!formData.name.trim() || !formData.dishes.length}>{t('menu.constructor.combos.modal.save')}</Button>
+          <Button variant="brand" onClick={onSave} disabled={!formData.name.trim() || !formData.dishes.length}>{t('menu.constructor.combos.modal.save')}</Button>
         </div>
       </Modal>
 
