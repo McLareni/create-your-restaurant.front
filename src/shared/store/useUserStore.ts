@@ -36,14 +36,15 @@ export const useUserStore = create<UserState>((set) => ({
       const response = await apiClient.get<{ user: User }>('/users/me');
       set({ user: response.user, isLoading: false });
     } catch (error) {
-      const mockUser: User = {
-        id: 1,
-        email: 'test-admin@gastro.com',
-        role: 'OWNER',
-        restaurants: [{ name: 'Кав\'ярня Кіт' }]
-      };
-      
-      set({ user: mockUser, isLoading: false });
+      set({ 
+        user: { 
+          id: 1, 
+          email: 'test@gastro.com', 
+          role: 'OWNER', 
+          restaurants: [{ name: 'Кав\'ярня Кіт' }] 
+        }, 
+        isLoading: false 
+      });
     }
   },
 

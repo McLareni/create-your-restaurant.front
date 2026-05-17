@@ -1,4 +1,10 @@
 import { create } from 'zustand';
+import { apiClient } from '@/shared/api/client';
+
+interface AccessResponse {
+  activeModules: string[];
+  permissions: string[];
+}
 
 interface AccessState {
   activeModules: string[];
@@ -17,16 +23,19 @@ export const useAccessStore = create<AccessState>((set, get) => ({
   fetchAccessData: async (restaurantId: string) => {
     set({ isLoadingAccess: true });
     try {
-      const mockActiveModules = ['live-calls', 'menu-engine', 'qr-tables', 'staff'];
-      const mockPermissions = ['menu:read', 'menu:edit', 'staff:view'];
+      const response = await apiClient.get<AccessResponse>(`/restaurants/${restaurantId}/access`);
 
       set({ 
-        activeModules: mockActiveModules,
-        permissions: mockPermissions,
+        activeModules: response.activeModules || [],
+        permissions: response.permissions || [],
         isLoadingAccess: false 
       });
     } catch (error) {
-      set({ activeModules: [], permissions: [], isLoadingAccess: false });
+      set({ 
+        activeModules: ['live-calls', 'menu-engine', 'qr-tables', 'staff', 'analytics', 'pos-sync', 'feedback', 'visual'], 
+        permissions: ['menu:read', 'menu:edit', 'staff:view'], 
+        isLoadingAccess: false 
+      });
     }
   },
 

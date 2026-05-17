@@ -25,11 +25,18 @@ export const useDishes = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['dishes'] }),
   });
 
+  // НОВА МУТАЦІЯ ДЛЯ МАСОВИХ ЦІН
+  const bulkUpdatePricesMutation = useMutation({
+    mutationFn: (updates: { id: string; price: number }[]) => dishesApi.bulkUpdatePrices(updates),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['dishes'] }),
+  });
+
   return {
     dishes,
     isLoading,
     createDish: createMutation.mutate,
     updateDish: updateMutation.mutate,
     deleteDish: deleteMutation.mutate,
+    bulkUpdatePrices: bulkUpdatePricesMutation.mutate,
   };
 };

@@ -50,7 +50,6 @@ export const InventoryTab = () => {
       </div>
 
       <div className="flex-1 overflow-hidden rounded-xl border border-brand-gray/20 bg-white flex flex-col">
-        {/* Шапка таблиці */}
         <div className="grid grid-cols-12 gap-4 border-b border-brand-gray/20 bg-brand-cream/50 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-brand-gray">
           <div className="col-span-5">{t('menu.constructor.inventory.columns.name')}</div>
           <div className="col-span-3">{t('menu.constructor.inventory.columns.zone')}</div>
@@ -58,14 +57,12 @@ export const InventoryTab = () => {
           <div className="col-span-2 text-right">{t('menu.constructor.inventory.columns.status')}</div>
         </div>
 
-        {/* Тіло таблиці */}
         <div className="flex-1 overflow-y-auto custom-scrollbar p-2">
           {filteredDishes.map(dish => (
             <div 
               key={dish.id} 
               className={`grid grid-cols-12 items-center gap-4 rounded-lg p-2 transition-colors hover:bg-brand-cream/30 ${!dish.isAvailable ? 'bg-red-50/50 opacity-80' : ''}`}
             >
-              {/* 1. Назва та ціна */}
               <div className="col-span-5 flex items-center gap-3">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-cream text-brand-gray">
                   <Pizza className="h-5 w-5" />
@@ -76,7 +73,6 @@ export const InventoryTab = () => {
                 </div>
               </div>
 
-              {/* 2. Цех (Маршрутизація) */}
               <div className="col-span-3">
                 <Select 
                   className="h-9 text-xs border-transparent bg-transparent hover:bg-white hover:border-brand-gray/30 focus:bg-white"
@@ -92,13 +88,12 @@ export const InventoryTab = () => {
                 </Select>
               </div>
 
-              {/* 3. Лічильник залишків */}
               <div className="col-span-2 flex justify-center">
                 <div className="relative w-20">
                   <Input 
                     className="h-9 text-center text-sm font-medium pr-1 pl-1"
-                    type="number"
-                    placeholder="∞"
+                    type="text"
+                    placeholder={t('menu.constructor.inventory.stockUnlimited')}
                     value={dish.stockQuantity === null ? '' : dish.stockQuantity}
                     onChange={(e) => handleStockChange(dish.id, e.target.value)}
                   />
@@ -108,7 +103,6 @@ export const InventoryTab = () => {
                 </div>
               </div>
 
-              {/* 4. Тумблер стоп-листа */}
               <div className="col-span-2 flex items-center justify-end gap-3 pr-2">
                 <span className={`text-xs font-medium ${dish.isAvailable ? 'text-green-600' : 'text-red-500'}`}>
                   {dish.isAvailable ? t('menu.constructor.inventory.statusAvailable') : t('menu.constructor.inventory.statusStopped')}

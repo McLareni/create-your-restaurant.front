@@ -59,6 +59,12 @@ export const menu = {
         },
         allergensLabel: "Алергени",
         allergensPlaceholder: "Оберіть алергени...",
+        allergens: {
+          gluten: "Глютен",
+          lactose: "Лактоза",
+          nuts: "Горіхи",
+          seafood: "Морепродукти"
+        },
         badgeLabel: "Маркетинговий бейдж",
         cancel: "Скасувати",
         save: "Зберегти"
@@ -144,9 +150,31 @@ export const menu = {
         SUSHI: "Суші-бар",
         HOOKAH: "Кальянна"
       },
-      stockUnlimited: "Безліміт",
+      stockUnlimited: "∞",
       statusAvailable: "В меню",
       statusStopped: "У стоп-листі"
+    },
+
+    prices: {
+      title: "Управління цінами",
+      subtitle: "Масове редагування цін. Змінюйте вартість окремих страв або застосовуйте знижки/націнки до обраних позицій.",
+      searchPlaceholder: "Пошук страв...",
+      bulkActions: "Масові дії для обраних",
+      apply: "Застосувати",
+      increase: "Підняти ціну на",
+      decrease: "Знизити ціну на",
+      typePercent: "%",
+      typeFixed: "₴",
+      saveChanges: "Зберегти всі зміни",
+      discard: "Відхилити",
+      unsavedAlert: "У вас є незбережені зміни",
+      changedItemsCount: "Змінено позицій: {{count}}",
+      columns: {
+        dish: "Страва",
+        currentPrice: "Поточна ціна",
+        newPrice: "Нова ціна",
+        difference: "Різниця"
+      }
     },
   }
 };

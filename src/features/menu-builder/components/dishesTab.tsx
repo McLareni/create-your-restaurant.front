@@ -1,13 +1,12 @@
 'use client';
 
-import { useState } from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import { Button, Input, Select, Modal, Checkbox, ConfirmModal } from '@/shared/ui';
+import { Button, Input, Select, Modal, Checkbox, ConfirmModal, EmptyState } from '@/shared/ui';
 import { Pizza, Plus, ImagePlus, Flame, Leaf, MilkOff } from 'lucide-react';
-import { MenuEmptyState } from './menuEmptyState';
 import { useDishes } from '../hooks/useDishes';
 import { Dish, CreateDishDTO } from '../types/dishes.types';
 import { DishCard } from './dishCard';
+import { useCrudModal } from '@/shared/hooks/useCrudModal';
 
 const INITIAL_FORM_DATA: CreateDishDTO = {
   name: '', description: '', price: 0, weight: '', cookingTime: '', calories: '',
@@ -18,31 +17,38 @@ const INITIAL_FORM_DATA: CreateDishDTO = {
 export const DishesTab = () => {
   const { t } = useTranslation();
   const { dishes, createDish, updateDish, deleteDish } = useDishes();
-  
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingDish, setEditingDish] = useState<Dish | null>(null);
-  const [formData, setFormData] = useState<CreateDishDTO>(INITIAL_FORM_DATA);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const openCreateModal = () => { setEditingDish(null); setFormData(INITIAL_FORM_DATA); setIsModalOpen(true); };
-  const openEditModal = (dish: Dish) => { setEditingDish(dish); setFormData({ ...dish }); setIsModalOpen(true); };
+  const {
+    isModalOpen,
+    setIsModalOpen,
+    editingItem: editingDish,
+    formData,
+    setFormData,
+    deleteId,
+    setDeleteId,
+    openCreateModal,
+    openEditModal,
+    handleSave,
+    confirmDelete,
+  } = useCrudModal<Dish, CreateDishDTO>({
+    initialFormData: INITIAL_FORM_DATA,
+    createItem: createDish,
+    updateItem: updateDish,
+    deleteItem: deleteDish,
+  });
 
-  const handleChange = (field: keyof CreateDishDTO, value: any) => { setFormData(prev => ({ ...prev, [field]: value })); };
-
-  const handleSave = () => {
-    if (!formData.name.trim() || !formData.price) return;
-    if (editingDish) updateDish({ id: editingDish.id, data: formData });
-    else createDish(formData);
-    setIsModalOpen(false);
+  const handleChange = (field: keyof CreateDishDTO, value: any) => { 
+    setFormData(prev => ({ ...prev, [field]: value })); 
   };
 
-  const confirmDelete = () => {
-    if (deleteId) { deleteDish(deleteId); setDeleteId(null); }
+  const onSave = () => {
+    if (!formData.name.trim() || !formData.price) return;
+    handleSave();
   };
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-brand-gray/10">
+      <div className="flex items-center justify-between mb-6 pb-4 border-b border-brand-gray/10 shrink-0">
         <h2 className="text-xl font-semibold text-brand-espresso">{t('menu.constructor.dishes.title')}</h2>
         <Button variant="brand" icon={<Plus className="h-4 w-4" />} onClick={openCreateModal}>
           {t('menu.constructor.dishes.addBtn')}
@@ -50,11 +56,14 @@ export const DishesTab = () => {
       </div>
 
       {dishes.length === 0 ? (
-        <MenuEmptyState icon={<Pizza />} title={t('menu.constructor.dishes.emptyTitle')} description={t('menu.constructor.dishes.emptyDesc')} actionLabel={t('menu.constructor.dishes.addBtn')} onAction={openCreateModal} />
+        <EmptyState icon={<Pizza />} title={t('menu.constructor.dishes.emptyTitle')} description={t('menu.constructor.dishes.emptyDesc')} actionLabel={t('menu.constructor.dishes.addBtn')} onAction={openCreateModal} />
       ) : (
-        <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {dishes.map(dish => <DishCard key={dish.id} dish={dish} onEdit={openEditModal} onDelete={setDeleteId} />)}
+        <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar pb-4">
+          <div
+            className="grid gap-5"
+            style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}
+          >
+            {dishes.map(dish => <DishCard key={dish.id} dish={dish} onEdit={(item) => openEditModal(item, (i) => ({ ...i }))} onDelete={setDeleteId} />)}
           </div>
         </div>
       )}
@@ -111,7 +120,7 @@ export const DishesTab = () => {
         </div>
         <div className="flex justify-end gap-3 pt-6 mt-2 border-t border-brand-gray/10">
           <Button variant="ghost" onClick={() => setIsModalOpen(false)}>{t('menu.constructor.dishes.modal.cancel')}</Button>
-          <Button variant="brand" onClick={handleSave} disabled={!formData.name.trim() || !formData.price}>{t('menu.constructor.dishes.modal.save')}</Button>
+          <Button variant="brand" onClick={onSave} disabled={!formData.name.trim() || !formData.price}>{t('menu.constructor.dishes.modal.save')}</Button>
         </div>
       </Modal>
 

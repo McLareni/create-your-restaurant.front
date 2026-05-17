@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
-import { Button } from '@/shared/ui';
+import { Button } from '@/shared/ui/button';
 
-interface MenuEmptyStateProps {
+interface EmptyStateProps {
   icon: ReactNode;
   title: string;
   description: string;
@@ -9,7 +9,7 @@ interface MenuEmptyStateProps {
   onAction: () => void;
 }
 
-export const MenuEmptyState = ({ icon, title, description, actionLabel, onAction }: MenuEmptyStateProps) => {
+export const EmptyState = ({ icon, title, description, actionLabel, onAction }: EmptyStateProps) => {
   return (
     <div className="flex flex-1 flex-col items-center justify-center text-center border-2 border-dashed border-brand-gray/20 rounded-xl bg-brand-cream/30">
       <div className="text-brand-gray/40 mb-3 *:h-12 *:w-12">{icon}</div>

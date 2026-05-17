@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import { Button } from '@/shared/ui';
+import { Button, Card } from '@/shared/ui';
 import { ImagePlus, Pencil, Trash2, Flame, Leaf, MilkOff } from 'lucide-react';
 import { Dish } from '../types/dishes.types';
 
@@ -15,8 +15,8 @@ export const DishCard = ({ dish, onEdit, onDelete }: DishCardProps) => {
   const { t } = useTranslation();
 
   return (
-    <div className="group relative flex flex-col rounded-2xl border border-brand-gray/20 bg-white overflow-hidden hover:border-brand-copper/50 transition-colors shadow-sm">
-      <div className="h-40 w-full bg-brand-cream flex items-center justify-center relative">
+    <Card className="!p-0">
+      <div className="h-40 w-full shrink-0 bg-brand-cream flex items-center justify-center relative">
         <ImagePlus className="h-8 w-8 text-brand-gray/40" />
         {dish.badge !== 'NONE' && (
           <div className="absolute top-3 right-3 rounded-full bg-brand-copper px-3 py-1 text-xs font-bold text-white shadow-md">
@@ -28,7 +28,7 @@ export const DishCard = ({ dish, onEdit, onDelete }: DishCardProps) => {
       <div className="p-4 flex flex-col flex-1">
         <div className="flex justify-between items-start mb-2">
           <h3 className="font-semibold text-brand-espresso text-lg leading-tight">{dish.name}</h3>
-          <span className="font-bold text-brand-copper whitespace-nowrap ml-2">{dish.price} ₴</span>
+          <span className="font-bold text-brand-copper whitespace-nowrap ml-2">{dish.price} {t('menu.currency')}</span>
         </div>
         <p className="text-sm text-brand-gray line-clamp-2 mb-3">{dish.description}</p>
         
@@ -46,7 +46,7 @@ export const DishCard = ({ dish, onEdit, onDelete }: DishCardProps) => {
         </div>
       </div>
 
-      <div className="absolute inset-0 bg-white/90 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-sm">
+      <div className="absolute inset-0 bg-white/90 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3 backdrop-blur-sm z-10">
         <Button variant="outline" icon={<Pencil className="h-4 w-4" />} onClick={() => onEdit(dish)}>
           {t('menu.constructor.dishes.editBtn')}
         </Button>
@@ -54,6 +54,6 @@ export const DishCard = ({ dish, onEdit, onDelete }: DishCardProps) => {
           {t('menu.constructor.dishes.deleteBtn')}
         </Button>
       </div>
-    </div>
+    </Card>
   );
 };
