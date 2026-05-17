@@ -55,8 +55,8 @@ export const useCreateOrganization = () => {
       try {
         const res = await organizationApi.checkSlug(formData.slug!);
         
-        setSlugAvailable(res.available);
-        if (!res.available) {
+        setSlugAvailable(res.isAvailable);
+        if (!res.isAvailable) {
           setErrors(prev => ({ ...prev, slug: t('organization.errors.slugTaken') }));
         } else {
           setErrors(prev => ({ ...prev, slug: undefined }));
@@ -72,7 +72,8 @@ export const useCreateOrganization = () => {
     return () => {
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     };
-  }, [formData.slug, t]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.slug]);
 
   const handleChange = (field: keyof CreateOrganizationValues, value: string) => {
     if (field === 'slug') setIsSlugManuallyEdited(true);
