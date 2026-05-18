@@ -6,93 +6,48 @@ import { usePathname } from 'next/navigation';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { useUserStore } from '@/shared/store/useUserStore';
 import { useAccessStore } from '@/shared/store/useAccessStore';
+import { useNavigation } from '@/shared/hooks/useNavigation';
 import { Modal, Button } from '@/shared/ui';
-import { 
-  LayoutDashboard, BarChart3, BellRing, UtensilsCrossed, 
-  QrCode, Users, ArrowRightLeft, FileClock, MessageSquareQuote, 
-  Blocks, Palette, CreditCard, Moon, HelpCircle, ShieldAlert,
-  ChevronsUpDown, Plus, Lock, LogOut, Store, ChevronDown
-} from 'lucide-react';
-
-type SubMenuItem = {
-  id: string;
-  href: any;
-  label: string;
-};
-
-type MenuItem = {
-  id: string;
-  href?: string;
-  icon: React.ElementType;
-  label: string;
-  moduleKey?: string;
-  highlight?: boolean;
-  subItems?: SubMenuItem[];
-};
+import { ChevronsUpDown, Plus, Lock, LogOut, Store, ChevronDown } from 'lucide-react';
 
 export const Sidebar = () => {
   const { t } = useTranslation();
   const pathname = usePathname();
   const { user, logout } = useUserStore();
-  const { hasModule, fetchAccessData } = useAccessStore(); 
+  const { hasModule, isPurchased, toggleModule, fetchAccessData } = useAccessStore(); 
+  const { menuGroups } = useNavigation();
   
   const [isOrgDropdownOpen, setIsOrgDropdownOpen] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({});
   const [isLockModalOpen, setIsLockModalOpen] = useState(false);
-  const [lockedModuleName, setLockedModuleName] = useState('');
+  const [lockedModule, setLockedModule] = useState<{name: string, key: string} | null>(null);
 
-  const currentOrgName = user?.restaurants?.[0]?.name || t('sidebar.orgSelector.current');
+  const currentRestaurant = user?.restaurants?.[0];
+  const currentOrgName = currentRestaurant?.name || t('sidebar.orgSelector.current');
   const orgInitial = currentOrgName ? currentOrgName[0].toUpperCase() : 'G';
 
   useEffect(() => {
-    fetchAccessData('mock-restaurant-id');
-  }, [fetchAccessData]);
+    if (currentRestaurant?.id) {
+      fetchAccessData(String(currentRestaurant.id));
+    }
+  }, [currentRestaurant?.id, fetchAccessData]);
 
-  const handleLockedClick = (e: React.MouseEvent, moduleName: string) => {
+  const handleLockedClick = (e: React.MouseEvent, moduleName: string, moduleKey: string) => {
     e.preventDefault();
-    setLockedModuleName(moduleName);
+    setLockedModule({ name: moduleName, key: moduleKey });
     setIsLockModalOpen(true);
+  };
+
+  const handleActivateLocked = () => {
+    if (lockedModule) {
+      toggleModule(lockedModule.key, true);
+      setIsLockModalOpen(false);
+    }
   };
 
   const toggleSubMenu = (id: string) => {
     setExpandedMenus(prev => ({ ...prev, [id]: !prev[id] }));
   };
-
-  const menuGroups: MenuItem[][] = [
-    [
-      { id: 'dashboard', href: '/dashboard', icon: LayoutDashboard, label: t('sidebar.nav.dashboard') },
-      { id: 'analytics', href: '/dashboard/analytics', icon: BarChart3, label: t('sidebar.nav.analytics'), moduleKey: 'analytics' },
-    ],
-    [
-      { id: 'live-calls', href: '/dashboard/live', icon: BellRing, label: t('sidebar.nav.liveCalls'), moduleKey: 'live-calls' },
-      { 
-        id: 'menu', 
-        icon: UtensilsCrossed, 
-        label: t('sidebar.nav.menu'), 
-        moduleKey: 'menu-engine',
-        subItems: [
-          { id: 'menu-constructor', href: '/dashboard/menu-builder', label: t('sidebar.nav.menuConstructor') },
-          { id: 'menu-inventory', href: '/dashboard/menu-inventory', label: t('sidebar.nav.menuInventory') },
-          { id: 'menu-prices', href: '/dashboard/menu-prices', label: t('sidebar.nav.menuPrices') },
-        ]
-      },
-      { id: 'qr', href: '/dashboard/qr', icon: QrCode, label: t('sidebar.nav.qrTables'), moduleKey: 'qr-tables' },
-      { id: 'staff', href: '/dashboard/staff', icon: Users, label: t('sidebar.nav.staff'), moduleKey: 'staff' },
-      { id: 'pos', href: '/dashboard/pos', icon: ArrowRightLeft, label: t('sidebar.nav.posSync'), moduleKey: 'pos-sync', highlight: true },
-      { id: 'audit', href: '/dashboard/audit', icon: FileClock, label: t('sidebar.nav.auditLogs') },
-      { id: 'feedback', href: '/dashboard/feedback', icon: MessageSquareQuote, label: t('sidebar.nav.feedback'), moduleKey: 'feedback', highlight: true },
-    ],
-    [
-      { id: 'marketplace', href: '/dashboard/marketplace', icon: Blocks, label: t('sidebar.nav.marketplace') },
-      { id: 'visual', href: '/dashboard/visual', icon: Palette, label: t('sidebar.nav.visual'), moduleKey: 'visual' },
-      { id: 'billing', href: '/dashboard/billing', icon: CreditCard, label: t('sidebar.nav.billing') },
-    ],
-    [
-      { id: 'theme', href: '#', icon: Moon, label: t('sidebar.nav.themeToggle') },
-      { id: 'support', href: '/dashboard/support', icon: HelpCircle, label: t('sidebar.nav.support') },
-      { id: 'legal', href: '/dashboard/legal', icon: ShieldAlert, label: t('sidebar.nav.legal') },
-    ]
-  ];
 
   return (
     <aside className="flex w-72 flex-col bg-brand-espresso text-brand-cream border-r border-brand-espresso shadow-2xl h-screen sticky top-0">
@@ -122,10 +77,7 @@ export const Sidebar = () => {
               </button>
             </div>
             <div className="border-t border-brand-gray/20 p-2">
-              <Link 
-                href="/create-organization"
-                className="flex w-full items-center gap-2 rounded-lg p-2 text-brand-copper transition-colors hover:bg-brand-copper/10"
-              >
+              <Link href="/create-organization" className="flex w-full items-center gap-2 rounded-lg p-2 text-brand-copper transition-colors hover:bg-brand-copper/10">
                 <Plus className="h-4 w-4" />
                 <span className="text-sm font-medium">{t('sidebar.orgSelector.addNew')}</span>
               </Link>
@@ -135,95 +87,75 @@ export const Sidebar = () => {
       </div>
 
       <nav className="flex-1 overflow-y-auto py-4 custom-scrollbar">
-        {menuGroups.map((group, groupIdx) => (
-          <div key={groupIdx} className={`px-3 py-2 ${groupIdx !== menuGroups.length - 1 ? 'border-b border-brand-gray/10 mb-2' : ''}`}>
-            {group.map((item) => {
-              const isActive = pathname === item.href || (item.subItems && item.subItems.some(sub => pathname === sub.href));
-              const Icon = item.icon;
-              const isLocked = item.moduleKey && !hasModule(item.moduleKey);
-              const isExpanded = expandedMenus[item.id];
+        {menuGroups.map((group, groupIdx) => {
+          const renderedGroup = group.filter(item => !item.moduleKey || isPurchased(item.moduleKey));
+          if (renderedGroup.length === 0) return null;
 
-              if (item.subItems) {
-                return (
-                  <div key={item.id} className="mb-1">
-                    <button
-                      onClick={(e) => isLocked ? handleLockedClick(e, item.label) : toggleSubMenu(item.id)}
-                      className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-all outline-none ${
-                        isLocked ? 'text-brand-gray opacity-60 hover:bg-white/5' :
-                        isActive && !isExpanded ? 'bg-brand-copper text-white shadow-md' : 'text-brand-cream/80 hover:bg-white/10 hover:text-white'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <Icon className={`h-5 w-5 shrink-0 ${isActive && !isExpanded && !isLocked ? 'text-white' : 'text-brand-gray'}`} />
-                        <span>{item.label}</span>
-                      </div>
-                      {isLocked ? (
-                        <Lock className="h-4 w-4" />
-                      ) : (
-                        <ChevronDown className={`h-4 w-4 shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
-                      )}
-                    </button>
-                    
-                    <div className={`grid transition-all duration-200 ease-in-out ${isExpanded && !isLocked ? 'grid-rows-[1fr] opacity-100 mt-1' : 'grid-rows-[0fr] opacity-0'}`}>
-                      <div className="overflow-hidden flex flex-col gap-1">
-                        {item.subItems.map(sub => {
-                          const isSubActive = pathname === sub.href;
-                          return (
-                            <Link
-                              key={sub.id}
-                              href={sub.href}
-                              className={`flex w-full items-center rounded-lg py-2 pl-11 pr-3 text-sm transition-colors outline-none ${
-                                isSubActive 
-                                  ? 'bg-white/10 text-white font-medium' 
-                                  : 'text-brand-gray hover:bg-white/5 hover:text-brand-cream'
-                              }`}
-                            >
+          return (
+            <div key={groupIdx} className={`px-3 py-2 ${groupIdx !== menuGroups.length - 1 ? 'border-b border-brand-gray/10 mb-2' : ''}`}>
+              {renderedGroup.map((item) => {
+                const isActive = pathname === item.href || (item.subItems && item.subItems.some(sub => pathname === sub.href));
+                const Icon = item.icon;
+                const isLocked = item.moduleKey && !hasModule(item.moduleKey);
+                const isExpanded = expandedMenus[item.id];
+
+                if (item.subItems) {
+                  return (
+                    <div key={item.id} className="mb-1">
+                      <button
+                        onClick={(e) => isLocked ? handleLockedClick(e, item.label, item.moduleKey!) : toggleSubMenu(item.id)}
+                        className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-all outline-none ${
+                          isLocked ? 'text-brand-gray opacity-60 hover:bg-white/5' :
+                          isActive && !isExpanded ? 'bg-brand-copper text-white shadow-md' : 'text-brand-cream/80 hover:bg-white/10 hover:text-white'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Icon className={`h-5 w-5 shrink-0 ${isActive && !isExpanded && !isLocked ? 'text-white' : 'text-brand-gray'}`} />
+                          <span>{item.label}</span>
+                        </div>
+                        {isLocked ? <Lock className="h-4 w-4" /> : <ChevronDown className={`h-4 w-4 shrink-0 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />}
+                      </button>
+                      
+                      <div className={`grid transition-all duration-200 ease-in-out ${isExpanded && !isLocked ? 'grid-rows-[1fr] opacity-100 mt-1' : 'grid-rows-[0fr] opacity-0'}`}>
+                        <div className="overflow-hidden flex flex-col gap-1">
+                          {item.subItems.map(sub => (
+                            <Link key={sub.id} href={sub.href} className={`flex w-full items-center rounded-lg py-2 pl-11 pr-3 text-sm transition-colors outline-none ${pathname === sub.href ? 'bg-white/10 text-white font-medium' : 'text-brand-gray hover:bg-white/5 hover:text-brand-cream'}`}>
                               {sub.label}
                             </Link>
-                          );
-                        })}
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              }
+                  );
+                }
 
-              if (isLocked) {
+                if (isLocked) {
+                  return (
+                    <button key={item.id} onClick={(e) => handleLockedClick(e, item.label, item.moduleKey!)} className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-brand-gray opacity-60 transition-colors hover:bg-white/5 mb-1 outline-none">
+                      <div className="flex items-center gap-3"><Icon className="h-5 w-5" /><span>{item.label}</span></div>
+                      <Lock className="h-4 w-4" />
+                    </button>
+                  );
+                }
+
+                if (item.onClick) {
+                  return (
+                    <button key={item.id} onClick={item.onClick} className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-all mb-1 outline-none text-brand-cream/80 hover:bg-white/10 hover:text-white">
+                      <div className="flex items-center gap-3"><Icon className="h-5 w-5 shrink-0 text-brand-gray" /><span>{item.label}</span></div>
+                    </button>
+                  );
+                }
+
                 return (
-                  <button
-                    key={item.id}
-                    onClick={(e) => handleLockedClick(e, item.label)}
-                    className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium text-brand-gray opacity-60 transition-colors hover:bg-white/5 mb-1 outline-none"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Icon className="h-5 w-5" />
-                      <span>{item.label}</span>
-                    </div>
-                    <Lock className="h-4 w-4" />
-                  </button>
+                  <Link key={item.id} href={item.href!} className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-all mb-1 outline-none ${isActive ? 'bg-brand-copper text-white shadow-md' : 'text-brand-cream/80 hover:bg-white/10 hover:text-white'}`}>
+                    <div className="flex items-center gap-3"><Icon className={`h-5 w-5 shrink-0 ${isActive ? 'text-white' : item.highlight ? 'text-brand-gold' : 'text-brand-gray'}`} /><span>{item.label}</span></div>
+                    {item.highlight && !isActive && <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-gold"></div>}
+                  </Link>
                 );
-              }
-
-              return (
-                <Link
-                  key={item.id}
-                  href={item.href!}
-                  className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-all mb-1 outline-none ${
-                    isActive 
-                      ? 'bg-brand-copper text-white shadow-md' 
-                      : 'text-brand-cream/80 hover:bg-white/10 hover:text-white'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Icon className={`h-5 w-5 shrink-0 ${isActive ? 'text-white' : item.highlight ? 'text-brand-gold' : 'text-brand-gray'}`} />
-                    <span>{item.label}</span>
-                  </div>
-                  {item.highlight && !isActive && <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-gold"></div>}
-                </Link>
-              );
-            })}
-          </div>
-        ))}
+              })}
+            </div>
+          );
+        })}
       </nav>
 
       <div className="border-t border-brand-gray/20 p-4">
@@ -237,27 +169,17 @@ export const Sidebar = () => {
               <span className="text-xs text-brand-gray">{user?.role ? t(`roles.${user.role}`) : ''}</span>
             </div>
           </div>
-          <button 
-            onClick={logout}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-brand-gray transition-colors hover:bg-red-500/10 hover:text-red-400 outline-none"
-          >
-            <LogOut className="h-5 w-5" />
-          </button>
+          <button onClick={logout} className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-brand-gray transition-colors hover:bg-red-500/10 hover:text-red-400 outline-none"><LogOut className="h-5 w-5" /></button>
         </div>
       </div>
 
-      <Modal isOpen={isLockModalOpen} onClose={() => setIsLockModalOpen(false)} title={t('sidebar.locked.title')}>
+      <Modal isOpen={isLockModalOpen} onClose={() => setIsLockModalOpen(false)} title="Активація модуля">
         <div className="flex flex-col gap-5">
-          <div className="rounded-xl bg-brand-cream/40 p-4 border border-brand-gray/10">
-            <span className="text-sm font-bold text-brand-espresso uppercase tracking-wider">{lockedModuleName}</span>
-          </div>
-          <p className="text-sm text-brand-gray leading-relaxed">
-            {t('sidebar.locked.description')}
-          </p>
-          <div className="flex justify-end pt-4 border-t border-brand-gray/10 mt-2">
-            <Button variant="brand" onClick={() => setIsLockModalOpen(false)}>
-              {t('common.confirmModal.cancel')}
-            </Button>
+          <div className="rounded-xl bg-brand-cream/40 p-4 border border-brand-gray/10"><span className="text-sm font-bold text-brand-espresso uppercase tracking-wider">{lockedModule?.name}</span></div>
+          <p className="text-sm text-brand-gray leading-relaxed">Цей модуль вже підключено до вашого закладу, але наразі він вимкнений. Бажаєте активувати його зараз, щоб відновити роботу?</p>
+          <div className="flex justify-end pt-4 border-t border-brand-gray/10 mt-2 gap-3">
+            <Button variant="ghost" onClick={() => setIsLockModalOpen(false)}>{t('common.confirmModal.cancel')}</Button>
+            <Button variant="brand" onClick={handleActivateLocked}>Активувати</Button>
           </div>
         </div>
       </Modal>

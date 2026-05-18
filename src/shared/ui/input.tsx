@@ -6,35 +6,32 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   hint?: string;
   leftIcon?: ReactNode;
   rightElement?: ReactNode;
-  theme?: 'light' | 'dark';
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, hint, leftIcon, rightElement, theme = 'light', className = '', id, ...props }, ref) => {
-    const isDark = theme === 'dark';
-
+  ({ label, error, hint, leftIcon, rightElement, className = '', id, ...props }, ref) => {
     return (
       <div className="flex w-full flex-col gap-1.5">
         {label && (
-          <label htmlFor={id} className={`text-sm font-medium ${isDark ? 'text-brand-cream' : 'text-brand-espresso'}`}>
+          <label htmlFor={id} className="text-sm font-medium text-brand-espresso dark:text-brand-cream">
             {label}
           </label>
         )}
         <div className="relative flex items-center">
           {leftIcon && (
-            <div className="pointer-events-none absolute left-3 text-brand-gray">
+            <div className="pointer-events-none absolute left-3 text-brand-gray dark:text-brand-gray/80">
               {leftIcon}
             </div>
           )}
           <input
             ref={ref}
             id={id}
-            className={`h-12 w-full rounded-md border bg-white px-3 py-2 text-sm text-brand-espresso outline-none transition-colors placeholder:text-brand-gray/60 focus:border-brand-copper focus:ring-1 focus:ring-brand-copper disabled:cursor-not-allowed disabled:opacity-50 ${
+            className={`h-12 w-full rounded-md border bg-white dark:bg-brand-mocha px-3 py-2 text-sm text-brand-espresso dark:text-brand-cream outline-none transition-colors placeholder:text-brand-gray/60 dark:placeholder:text-brand-gray/40 focus:border-brand-copper focus:ring-1 focus:ring-brand-copper disabled:cursor-not-allowed disabled:opacity-50 ${
               leftIcon ? 'pl-10' : ''
             } ${
-              rightElement ? 'pr-[140px]' : ''
+              rightElement ? 'pr-35' : ''
             } ${
-              error ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-brand-gray/30'
+              error ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-brand-gray/30 dark:border-brand-gray/50'
             } ${className}`}
             {...props}
           />
@@ -44,7 +41,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             </div>
           )}
         </div>
-        {hint && !error && <span className={`text-xs ${isDark ? 'text-brand-cream/60' : 'text-brand-gray'}`}>{hint}</span>}
+        {hint && !error && <span className="text-xs text-brand-gray">{hint}</span>}
         {error && <span className="text-xs text-red-500">{error}</span>}
       </div>
     );

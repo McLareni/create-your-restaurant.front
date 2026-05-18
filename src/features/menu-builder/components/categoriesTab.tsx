@@ -45,8 +45,8 @@ export const CategoriesTab = () => {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-brand-gray/10">
-        <h2 className="text-xl font-semibold text-brand-espresso">{t('menu.constructor.categories.title')}</h2>
+      <div className="flex items-center justify-between mb-6 pb-4 border-b border-brand-gray/10 dark:border-brand-gray/20">
+        <h2 className="text-xl font-semibold text-brand-espresso dark:text-brand-cream">{t('menu.constructor.categories.title')}</h2>
         <Button variant="brand" icon={<Plus className="h-4 w-4" />} onClick={openCreateModal}>
           {t('menu.constructor.categories.addBtn')}
         </Button>
@@ -82,7 +82,7 @@ export const CategoriesTab = () => {
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingCategory ? t('menu.constructor.categories.modal.editTitle') : t('menu.constructor.categories.modal.createTitle')}>
         <div className="flex flex-col gap-6">
           <Input id="catName" label={t('menu.constructor.categories.modal.nameLabel')} placeholder={t('menu.constructor.categories.modal.namePlaceholder')} value={formData.name} onChange={(e) => setFormData({ name: e.target.value })} autoFocus />
-          <div className="flex justify-end gap-3 pt-2 border-t border-brand-gray/10 mt-2">
+          <div className="flex justify-end gap-3 pt-2 border-t border-brand-gray/10 dark:border-brand-gray/20 mt-2">
             <Button variant="ghost" onClick={() => setIsModalOpen(false)}>{t('menu.constructor.categories.modal.cancel')}</Button>
             <Button variant="brand" onClick={onSave} disabled={!formData.name.trim()}>{t('menu.constructor.categories.modal.save')}</Button>
           </div>

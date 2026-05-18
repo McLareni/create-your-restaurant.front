@@ -9,10 +9,10 @@ export const sidebar = {
     analytics: "Аналітика",
     liveCalls: "Live-Монітор",
     
-    // Нові ключі для меню
+    // Меню
     menu: "Меню",
     menuConstructor: "Конструктор",
-    menuInventory: "Інвентарізація",
+    menuInventory: "Інвентаризація",
     menuPrices: "Ціни",
 
     qrTables: "QR-Коди та Столи",
@@ -23,7 +23,11 @@ export const sidebar = {
     marketplace: "Маркетплейс модулів",
     visual: "Візуальний стиль",
     billing: "Тарифи та Оплата",
-    themeToggle: "Змінити тему",
+    
+    // Зміна теми
+    themeLight: "Світла тема",
+    themeDark: "Темна тема",
+    
     support: "Допомога та Саппорт",
     legal: "Юридичні політики"
   },

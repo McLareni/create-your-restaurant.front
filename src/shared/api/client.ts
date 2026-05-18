@@ -5,7 +5,7 @@ interface RequestOptions extends RequestInit {
 
 async function fetchClient<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
   // Ставимо 5 секунд за замовчуванням
-  const { params, headers, timeout = 5000, ...customConfig } = options;
+  const { params, headers, timeout = 10000, ...customConfig } = options;
   
   const isLocalAuth = endpoint.startsWith('/api/auth');
   

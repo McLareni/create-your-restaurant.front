@@ -66,8 +66,8 @@ export const CombosTab = () => {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-brand-gray/10 shrink-0">
-        <h2 className="text-xl font-semibold text-brand-espresso">{t('menu.constructor.combos.title')}</h2>
+      <div className="flex items-center justify-between mb-6 pb-4 border-b border-brand-gray/10 dark:border-brand-gray/20 shrink-0">
+        <h2 className="text-xl font-semibold text-brand-espresso dark:text-brand-cream">{t('menu.constructor.combos.title')}</h2>
         <Button variant="brand" icon={<Plus className="h-4 w-4" />} onClick={onOpenCreate}>
           {t('menu.constructor.combos.addBtn')}
         </Button>
@@ -98,20 +98,20 @@ export const CombosTab = () => {
             <Input id="comboPriceValue" type="number" label={t('menu.constructor.combos.modal.priceValueLabel')} value={formData.priceValue} onChange={(e) => setFormData(prev => ({ ...prev, priceValue: parseFloat(e.target.value) || 0 }))} />
           </div>
 
-          <div className="border-t border-brand-gray/10 pt-4">
+          <div className="border-t border-brand-gray/10 dark:border-brand-gray/20 pt-4">
             <div className="flex flex-col gap-1.5 mb-3">
-              <label className="text-sm font-medium text-brand-espresso">{t('menu.constructor.combos.modal.searchLabel')}</label>
+              <label className="text-sm font-medium text-brand-espresso dark:text-brand-cream">{t('menu.constructor.combos.modal.searchLabel')}</label>
               <div className="relative">
-                <Search className="absolute left-3 top-3.5 h-4 w-4 text-brand-gray/60" />
-                <input type="text" placeholder={t('menu.constructor.combos.modal.searchPlaceholder')} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="h-11 w-full rounded-md border border-brand-gray/30 bg-white pl-9 pr-3 text-sm text-brand-espresso outline-none transition-colors focus:border-brand-copper focus:ring-1 focus:ring-brand-copper" />
+                <Search className="absolute left-3 top-3.5 h-4 w-4 text-brand-gray/60 dark:text-brand-gray/80" />
+                <input type="text" placeholder={t('menu.constructor.combos.modal.searchPlaceholder')} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="h-11 w-full rounded-md border border-brand-gray/30 dark:border-brand-gray/50 bg-white dark:bg-brand-mocha pl-9 pr-3 text-sm text-brand-espresso dark:text-brand-cream outline-none transition-colors focus:border-brand-copper focus:ring-1 focus:ring-brand-copper" />
               </div>
             </div>
 
             {searchQuery && (
-              <div className="mb-4 bg-white border border-brand-gray/20 rounded-lg shadow-sm max-h-40 overflow-y-auto custom-scrollbar">
+              <div className="mb-4 bg-white dark:bg-brand-mocha border border-brand-gray/20 dark:border-brand-gray/20 rounded-lg shadow-sm max-h-40 overflow-y-auto custom-scrollbar">
                 {filteredDishes.length > 0 ? filteredDishes.map(dish => (
-                  <button key={dish.id} onClick={() => { addDishToCombo(dish); setSearchQuery(''); }} className="w-full flex items-center justify-between p-3 text-left hover:bg-brand-cream/50 border-b border-brand-gray/10 last:border-0 outline-none">
-                    <span className="text-sm text-brand-espresso font-medium">{dish.name}</span><span className="text-xs text-brand-gray">{dish.price} {t('menu.currency')}</span>
+                  <button key={dish.id} onClick={() => { addDishToCombo(dish); setSearchQuery(''); }} className="w-full flex items-center justify-between p-3 text-left hover:bg-brand-cream/50 dark:hover:bg-white/5 border-b border-brand-gray/10 dark:border-brand-gray/20 last:border-0 outline-none">
+                    <span className="text-sm text-brand-espresso dark:text-brand-cream font-medium">{dish.name}</span><span className="text-xs text-brand-gray">{dish.price} {t('menu.currency')}</span>
                   </button>
                 )) : <div className="p-4 text-center text-sm text-brand-gray">{t('menu.constructor.combos.modal.notFound')}</div>}
               </div>
@@ -119,23 +119,22 @@ export const CombosTab = () => {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-brand-espresso mb-2 block">{t('menu.constructor.combos.modal.includedDishes')}</label>
-            <div className="bg-brand-cream/30 border border-brand-gray/20 rounded-xl p-3 min-h-[100px] flex flex-col gap-2">
-              {formData.dishes.length > 0 ? formData.dishes.map(dish => (
-                <div key={dish.id} className="flex items-center justify-between bg-white border border-brand-gray/10 p-2.5 rounded-lg">
-                  <span className="text-sm text-brand-espresso font-medium">{dish.name}</span>
+            <label className="text-sm font-medium text-brand-espresso dark:text-brand-cream mb-2 block">{t('menu.constructor.combos.modal.includedDishes')}</label>
+<div className="bg-brand-cream/30 dark:bg-brand-mocha/30 border border-brand-gray/20 dark:border-brand-gray/20 rounded-xl p-3 min-h-25 flex flex-col gap-2">              {formData.dishes.length > 0 ? formData.dishes.map(dish => (
+                <div key={dish.id} className="flex items-center justify-between bg-white dark:bg-brand-espresso border border-brand-gray/10 dark:border-brand-gray/20 p-2.5 rounded-lg">
+                  <span className="text-sm text-brand-espresso dark:text-brand-cream font-medium">{dish.name}</span>
                   <button onClick={() => removeDishFromCombo(dish.id)} className="text-brand-gray hover:text-red-500 outline-none"><X className="h-4 w-4" /></button>
                 </div>
               )) : <div className="flex h-full items-center justify-center text-sm text-brand-gray/60 italic">{t('menu.constructor.combos.modal.emptyIncluded')}</div>}
             </div>
             {formData.dishes.length > 0 && (
               <div className="mt-3 flex justify-between items-center text-sm px-1">
-                <span className="text-brand-gray">{t('menu.constructor.combos.modal.originalPrice')}</span><span className="font-medium text-brand-espresso">{calculateOriginalPrice(formData.dishes)} {t('menu.currency')}</span>
+                <span className="text-brand-gray">{t('menu.constructor.combos.modal.originalPrice')}</span><span className="font-medium text-brand-espresso dark:text-brand-cream">{calculateOriginalPrice(formData.dishes)} {t('menu.currency')}</span>
               </div>
             )}
           </div>
         </div>
-        <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-brand-gray/10">
+        <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-brand-gray/10 dark:border-brand-gray/20">
           <Button variant="ghost" onClick={() => setIsModalOpen(false)}>{t('menu.constructor.combos.modal.cancel')}</Button>
           <Button variant="brand" onClick={onSave} disabled={!formData.name.trim() || !formData.dishes.length}>{t('menu.constructor.combos.modal.save')}</Button>
         </div>

@@ -48,8 +48,8 @@ export const DishesTab = () => {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-brand-gray/10 shrink-0">
-        <h2 className="text-xl font-semibold text-brand-espresso">{t('menu.constructor.dishes.title')}</h2>
+      <div className="flex items-center justify-between mb-6 pb-4 border-b border-brand-gray/10 dark:border-brand-gray/20 shrink-0">
+        <h2 className="text-xl font-semibold text-brand-espresso dark:text-brand-cream">{t('menu.constructor.dishes.title')}</h2>
         <Button variant="brand" icon={<Plus className="h-4 w-4" />} onClick={openCreateModal}>
           {t('menu.constructor.dishes.addBtn')}
         </Button>
@@ -71,19 +71,19 @@ export const DishesTab = () => {
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingDish ? t('menu.constructor.dishes.modal.editTitle') : t('menu.constructor.dishes.modal.createTitle')}>
         <div className="flex flex-col gap-6 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar -mr-2">
           <div>
-            <h4 className="text-sm font-bold text-brand-espresso mb-3 uppercase tracking-wider">{t('menu.constructor.dishes.modal.media')}</h4>
-            <div className="border-2 border-dashed border-brand-gray/30 rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-brand-cream/50 transition-colors">
-              <ImagePlus className="h-8 w-8 text-brand-gray mb-2" />
-              <p className="text-sm text-brand-gray">{t('menu.constructor.dishes.modal.mediaHint')}</p>
+            <h4 className="text-sm font-bold text-brand-espresso dark:text-brand-cream mb-3 uppercase tracking-wider">{t('menu.constructor.dishes.modal.media')}</h4>
+            <div className="border-2 border-dashed border-brand-gray/30 dark:border-brand-gray/50 rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-brand-cream/50 dark:hover:bg-white/5 transition-colors">
+              <ImagePlus className="h-8 w-8 text-brand-gray dark:text-brand-gray/80 mb-2" />
+              <p className="text-sm text-brand-gray dark:text-brand-gray/80">{t('menu.constructor.dishes.modal.mediaHint')}</p>
             </div>
           </div>
           <div>
-            <h4 className="text-sm font-bold text-brand-espresso mb-3 uppercase tracking-wider">{t('menu.constructor.dishes.modal.basicInfo')}</h4>
+            <h4 className="text-sm font-bold text-brand-espresso dark:text-brand-cream mb-3 uppercase tracking-wider">{t('menu.constructor.dishes.modal.basicInfo')}</h4>
             <div className="flex flex-col gap-4">
               <Input id="dishName" label={t('menu.constructor.dishes.modal.nameLabel')} placeholder={t('menu.constructor.dishes.modal.namePlaceholder')} value={formData.name} onChange={(e) => handleChange('name', e.target.value)} />
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium text-brand-espresso">{t('menu.constructor.dishes.modal.descLabel')}</label>
-                <textarea className="w-full rounded-md border border-brand-gray/30 bg-white px-3 py-2 text-sm text-brand-espresso outline-none transition-colors focus:border-brand-copper focus:ring-1 focus:ring-brand-copper resize-none h-24" placeholder={t('menu.constructor.dishes.modal.descPlaceholder')} value={formData.description} onChange={(e) => handleChange('description', e.target.value)} />
+                <label className="text-sm font-medium text-brand-espresso dark:text-brand-cream">{t('menu.constructor.dishes.modal.descLabel')}</label>
+                <textarea className="w-full rounded-md border border-brand-gray/30 dark:border-brand-gray/50 bg-white dark:bg-brand-mocha px-3 py-2 text-sm text-brand-espresso dark:text-brand-cream outline-none transition-colors focus:border-brand-copper focus:ring-1 focus:ring-brand-copper resize-none h-24 placeholder:text-brand-gray/60 dark:placeholder:text-brand-gray/40" placeholder={t('menu.constructor.dishes.modal.descPlaceholder')} value={formData.description} onChange={(e) => handleChange('description', e.target.value)} />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <Input id="dishPrice" type="number" label={t('menu.constructor.dishes.modal.priceLabel')} value={formData.price || ''} onChange={(e) => handleChange('price', parseFloat(e.target.value))} />
@@ -94,8 +94,8 @@ export const DishesTab = () => {
             </div>
           </div>
           <div>
-            <h4 className="text-sm font-bold text-brand-espresso mb-3 uppercase tracking-wider">{t('menu.constructor.dishes.modal.properties')}</h4>
-            <div className="flex gap-6 mb-4 bg-brand-cream/40 p-3 rounded-lg border border-brand-gray/10">
+            <h4 className="text-sm font-bold text-brand-espresso dark:text-brand-cream mb-3 uppercase tracking-wider">{t('menu.constructor.dishes.modal.properties')}</h4>
+            <div className="flex gap-6 mb-4 bg-brand-cream/40 dark:bg-brand-mocha/40 p-3 rounded-lg border border-brand-gray/10 dark:border-brand-gray/20">
               <Checkbox id="isVegan" label={<span className="flex items-center gap-1.5"><Leaf className="h-3 w-3 text-green-500"/> {t('menu.constructor.dishes.modal.tags.vegan')}</span>} checked={formData.isVegan} onChange={(e) => handleChange('isVegan', e.target.checked)} />
               <Checkbox id="isSpicy" label={<span className="flex items-center gap-1.5"><Flame className="h-3 w-3 text-red-500"/> {t('menu.constructor.dishes.modal.tags.spicy')}</span>} checked={formData.isSpicy} onChange={(e) => handleChange('isSpicy', e.target.checked)} />
               <Checkbox id="isLactoseFree" label={<span className="flex items-center gap-1.5"><MilkOff className="h-3 w-3 text-blue-400"/> {t('menu.constructor.dishes.modal.tags.lactoseFree')}</span>} checked={formData.isLactoseFree} onChange={(e) => handleChange('isLactoseFree', e.target.checked)} />
@@ -118,7 +118,7 @@ export const DishesTab = () => {
             </div>
           </div>
         </div>
-        <div className="flex justify-end gap-3 pt-6 mt-2 border-t border-brand-gray/10">
+        <div className="flex justify-end gap-3 pt-6 mt-2 border-t border-brand-gray/10 dark:border-brand-gray/20">
           <Button variant="ghost" onClick={() => setIsModalOpen(false)}>{t('menu.constructor.dishes.modal.cancel')}</Button>
           <Button variant="brand" onClick={onSave} disabled={!formData.name.trim() || !formData.price}>{t('menu.constructor.dishes.modal.save')}</Button>
         </div>

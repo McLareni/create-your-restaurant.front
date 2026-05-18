@@ -26,12 +26,12 @@ export const LoginForm = () => {
   } = useLoginForm();
 
   return (
-    <div className="w-full max-w-105 rounded-3xl bg-brand-mocha p-8 shadow-2xl border border-brand-gray/20"> 
+    <div className="w-full max-w-105 rounded-3xl bg-white dark:bg-brand-mocha p-8 shadow-2xl border border-brand-gray/20 dark:border-brand-gray/20 transition-colors"> 
       <div className="mb-8 text-center lg:text-left">
-        <h2 className="text-[32px] font-serif font-medium leading-tight text-brand-cream">
+        <h2 className="text-[32px] font-serif font-medium leading-tight text-brand-espresso dark:text-brand-cream">
           {t('auth.login.title')}
         </h2>
-        <p className="mt-2 text-sm leading-relaxed text-brand-gray">
+        <p className="mt-2 text-sm leading-relaxed text-brand-gray dark:text-brand-gray/80">
           {t('auth.login.subtitle')}
         </p>
       </div>
@@ -41,7 +41,6 @@ export const LoginForm = () => {
           <Input
             id="email"
             type="email"
-            theme="dark"
             label={t('auth.login.emailLabel')}
             placeholder={t('auth.login.emailPlaceholder')}
             leftIcon={<Mail className="h-5 w-5" />}
@@ -66,7 +65,6 @@ export const LoginForm = () => {
               <Input
                 id="code"
                 type="text"
-                theme="dark"
                 maxLength={7}
                 label={t('auth.login.codeLabel')}
                 placeholder={t('auth.login.codePlaceholder')}
@@ -80,10 +78,10 @@ export const LoginForm = () => {
                 disabled={isLoading}
               />
               
-              <div className="text-right text-[13px]">
+              <div className="text-right text-[13px] px-1">
                 {timeLeft > 0 ? (
-                  <span className="text-brand-gray">
-                    {t('auth.login.resendCodeTimer')} <span className="font-medium text-brand-cream">{formatTime(timeLeft)}</span>
+                  <span className="text-brand-gray dark:text-brand-gray/80">
+                    {t('auth.login.resendCodeTimer')} <span className="font-medium text-brand-espresso dark:text-brand-cream">{formatTime(timeLeft)}</span>
                   </span>
                 ) : (
                   <button
@@ -110,7 +108,7 @@ export const LoginForm = () => {
               variant="brand" 
               type="submit" 
               isLoading={isLoading} 
-              className="w-full"
+              className="h-14 w-full text-lg shadow-lg shadow-brand-copper/20"
               disabled={emailError !== ''}
             >
               {step === 1 ? t('auth.login.continueBtn') : t('auth.login.verifyBtn')}
@@ -118,12 +116,12 @@ export const LoginForm = () => {
           </div>
         </div>
 
-        <div className="p-1 -m-1">
+        <div className="p-1 -m-1 flex justify-center mt-2">
           <Checkbox 
             id="terms" 
             required
             label={
-              <span className="text-brand-gray">
+              <span className="text-brand-gray dark:text-brand-gray/80">
                 {t('auth.login.termsPrefix')}
                 <a href="#" className="text-brand-copper hover:text-brand-gold transition-colors hover:underline">
                   {t('auth.login.privacyPolicy')}
@@ -138,8 +136,8 @@ export const LoginForm = () => {
         </div>
       </form>
 
-      <div className="my-6 flex items-center before:mt-0.5 before:flex-1 before:border-t before:border-brand-gray/20 after:mt-0.5 after:flex-1 after:border-t after:border-brand-gray/20">
-        <span className="mx-4 mb-0 text-center text-sm text-brand-gray">
+      <div className="my-6 flex items-center before:mt-0.5 before:flex-1 before:border-t before:border-brand-gray/20 dark:before:border-brand-gray/20 after:mt-0.5 after:flex-1 after:border-t after:border-brand-gray/20 dark:after:border-brand-gray/20">
+        <span className="mx-4 mb-0 text-center text-sm text-brand-gray dark:text-brand-gray/80">
           {t('auth.login.or')}
         </span>
       </div>
@@ -148,7 +146,7 @@ export const LoginForm = () => {
         <Button 
           variant="outlineDark" 
           type="button" 
-          className="w-full"
+          className="w-full text-brand-espresso dark:text-brand-cream border-brand-gray/30 dark:border-brand-gray/50 hover:bg-brand-gray/10 dark:hover:bg-brand-gray/20"
           icon={<GoogleIcon className="h-5 w-5" />}
         >
           {t('auth.login.google')}
@@ -156,7 +154,7 @@ export const LoginForm = () => {
         <Button 
           variant="outlineDark" 
           type="button" 
-          className="w-full"
+          className="w-full text-brand-espresso dark:text-brand-cream border-brand-gray/30 dark:border-brand-gray/50 hover:bg-brand-gray/10 dark:hover:bg-brand-gray/20"
           icon={<AppleIcon className="h-5 w-5" />}
         >
           {t('auth.login.apple')}

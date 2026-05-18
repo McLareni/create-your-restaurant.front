@@ -2,7 +2,9 @@ import { create } from 'zustand';
 import { apiClient } from '@/shared/api/client';
 import { authApi } from '@/features/auth/api/auth.api';
 
+// ДОДАНО id СЮДИ:
 export interface RestaurantSummary {
+  id: number | string; 
   name: string;
 }
 
@@ -24,28 +26,41 @@ interface UserState {
   logout: () => Promise<void>;
 }
 
-export const useUserStore = create<UserState>((set) => ({
+let fetchPromise: Promise<void> | null = null;
+
+export const useUserStore = create<UserState>((set, get) => ({
   user: null,
-  isLoading: false,
+  isLoading: true,
   
   setUser: (user) => set({ user }),
   
   fetchUser: async () => {
-    set({ isLoading: true });
-    try {
-      const response = await apiClient.get<{ user: User }>('/users/me');
-      set({ user: response.user, isLoading: false });
-    } catch (error) {
-      set({ 
-        user: { 
-          id: 1, 
-          email: 'test@gastro.com', 
-          role: 'OWNER', 
-          restaurants: [{ name: 'Кав\'ярня Кіт' }] 
-        }, 
-        isLoading: false 
-      });
+    if (get().user) {
+      set({ isLoading: false });
+      return;
     }
+
+    if (fetchPromise) {
+      await fetchPromise;
+      return;
+    }
+
+    set({ isLoading: true });
+
+    fetchPromise = (async () => {
+      try {
+        const response = await apiClient.get<{ user: User }>('/users/me');
+        set({ user: response.user, isLoading: false });
+      } catch (error) {
+        if (!get().user) {
+          set({ user: null, isLoading: false });
+        }
+      } finally {
+        fetchPromise = null;
+      }
+    })();
+
+    await fetchPromise;
   },
 
   logout: async () => {
