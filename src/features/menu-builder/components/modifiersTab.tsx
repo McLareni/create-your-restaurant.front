@@ -52,8 +52,8 @@ export const ModifiersTab = () => {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-brand-gray/10 shrink-0">
-        <h2 className="text-xl font-semibold text-brand-espresso">{t('menu.constructor.modifiers.title')}</h2>
+      <div className="flex items-center justify-between mb-6 pb-4 border-b border-brand-gray/10 dark:border-brand-gray/20 shrink-0">
+        <h2 className="text-xl font-semibold text-brand-espresso dark:text-brand-cream">{t('menu.constructor.modifiers.title')}</h2>
         <Button variant="brand" icon={<Plus className="h-4 w-4" />} onClick={onOpenCreate}>
           {t('menu.constructor.modifiers.addBtn')}
         </Button>
@@ -88,9 +88,9 @@ export const ModifiersTab = () => {
             </div>
           )}
 
-          <div className="pt-2 border-t border-brand-gray/10">
+          <div className="pt-2 border-t border-brand-gray/10 dark:border-brand-gray/20">
             <div className="flex items-center justify-between mb-3">
-              <label className="text-sm font-medium text-brand-espresso">{t('menu.constructor.modifiers.modal.optionsLabel')}</label>
+              <label className="text-sm font-medium text-brand-espresso dark:text-brand-cream">{t('menu.constructor.modifiers.modal.optionsLabel')}</label>
               <button type="button" onClick={addOption} className="text-xs font-medium text-brand-copper hover:text-brand-gold outline-none flex items-center gap-1"><Plus className="h-3 w-3" /> {t('menu.constructor.modifiers.modal.addOptionBtn')}</button>
             </div>
             <div className="flex flex-col gap-3">
@@ -99,14 +99,14 @@ export const ModifiersTab = () => {
                   <div className="flex-1"><Input id={`opt-name-${opt.id}`} placeholder={t('menu.constructor.modifiers.modal.optionNamePlaceholder')} value={opt.name} onChange={(e) => handleOptionChange(opt.id, 'name', e.target.value)} /></div>
                   <div className="w-24"><Input id={`opt-price-${opt.id}`} type="number" placeholder={t('menu.constructor.modifiers.modal.optionPricePlaceholder')} value={opt.price} onChange={(e) => handleOptionChange(opt.id, 'price', parseFloat(e.target.value))} /></div>
                   {formData.options.length > 1 && (
-                    <button onClick={() => removeOption(opt.id)} className="mt-2 p-2 text-brand-gray hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors outline-none"><Trash2 className="h-4 w-4" /></button>
+                    <button onClick={() => removeOption(opt.id)} className="mt-2 p-2 text-brand-gray hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors outline-none"><Trash2 className="h-4 w-4" /></button>
                   )}
                 </div>
               ))}
             </div>
           </div>
         </div>
-        <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-brand-gray/10">
+        <div className="flex justify-end gap-3 pt-6 mt-4 border-t border-brand-gray/10 dark:border-brand-gray/20">
           <Button variant="ghost" onClick={() => setIsModalOpen(false)}>{t('menu.constructor.modifiers.modal.cancel')}</Button>
           <Button variant="brand" onClick={onSave} disabled={!formData.name.trim()}>{t('menu.constructor.modifiers.modal.save')}</Button>
         </div>

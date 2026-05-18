@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:is(.dark *));
+
 @theme {
   --color-brand-espresso: #2A211C;
   --color-brand-mocha: #342923;
@@ -12,19 +14,17 @@
 @layer base {
   html, body {
     height: 100%;
-    background-color: var(--color-brand-espresso);
-    color: var(--color-brand-cream);
   }
 
   .custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: var(--color-brand-gray);
-  border-radius: 10px;
-  opacity: 0.5;
-}
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: var(--color-brand-gray);
+    border-radius: 10px;
+    opacity: 0.5;
+  }
 }

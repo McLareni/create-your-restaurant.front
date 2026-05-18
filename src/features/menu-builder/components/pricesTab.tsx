@@ -95,19 +95,19 @@ export const PricesTab = () => {
 
   return (
     <div className="flex h-full flex-col relative">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6 pb-4 border-b border-brand-gray/10 shrink-0">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6 pb-4 border-b border-brand-gray/10 dark:border-brand-gray/20 shrink-0">
         <div>
-          <h2 className="text-xl font-semibold text-brand-espresso">{t('menu.constructor.prices.title')}</h2>
-          <p className="text-sm text-brand-gray mt-1">{t('menu.constructor.prices.subtitle')}</p>
+          <h2 className="text-xl font-semibold text-brand-espresso dark:text-brand-cream">{t('menu.constructor.prices.title')}</h2>
+          <p className="text-sm text-brand-gray dark:text-brand-gray/80 mt-1">{t('menu.constructor.prices.subtitle')}</p>
         </div>
         <div className="relative w-full md:w-72">
-          <Search className="absolute left-3 top-3.5 h-4 w-4 text-brand-gray/60" />
+          <Search className="absolute left-3 top-3.5 h-4 w-4 text-brand-gray/60 dark:text-brand-gray/80" />
           <input 
             type="text"
             placeholder={t('menu.constructor.prices.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-11 w-full rounded-full border border-brand-gray/30 bg-white pl-9 pr-4 text-sm text-brand-espresso outline-none transition-colors focus:border-brand-copper focus:ring-1 focus:ring-brand-copper"
+            className="h-11 w-full rounded-full border border-brand-gray/30 dark:border-brand-gray/50 bg-white dark:bg-brand-mocha pl-9 pr-4 text-sm text-brand-espresso dark:text-brand-cream outline-none transition-colors focus:border-brand-copper focus:ring-1 focus:ring-brand-copper"
           />
         </div>
       </div>
@@ -115,23 +115,23 @@ export const PricesTab = () => {
       {dishes.length === 0 ? (
         <EmptyState icon={<Calculator />} title={t('menu.constructor.dishes.emptyTitle')} description={t('menu.constructor.prices.subtitle')} actionLabel={t('menu.constructor.dishes.addBtn')} onAction={() => window.location.href = '/dashboard/menu-builder#dishes'} />
       ) : (
-        <div className="flex-1 overflow-hidden flex flex-col bg-white border border-brand-gray/20 rounded-xl">
-          <div className="flex items-center gap-4 bg-brand-cream/50 p-4 border-b border-brand-gray/20">
-            <div className="flex items-center gap-2 pr-4 border-r border-brand-gray/20 shrink-0">
+        <div className="flex-1 overflow-hidden flex flex-col bg-white dark:bg-brand-mocha border border-brand-gray/20 dark:border-brand-gray/20 rounded-xl">
+          <div className="flex items-center gap-4 bg-brand-cream/50 dark:bg-brand-espresso p-4 border-b border-brand-gray/20 dark:border-brand-gray/20">
+            <div className="flex items-center gap-2 pr-4 border-r border-brand-gray/20 dark:border-brand-gray/20 shrink-0">
               <Checkbox 
                 id="selectAllPrices" label=""
                 checked={selectedIds.length === filteredDishes.length && filteredDishes.length > 0} 
                 onChange={(e) => toggleSelectAll(e.target.checked)} 
               />
-              <span className="text-sm font-medium text-brand-espresso">{t('qr.selected')}: {selectedIds.length}</span>
+              <span className="text-sm font-medium text-brand-espresso dark:text-brand-cream">{t('qr.selected')}: {selectedIds.length}</span>
             </div>
             
             <div className={`flex items-center gap-3 transition-opacity ${selectedIds.length === 0 ? 'opacity-50 pointer-events-none' : 'opacity-100'}`}>
-              <span className="text-sm font-medium text-brand-gray hidden md:block">{t('menu.constructor.prices.bulkActions')}:</span>
+              <span className="text-sm font-medium text-brand-gray dark:text-brand-gray/80 hidden md:block">{t('menu.constructor.prices.bulkActions')}:</span>
               
               <div className="flex items-center">
                 <Select 
-                  className="h-9 w-32 text-sm border-r-0 rounded-r-none focus:ring-0 focus:border-brand-gray/30 bg-white" 
+                  className="h-9 w-32 text-sm border-r-0 rounded-r-none focus:ring-0 focus:border-brand-gray/30 dark:focus:border-brand-gray/50 bg-white dark:bg-brand-espresso" 
                   value={bulkAction} 
                   onChange={(e) => setBulkAction(e.target.value as any)}
                 >
@@ -140,13 +140,13 @@ export const PricesTab = () => {
                 </Select>
                 <input 
                   type="number" 
-                  className="h-9 w-20 border border-brand-gray/30 px-3 text-sm text-brand-espresso outline-none focus:border-brand-copper z-10 relative"
+                  className="h-9 w-20 border border-brand-gray/30 dark:border-brand-gray/50 bg-white dark:bg-brand-espresso px-3 text-sm text-brand-espresso dark:text-brand-cream outline-none focus:border-brand-copper z-10 relative"
                   placeholder="0"
                   value={bulkValue}
                   onChange={(e) => setBulkValue(e.target.value === '' ? '' : parseInt(e.target.value))}
                 />
                 <Select 
-                  className="h-9 w-20 text-sm border-l-0 rounded-l-none focus:ring-0 focus:border-brand-gray/30 bg-white" 
+                  className="h-9 w-20 text-sm border-l-0 rounded-l-none focus:ring-0 focus:border-brand-gray/30 dark:focus:border-brand-gray/50 bg-white dark:bg-brand-espresso" 
                   value={bulkType} 
                   onChange={(e) => setBulkType(e.target.value as any)}
                 >
@@ -161,7 +161,7 @@ export const PricesTab = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-12 gap-4 border-b border-brand-gray/20 bg-white px-6 py-3 text-xs font-semibold uppercase tracking-wider text-brand-gray">
+          <div className="grid grid-cols-12 gap-4 border-b border-brand-gray/20 dark:border-brand-gray/20 bg-white dark:bg-brand-mocha px-6 py-3 text-xs font-semibold uppercase tracking-wider text-brand-gray dark:text-brand-gray/60">
             <div className="col-span-6">{t('menu.constructor.prices.columns.dish')}</div>
             <div className="col-span-2 text-right">{t('menu.constructor.prices.columns.currentPrice')}</div>
             <div className="col-span-2">{t('menu.constructor.prices.columns.newPrice')}</div>
@@ -177,39 +177,39 @@ export const PricesTab = () => {
               const diff = displayPrice - currentPrice;
 
               return (
-                <div key={dish.id} className={`grid grid-cols-12 items-center gap-4 rounded-lg px-4 py-2 transition-colors hover:bg-brand-cream/30 ${isModified ? 'bg-brand-copper/5' : ''}`}>
+                <div key={dish.id} className={`grid grid-cols-12 items-center gap-4 rounded-lg px-4 py-2 transition-colors hover:bg-brand-cream/30 dark:hover:bg-white/5 ${isModified ? 'bg-brand-copper/5 dark:bg-brand-copper/10' : ''}`}>
                   <div className="col-span-6 flex items-center gap-3">
                     <Checkbox id={`price-${dish.id}`} label="" checked={selectedIds.includes(dish.id)} onChange={() => toggleSelect(dish.id)} />
                     <div className="flex flex-col">
-                      <span className="text-sm font-medium text-brand-espresso">{dish.name}</span>
-                      <span className="text-xs text-brand-gray line-clamp-1">{dish.description}</span>
+                      <span className="text-sm font-medium text-brand-espresso dark:text-brand-cream">{dish.name}</span>
+                      <span className="text-xs text-brand-gray dark:text-brand-gray/80 line-clamp-1">{dish.description}</span>
                     </div>
                   </div>
 
-                  <div className="col-span-2 text-right text-sm font-medium text-brand-gray">
+                  <div className="col-span-2 text-right text-sm font-medium text-brand-gray dark:text-brand-gray/80">
                     {currentPrice} {t('menu.currency')}
                   </div>
 
                   <div className="col-span-2">
                     <div className="relative w-24">
                       <Input 
-                        className={`h-9 text-sm font-medium pr-6 ${isModified ? 'border-brand-copper bg-white focus:ring-brand-copper' : ''}`}
+                        className={`h-9 text-sm font-medium pr-6 bg-white dark:bg-brand-espresso ${isModified ? 'border-brand-copper dark:border-brand-copper focus:ring-brand-copper text-brand-copper' : ''}`}
                         type="number"
                         value={displayPrice}
                         onChange={(e) => handlePriceChange(dish.id, e.target.value)}
                       />
-                      <span className="absolute right-3 top-2 text-xs text-brand-gray">{t('menu.currency')}</span>
+                      <span className="absolute right-3 top-2 text-xs text-brand-gray dark:text-brand-gray/60">{t('menu.currency')}</span>
                     </div>
                   </div>
 
                   <div className="col-span-2 flex justify-end">
                     {isModified && diff !== 0 ? (
-                      <span className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded bg-white shadow-sm border ${diff > 0 ? 'text-green-600 border-green-100' : 'text-red-500 border-red-100'}`}>
+                      <span className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded bg-white dark:bg-brand-espresso shadow-sm border ${diff > 0 ? 'text-green-600 dark:text-green-500 border-green-100 dark:border-green-900/30' : 'text-red-500 dark:text-red-400 border-red-100 dark:border-red-900/30'}`}>
                         {diff > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
                         {diff > 0 ? '+' : ''}{diff} {t('menu.currency')}
                       </span>
                     ) : (
-                      <span className="text-xs text-brand-gray/40">-</span>
+                      <span className="text-xs text-brand-gray/40 dark:text-brand-gray/60">-</span>
                     )}
                   </div>
                 </div>
@@ -220,7 +220,7 @@ export const PricesTab = () => {
       )}
 
       {hasUnsavedChanges && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-brand-espresso text-white px-6 py-4 rounded-2xl shadow-2xl border border-brand-gray/20 flex items-center gap-6 animate-in slide-in-from-bottom-8">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-brand-espresso dark:bg-brand-mocha text-white px-6 py-4 rounded-2xl shadow-2xl border border-brand-gray/20 flex items-center gap-6 animate-in slide-in-from-bottom-8">
           <div className="flex flex-col">
             <span className="text-sm font-bold">{t('menu.constructor.prices.unsavedAlert')}</span>
             <span className="text-xs text-brand-cream/70">{t('menu.constructor.prices.changedItemsCount').replace('{{count}}', Object.keys(draftPrices).length.toString())}</span>

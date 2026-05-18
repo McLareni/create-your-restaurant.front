@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { QueryProvider } from "@/shared/providers/queryProvider";
+import { ThemeProvider } from "@/shared/providers/themeProvider";
 import "./globals.css";
 
 const geist = Geist({
@@ -18,10 +19,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="uk" className={geist.className}>
-      <body className="min-h-screen antialiased">
+    <html lang="uk" className={geist.className} suppressHydrationWarning>
+      <body className="min-h-screen antialiased bg-brand-cream text-brand-espresso dark:bg-brand-espresso dark:text-brand-cream transition-colors duration-300">
         <QueryProvider>
-          {children}
+          <ThemeProvider>
+            {children}
+          </ThemeProvider>
         </QueryProvider>
       </body>
     </html>

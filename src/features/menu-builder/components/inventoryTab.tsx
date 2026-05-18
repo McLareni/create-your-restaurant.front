@@ -31,26 +31,26 @@ export const InventoryTab = () => {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-brand-gray/10 pb-4">
+      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-brand-gray/10 dark:border-brand-gray/20 pb-4">
         <div>
-          <h2 className="text-xl font-semibold text-brand-espresso">{t('menu.constructor.inventory.title')}</h2>
-          <p className="text-sm text-brand-gray mt-1">{t('menu.constructor.inventory.subtitle')}</p>
+          <h2 className="text-xl font-semibold text-brand-espresso dark:text-brand-cream">{t('menu.constructor.inventory.title')}</h2>
+          <p className="text-sm text-brand-gray dark:text-brand-gray/80 mt-1">{t('menu.constructor.inventory.subtitle')}</p>
         </div>
         
         <div className="relative w-full md:w-72">
-          <Search className="absolute left-3 top-3.5 h-4 w-4 text-brand-gray/60" />
+          <Search className="absolute left-3 top-3.5 h-4 w-4 text-brand-gray/60 dark:text-brand-gray/80" />
           <input 
             type="text"
             placeholder={t('menu.constructor.inventory.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="h-11 w-full rounded-full border border-brand-gray/30 bg-white pl-9 pr-4 text-sm text-brand-espresso outline-none transition-colors focus:border-brand-copper focus:ring-1 focus:ring-brand-copper"
+            className="h-11 w-full rounded-full border border-brand-gray/30 dark:border-brand-gray/50 bg-white dark:bg-brand-mocha pl-9 pr-4 text-sm text-brand-espresso dark:text-brand-cream outline-none transition-colors focus:border-brand-copper focus:ring-1 focus:ring-brand-copper"
           />
         </div>
       </div>
 
-      <div className="flex-1 overflow-hidden rounded-xl border border-brand-gray/20 bg-white flex flex-col">
-        <div className="grid grid-cols-12 gap-4 border-b border-brand-gray/20 bg-brand-cream/50 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-brand-gray">
+      <div className="flex-1 overflow-hidden rounded-xl border border-brand-gray/20 dark:border-brand-gray/20 bg-white dark:bg-brand-mocha flex flex-col">
+        <div className="grid grid-cols-12 gap-4 border-b border-brand-gray/20 dark:border-brand-gray/20 bg-brand-cream/50 dark:bg-brand-espresso px-4 py-3 text-xs font-semibold uppercase tracking-wider text-brand-gray dark:text-brand-gray/60">
           <div className="col-span-5">{t('menu.constructor.inventory.columns.name')}</div>
           <div className="col-span-3">{t('menu.constructor.inventory.columns.zone')}</div>
           <div className="col-span-2 text-center">{t('menu.constructor.inventory.columns.stock')}</div>
@@ -61,21 +61,21 @@ export const InventoryTab = () => {
           {filteredDishes.map(dish => (
             <div 
               key={dish.id} 
-              className={`grid grid-cols-12 items-center gap-4 rounded-lg p-2 transition-colors hover:bg-brand-cream/30 ${!dish.isAvailable ? 'bg-red-50/50 opacity-80' : ''}`}
+              className={`grid grid-cols-12 items-center gap-4 rounded-lg p-2 transition-colors hover:bg-brand-cream/30 dark:hover:bg-white/5 ${!dish.isAvailable ? 'bg-red-50/50 dark:bg-red-500/10 opacity-80' : ''}`}
             >
               <div className="col-span-5 flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-cream text-brand-gray">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-cream dark:bg-brand-mocha/50 text-brand-gray dark:text-brand-gray/60">
                   <Pizza className="h-5 w-5" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-sm font-medium text-brand-espresso line-clamp-1">{dish.name}</span>
-                  <span className="text-xs text-brand-gray">{dish.price} {t('menu.currency')}</span>
+                  <span className="text-sm font-medium text-brand-espresso dark:text-brand-cream line-clamp-1">{dish.name}</span>
+                  <span className="text-xs text-brand-gray dark:text-brand-gray/80">{dish.price} {t('menu.currency')}</span>
                 </div>
               </div>
 
               <div className="col-span-3">
                 <Select 
-                  className="h-9 text-xs border-transparent bg-transparent hover:bg-white hover:border-brand-gray/30 focus:bg-white"
+                  className="h-9 text-xs border-transparent bg-transparent hover:bg-white dark:hover:bg-brand-espresso hover:border-brand-gray/30 dark:hover:border-brand-gray/50 focus:bg-white dark:focus:bg-brand-espresso"
                   value={dish.productionZone || ''} 
                   onChange={(e) => handleZoneChange(dish.id, e.target.value)}
                 >
@@ -98,13 +98,13 @@ export const InventoryTab = () => {
                     onChange={(e) => handleStockChange(dish.id, e.target.value)}
                   />
                   {dish.stockQuantity !== null && dish.stockQuantity <= 5 && dish.stockQuantity > 0 && (
-                    <AlertCircle className="absolute -right-2 -top-2 h-4 w-4 text-brand-copper bg-white rounded-full" />
+                    <AlertCircle className="absolute -right-2 -top-2 h-4 w-4 text-brand-copper bg-white dark:bg-brand-espresso rounded-full" />
                   )}
                 </div>
               </div>
 
               <div className="col-span-2 flex items-center justify-end gap-3 pr-2">
-                <span className={`text-xs font-medium ${dish.isAvailable ? 'text-green-600' : 'text-red-500'}`}>
+                <span className={`text-xs font-medium ${dish.isAvailable ? 'text-green-600 dark:text-green-500' : 'text-red-500 dark:text-red-400'}`}>
                   {dish.isAvailable ? t('menu.constructor.inventory.statusAvailable') : t('menu.constructor.inventory.statusStopped')}
                 </span>
                 <Switch 

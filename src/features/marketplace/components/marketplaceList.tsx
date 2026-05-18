@@ -1,0 +1,76 @@
+'use client';
+
+import { useState } from 'react';
+import { useTranslation } from '@/shared/hooks/useTranslation';
+import { ConfirmModal } from '@/shared/ui';
+import { Zap } from 'lucide-react';
+import { useMarketplace } from '../hooks/useMarketplace';
+import { ModuleCard } from './moduleCard';
+import { useAccessStore } from '@/shared/store/useAccessStore';
+
+export const MarketplaceList = () => {
+  const { t } = useTranslation();
+  const { modules } = useMarketplace();
+  
+  const { hasModule, isPurchased, toggleModule, purchaseModule } = useAccessStore();
+  
+  const [selectedModule, setSelectedModule] = useState<string | null>(null);
+
+  const handleConfirmConnection = async () => {
+    if (selectedModule) {
+      purchaseModule(selectedModule);
+      setSelectedModule(null);
+    }
+  };
+
+  const getModalDescription = () => {
+    if (!selectedModule) return '';
+    const mod = modules.find(m => m.key === selectedModule);
+    if (!mod) return '';
+    
+    const priceText = mod.price === 0 ? t('marketplace.price.free') : t('marketplace.price.monthly').replace('{{price}}', mod.price.toString());
+    
+    return t('marketplace.connectModal.description')
+      .replace('{{module}}', t(`marketplace.modules.${selectedModule}.title`))
+      .replace('{{price}}', priceText);
+  };
+
+  return (
+    <div className="flex h-full flex-col p-6">
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-serif font-bold text-brand-espresso dark:text-brand-cream flex items-center gap-3">
+            <Zap className="h-8 w-8 text-brand-copper" />
+            {t('marketplace.title')}
+          </h1>
+          <p className="mt-2 text-brand-gray dark:text-brand-gray/80 max-w-2xl">
+            {t('marketplace.subtitle')}
+          </p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-8">
+        {modules.map((mod) => (
+          <ModuleCard 
+            key={mod.key} 
+            moduleData={mod} 
+            isPurchased={isPurchased(mod.key)}
+            isActive={hasModule(mod.key)} 
+            onConnect={setSelectedModule}
+            onToggle={toggleModule}
+          />
+        ))}
+      </div>
+
+      <ConfirmModal 
+        isOpen={!!selectedModule} 
+        onClose={() => setSelectedModule(null)} 
+        onConfirm={handleConfirmConnection} 
+        title={t('marketplace.connectModal.title')}
+        description={getModalDescription()}
+        confirmLabel={t('marketplace.connectModal.confirmBtn')} // Передаємо текст "Підключити"
+        isDestructive={false} // Вимикаємо червоний колір
+      />
+    </div>
+  );
+};
