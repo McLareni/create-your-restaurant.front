@@ -3,9 +3,12 @@ import { DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { Category, CreateCategoryDTO } from '../types/categories.types';
 import { categoriesApi } from '../api/categories.api';
+import { useUserStore } from '@/shared/store/useUserStore';
 
 export const useCategories = () => {
   const queryClient = useQueryClient();
+  const user = useUserStore((state) => state.user);
+  const restaurantId = user?.restaurants?.[0]?.id;
 
   const { data: categories = [], isLoading } = useQuery({
     queryKey: ['categories'],
@@ -13,7 +16,12 @@ export const useCategories = () => {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: CreateCategoryDTO) => categoriesApi.create(data),
+    mutationFn: (data: CreateCategoryDTO) => 
+      categoriesApi.create({
+        ...data,
+        restaurantId: Number(restaurantId),
+        sortOrder: categories.length
+      }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['categories'] }),
   });
 

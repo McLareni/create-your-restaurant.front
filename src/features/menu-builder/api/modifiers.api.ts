@@ -1,47 +1,45 @@
-import { ModifierGroup, CreateModifierDTO, UpdateModifierDTO } from '../types/modifiers.types';
-
-let mockModifiers: ModifierGroup[] = [
-  {
-    id: '1',
-    name: 'Оберіть розмір піци',
-    type: 'GROUP',
-    minSelect: 1,
-    maxSelect: 1,
-    options: [
-      { id: 'o1', name: 'Мала 30см', price: 0 },
-      { id: 'o2', name: 'Велика 40см', price: 50 }
-    ]
-  },
-  {
-    id: '2',
-    name: 'Без цибулі',
-    type: 'SINGLE',
-    minSelect: 0,
-    maxSelect: 1,
-    options: [
-      { id: 'o3', name: 'Без цибулі', price: 0 }
-    ]
-  }
-];
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export const modifiersApi = {
-  getAll: async (): Promise<ModifierGroup[]> => {
-    return [...mockModifiers];
+  async getGroups(restaurantId: number) {
+    const response = await fetch(`${BASE_URL}/restaurants/${restaurantId}/modifiers`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+    });
+    if (!response.ok) throw new Error('Failed to fetch modifiers');
+    return response.json();
   },
 
-  create: async (data: CreateModifierDTO): Promise<ModifierGroup> => {
-    const newMod: ModifierGroup = { id: Date.now().toString(), ...data };
-    mockModifiers.push(newMod);
-    return newMod;
+  async createGroup(restaurantId: number, data: any) {
+    const response = await fetch(`${BASE_URL}/restaurants/${restaurantId}/modifiers`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+      credentials: 'include',
+    });
+    if (!response.ok) throw new Error('Failed to create modifier group');
+    return response.json();
   },
 
-  update: async (id: string, data: UpdateModifierDTO): Promise<ModifierGroup> => {
-    const index = mockModifiers.findIndex(m => m.id === id);
-    if (index !== -1) mockModifiers[index] = { ...mockModifiers[index], ...data };
-    return mockModifiers[index];
+  async updateGroup(restaurantId: number, groupId: string, data: any) {
+    const response = await fetch(`${BASE_URL}/restaurants/${restaurantId}/modifiers/${groupId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+      credentials: 'include',
+    });
+    if (!response.ok) throw new Error('Failed to update modifier group');
+    return response.json();
   },
 
-  delete: async (id: string): Promise<void> => {
-    mockModifiers = mockModifiers.filter(m => m.id !== id);
+  async deleteGroup(restaurantId: number, groupId: string) {
+    const response = await fetch(`${BASE_URL}/restaurants/${restaurantId}/modifiers/${groupId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+    });
+    if (!response.ok) throw new Error('Failed to delete modifier group');
+    return response.json();
   }
 };

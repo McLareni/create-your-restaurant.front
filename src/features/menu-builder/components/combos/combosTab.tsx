@@ -4,9 +4,9 @@ import { useState } from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { Button, Input, Select, Modal, ConfirmModal, EmptyState } from '@/shared/ui';
 import { PackagePlus, Plus, Search, X } from 'lucide-react';
-import { useCombos } from '../hooks/useCombos';
-import { mockAvailableDishes } from '../api/combos.api';
-import { Combo, CreateComboDTO, ComboDish } from '../types/combos.types';
+import { useCombos } from '../../hooks/useCombos';
+import { mockAvailableDishes } from '../../api/combos.api';
+import { Combo, CreateComboDTO, ComboDish } from '../../types/combos.types';
 import { ComboCard } from './comboCard';
 import { useCrudModal } from '@/shared/hooks/useCrudModal';
 

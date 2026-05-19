@@ -1,57 +1,38 @@
-import { Dish, CreateDishDTO, UpdateDishDTO } from '../types/dishes.types';
-
-let mockDishes: Dish[] = [
-  {
-    id: '1',
-    name: 'Піца Маргарита',
-    description: 'Класична італійська піца з беконом, пармезаном та вершковим соусом.',
-    price: 250,
-    weight: '450 г',
-    cookingTime: '15',
-    calories: '850',
-    isVegan: false,
-    isSpicy: false,
-    isLactoseFree: false,
-    badge: 'HIT',
-    allergens: ['gluten', 'lactose'],
-    isAvailable: true,
-    stockQuantity: null,
-    productionZone: 'HOT_KITCHEN'
-  }
-];
+import { apiClient } from '@/shared/api/client';
+import { Dish, CreateDishDTO } from '../types/dishes.types';
 
 export const dishesApi = {
+  // Примітка: метод getAll може потребувати оновлення, залежно від того,
+  // чи є окремий GET ендпоінт для всіх страв, чи вони приходять вкладеними в категорії
   getAll: async (): Promise<Dish[]> => {
-    return [...mockDishes];
-  },
-
-  create: async (data: CreateDishDTO): Promise<Dish> => {
-    const newDish: Dish = {
-      id: Date.now().toString(),
-      ...data,
-    };
-    mockDishes.push(newDish);
-    return newDish;
-  },
-
-  update: async (id: string, data: UpdateDishDTO): Promise<Dish> => {
-    const index = mockDishes.findIndex(d => d.id === id);
-    if (index !== -1) {
-      mockDishes[index] = { ...mockDishes[index], ...data };
+    try {
+      const response = await apiClient.get<any>('/menu/owner/dishes');
+      return Array.isArray(response) ? response : response.dishes || [];
+    } catch (error) {
+      console.warn("GET /dishes не знайдено, повертаємо порожній масив");
+      return [];
     }
-    return mockDishes[index];
+  },
+
+  create: async (categoryId: string, data: CreateDishDTO): Promise<Dish> => {
+    const response = await apiClient.post<any>(`/menu/owner/categories/${categoryId}/dishes`, data);
+    return response.dish || response;
+  },
+
+  update: async (id: string, data: Partial<Dish>): Promise<Dish> => {
+    const response = await apiClient.patch<any>(`/menu/owner/dishes/${id}`, data);
+    return response.dish || response;
   },
 
   delete: async (id: string): Promise<void> => {
-    mockDishes = mockDishes.filter(d => d.id !== id);
+    await apiClient.delete(`/menu/owner/dishes/${id}`);
   },
 
   bulkUpdatePrices: async (updates: { id: string; price: number }[]): Promise<void> => {
-    updates.forEach(update => {
-      const index = mockDishes.findIndex(d => d.id === update.id);
-      if (index !== -1) {
-        mockDishes[index].price = update.price;
-      }
-    });
+    await Promise.all(
+      updates.map((update) => 
+        apiClient.patch(`/menu/owner/dishes/${update.id}`, { price: update.price })
+      )
+    );
   }
 };

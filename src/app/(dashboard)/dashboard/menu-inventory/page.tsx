@@ -1,6 +1,6 @@
 'use client';
 
-import { InventoryTab } from '@/features/menu-builder/components/inventoryTab';
+import { InventoryTab } from '@/features/menu-builder/components/inventory/inventoryTab';
 
 export default function MenuInventoryPage() {
   return (

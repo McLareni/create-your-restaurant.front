@@ -1,20 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { Input, Select, Switch } from '@/shared/ui';
 import { Search, AlertCircle, Pizza } from 'lucide-react';
-import { useInventory } from '../hooks/useInventory';
-import { ProductionZone } from '../types/dishes.types';
+import { useInventory } from '../../hooks/useInventory';
+import { ProductionZone, Dish } from '../../types/dishes.types';
 
 export const InventoryTab = () => {
   const { t } = useTranslation();
   const { dishes, updateInventory } = useInventory();
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredDishes = dishes.filter(d => 
-    d.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredDishes = useMemo(() => {
+    if (!searchQuery) return dishes;
+    const lowerQuery = searchQuery.toLowerCase();
+    return dishes.filter((d: Dish) => d.name.toLowerCase().includes(lowerQuery));
+  }, [dishes, searchQuery]);
 
   const handleToggleAvailable = (id: string, currentStatus: boolean) => {
     updateInventory({ id, isAvailable: !currentStatus });
@@ -58,7 +60,7 @@ export const InventoryTab = () => {
         </div>
 
         <div className="flex-1 overflow-y-auto custom-scrollbar p-2">
-          {filteredDishes.map(dish => (
+          {filteredDishes.map((dish: Dish) => (
             <div 
               key={dish.id} 
               className={`grid grid-cols-12 items-center gap-4 rounded-lg p-2 transition-colors hover:bg-brand-cream/30 dark:hover:bg-white/5 ${!dish.isAvailable ? 'bg-red-50/50 dark:bg-red-500/10 opacity-80' : ''}`}

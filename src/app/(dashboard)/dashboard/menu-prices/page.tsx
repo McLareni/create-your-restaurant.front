@@ -1,6 +1,6 @@
 'use client';
 
-import { PricesTab } from '@/features/menu-builder/components/pricesTab';
+import { PricesTab } from '@/features/menu-builder/components/prices/pricesTab';
 
 export default function MenuPricesPage() {
   return (

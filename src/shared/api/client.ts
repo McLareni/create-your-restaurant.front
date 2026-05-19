@@ -1,10 +1,9 @@
 interface RequestOptions extends RequestInit {
   params?: Record<string, string>;
-  timeout?: number; // Додаємо можливість вказати таймаут
+  timeout?: number;
 }
 
 async function fetchClient<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
-  // Ставимо 5 секунд за замовчуванням
   const { params, headers, timeout = 10000, ...customConfig } = options;
   
   const isLocalAuth = endpoint.startsWith('/api/auth');
@@ -20,7 +19,6 @@ async function fetchClient<T>(endpoint: string, options: RequestOptions = {}): P
     urlStr += `?${searchParams.toString()}`;
   }
 
-  // Створюємо контролер для обриву завислих запитів
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
 
@@ -30,7 +28,7 @@ async function fetchClient<T>(endpoint: string, options: RequestOptions = {}): P
       'Content-Type': 'application/json',
       ...headers,
     },
-    signal: controller.signal, // Прив'язуємо сигнал до fetch
+    signal: controller.signal,
   };
 
   try {
@@ -46,7 +44,6 @@ async function fetchClient<T>(endpoint: string, options: RequestOptions = {}): P
   } catch (error: any) {
     clearTimeout(timeoutId);
     
-    // Якщо помилка виникла через наш AbortController
     if (error.name === 'AbortError') {
       console.warn(`[API Timeout]: Запит до ${endpoint} перевищив час очікування (${timeout}ms)`);
       throw new Error('serverError'); 
@@ -65,6 +62,9 @@ export const apiClient = {
     
   put: <T>(endpoint: string, body?: unknown, options?: RequestOptions) => 
     fetchClient<T>(endpoint, { ...options, method: 'PUT', body: body ? JSON.stringify(body) : undefined }),
+    
+  patch: <T>(endpoint: string, body?: unknown, options?: RequestOptions) => 
+    fetchClient<T>(endpoint, { ...options, method: 'PATCH', body: body ? JSON.stringify(body) : undefined }),
     
   delete: <T>(endpoint: string, options?: RequestOptions) => 
     fetchClient<T>(endpoint, { ...options, method: 'DELETE' }),
