@@ -2,7 +2,7 @@
 
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { PackagePlus, Pencil, Trash2 } from 'lucide-react';
-import { Combo } from '../types/combos.types';
+import { Combo } from '../../types/combos.types';
 import { Card } from '@/shared/ui';
 
 interface ComboCardProps {

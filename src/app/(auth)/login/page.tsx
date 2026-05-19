@@ -1,5 +1,6 @@
 import { LoginForm } from '@/features/auth';
 import { useTranslation } from '@/shared/hooks/useTranslation';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const { t } = useTranslation();
@@ -9,10 +10,12 @@ export default function LoginPage() {
       
       <div className="relative hidden w-1/2 lg:flex flex-col justify-center p-16 text-brand-cream">
         <div className="absolute inset-0 z-0">
-          <img
+          <Image
             src="https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?q=80&w=2070&auto=format&fit=crop"
             alt={t('hero.imageAlt')}
-            className="h-full w-full object-cover opacity-40 grayscale-20" 
+            fill
+            priority
+            className="object-cover opacity-40 grayscale-20" 
           />
           <div className="absolute inset-0 bg-linear-to-t from-brand-espresso via-transparent to-transparent"></div>
         </div>

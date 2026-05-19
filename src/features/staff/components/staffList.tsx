@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { Button, Input, Select, Modal, ConfirmModal, Switch, EmptyState } from '@/shared/ui';
 import { Plus, Users, Search } from 'lucide-react';
@@ -40,9 +40,13 @@ export const StaffList = () => {
     handleSave();
   };
 
-  const filteredStaff = staff.filter(s => 
-    `${s.firstName} ${s.lastName} ${s.email}`.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredStaff = useMemo(() => {
+    if (!searchQuery) return staff;
+    const lowerQuery = searchQuery.toLowerCase();
+    return staff.filter((s: StaffMember) => 
+      `${s.firstName} ${s.lastName || ''} ${s.email}`.toLowerCase().includes(lowerQuery)
+    );
+  }, [staff, searchQuery]);
 
   return (
     <div className="flex h-full flex-col">
@@ -74,7 +78,7 @@ export const StaffList = () => {
         ) : (
           <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar pb-6">
             <div className="grid gap-5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
-              {filteredStaff.map(member => (
+              {filteredStaff.map((member: StaffMember) => (
                 <StaffCard 
                   key={member.id} 
                   member={member} 

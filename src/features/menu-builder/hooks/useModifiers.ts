@@ -1,35 +1,38 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ModifierGroup, CreateModifierDTO, UpdateModifierDTO } from '../types/modifiers.types';
 import { modifiersApi } from '../api/modifiers.api';
+import { useUserStore } from '@/shared/store/useUserStore';
 
 export const useModifiers = () => {
   const queryClient = useQueryClient();
+  const user = useUserStore((state) => state.user);
+  const restaurantId = user?.restaurants?.[0]?.id || 1;
 
-  const { data: modifiers = [], isLoading } = useQuery({
-    queryKey: ['modifiers'],
-    queryFn: modifiersApi.getAll,
+  const { data: groups = [], isLoading } = useQuery({
+    queryKey: ['modifierGroups', restaurantId],
+    queryFn: () => modifiersApi.getGroups(Number(restaurantId)),
+    enabled: !!restaurantId,
   });
 
-  const createMutation = useMutation({
-    mutationFn: (data: CreateModifierDTO) => modifiersApi.create(data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['modifiers'] }),
+  const createGroupMutation = useMutation({
+    mutationFn: (data: any) => modifiersApi.createGroup(Number(restaurantId), data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['modifierGroups', restaurantId] }),
   });
 
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateModifierDTO }) => modifiersApi.update(id, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['modifiers'] }),
+  const updateGroupMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => modifiersApi.updateGroup(Number(restaurantId), id, data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['modifierGroups', restaurantId] }),
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: (id: string) => modifiersApi.delete(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['modifiers'] }),
+  const deleteGroupMutation = useMutation({
+    mutationFn: (id: string) => modifiersApi.deleteGroup(Number(restaurantId), id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['modifierGroups', restaurantId] }),
   });
 
   return {
-    modifiers,
+    groups,
     isLoading,
-    createModifier: createMutation.mutate,
-    updateModifier: updateMutation.mutate,
-    deleteModifier: deleteMutation.mutate,
+    createGroup: createGroupMutation.mutate,
+    updateGroup: updateGroupMutation.mutate,
+    deleteGroup: deleteGroupMutation.mutate,
   };
 };

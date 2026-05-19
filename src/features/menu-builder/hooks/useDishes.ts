@@ -11,7 +11,7 @@ export const useDishes = () => {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: CreateDishDTO) => dishesApi.create(data),
+    mutationFn: ({ categoryId, data }: { categoryId: string; data: CreateDishDTO }) => dishesApi.create(categoryId, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['dishes'] }),
   });
 
@@ -25,7 +25,6 @@ export const useDishes = () => {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['dishes'] }),
   });
 
-  // НОВА МУТАЦІЯ ДЛЯ МАСОВИХ ЦІН
   const bulkUpdatePricesMutation = useMutation({
     mutationFn: (updates: { id: string; price: number }[]) => dishesApi.bulkUpdatePrices(updates),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['dishes'] }),

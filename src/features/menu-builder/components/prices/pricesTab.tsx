@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { Button, Input, Select, Checkbox, EmptyState } from '@/shared/ui';
 import { Search, Save, X, TrendingUp, TrendingDown, Calculator } from 'lucide-react';
-import { useDishes } from '../hooks/useDishes';
+import { useDishes } from '../../hooks/useDishes';
 
 export const PricesTab = () => {
   const { t } = useTranslation();
