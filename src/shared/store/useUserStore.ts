@@ -34,7 +34,6 @@ export const useUserStore = create<UserState>((set, get) => ({
   setUser: (user) => set({ user }),
   
   fetchUser: async (force = false) => {
-    // Якщо користувач уже є і ми не вимагаємо force-оновлення — просто вимикаємо лоадер
     if (get().user && !force) {
       set({ isLoading: false });
       return;
@@ -66,6 +65,8 @@ export const useUserStore = create<UserState>((set, get) => ({
   logout: async () => {
     try {
       await authApi.logout();
+    } catch (error) {
+      console.error('Silent fail for network logout error:', error);
     } finally {
       set({ user: null });
       window.location.href = '/login';

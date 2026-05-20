@@ -25,6 +25,7 @@ export const FloatingPanel = ({ isOpen, onClose, title, children, className, pan
   const defaultWidthClass = hasWidthConstraint ? '' : 'w-full max-w-lg';
 
   useEffect(() => {
+    let timerId: NodeJS.Timeout;
     if (isOpen) {
       const saved = localStorage.getItem(`panel-pos-${panelId}`);
       if (saved) {
@@ -39,10 +40,13 @@ export const FloatingPanel = ({ isOpen, onClose, title, children, className, pan
         setCoordinates(initialPos);
         currentCoordsRef.current = initialPos;
       }
-      setTimeout(() => setIsInitialized(true), 30);
+      timerId = setTimeout(() => setIsInitialized(true), 30);
     } else {
       setIsInitialized(false);
     }
+    return () => {
+      if (timerId) clearTimeout(timerId);
+    };
   }, [isOpen, panelId, className]);
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {

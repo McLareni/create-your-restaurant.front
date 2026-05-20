@@ -14,7 +14,7 @@ export default function MenuConstructorPage() {
   const [activeTab, setActiveTab] = useState<TabId>('board');
 
   const tabs = [
-    { id: 'board', label: 'Дошка меню', icon: LayoutList },
+    { id: 'board', label: t('menu.constructor.tabs.categories'), icon: LayoutList },
     { id: 'modifiers', label: t('menu.constructor.tabs.modifiers'), icon: Layers },
     { id: 'combos', label: t('menu.constructor.tabs.combos'), icon: PackagePlus },
   ] as const;

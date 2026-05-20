@@ -32,49 +32,77 @@ export const menu = {
       emptyDesc: "Додайте першу страву до вашого меню, щоб гості могли її замовити.",
       addBtn: "Додати страву",
       editBtn: "Редагувати",
-      deleteBtn: "Видалити",
+      deleteBtn: "Вилучити",
       descTitle: "Опис страви",
       moreBtn: "Детальніше...",
       deleteConfirm: "Ви впевнені, що хочете видалити цю страву? Вона зникне з меню для всіх гостей.",
+      notifications: {
+        imageUploading: "Завантаження зображення...",
+        imageUploadSuccess: "Зображення завантажено успішно!",
+        imageUploadError: "Помилка завантаження файлу"
+      },
       modal: {
         createTitle: "Нова страва",
         editTitle: "Редагування страви",
         basicInfo: "Основна інформація",
         nameLabel: "Назва страви",
         namePlaceholder: "Наприклад: Паста Карбонара",
+        categoryLabel: "Категорія страви",
+        categoryPlaceholder: "Оберіть категорію для страви...",
         descLabel: "Опис страви",
-        descPlaceholder: "Склад та смакові особливості...",
-        priceLabel: "Ціна",
-        weightLabel: "Вага/Об'єм",
+        descPlaceholder: "Склад, секрети приготування та смакові особливості...",
+        priceLabel: "Базова ціна (₴)",
+        taxRateLabel: "Ставка ПДВ (%)",
+        taxText: "ПДВ",
+        hasModifiers: "Має активні модифікатори",
+        variantsTitle: "Розміри порцій / Варіанти",
+        addVariantBtn: "Додати варіант",
+        variantName: "Назва варіанту",
+        variantPrice: "Ціна",
+        variantSku: "Артикул (SKU)",
+        
+        tabs: {
+          pricing: "Ціноутворення",
+          characteristics: "Характеристики"
+        },
+        weightLabel: "Вага / Об'єм одиниці",
         weightPlaceholder: "350 г",
+        unitLabel: "Одиниця виміру",
+        unitPlaceholder: "г, мл, шт, порція",
         timeLabel: "Час приготування (хв)",
         timePlaceholder: "15",
         caloriesLabel: "Калорійність",
         caloriesPlaceholder: "450 ккал",
         media: "Галерея медіа",
-        mediaHint: "Перетягніть фото сюди або клікніть для завантаження. Перше фото буде головним.",
-        changeImage: "Змінити",
-        properties: "Характеристики та Алергени",
-        tags: {
-          vegan: "Веган",
-          spicy: "Гостре",
-          lactoseFree: "Без лактози"
+        mediaHint: "Перетягніть фото сюди або клікніть для завантаження. Перше фото буде головним в гостьовому меню.",
+        changeImage: "Змінити фото",
+        availabilityLabel: "Активна позиція (показувати в QR-меню)",
+        stockLabel: "Кількість за замовчуванням (для стоп-листів)",
+        properties: {
+          allergensTitle: "Харчові алергени",
+          addAllergenPlaceholder: "Додати новий алерген",
+          tagsTitle: "Особливості та Теги",
+          addTagPlaceholder: "Додати новий тег"
         },
-        allergensInputLabel: "Алергени (через кому)",
-        allergensInputPlaceholder: "Наприклад: лактоза, арахіс, мед...",
         allergensLabel: "Алергени",
-        allergensPlaceholder: "Оберіть алергени...",
-        allergens: {
-          gluten: "Глютен",
-          lactose: "Лактоза",
-          nuts: "Горіхи",
-          seafood: "Морепродукти"
+        noModifiers: "У вас ще немає створених груп модифікаторів для вибору.",
+        badgeLabel: "Маркетинговий бейдж (Стікер)",
+        ingredients: {
+          title: "Складники страви",
+          empty: "Складників не додано",
+          nameLabel: "Назва інгредієнта",
+          namePlaceholder: "Наприклад: Томати",
+          qtyLabel: "Кількість",
+          unitLabel: "Од. вим.",
+          units: {
+            g: "г",
+            ml: "мл",
+            pcs: "шт",
+            kg: "кг"
+          }
         },
-        addModifiersLabel: "Додати модифікатори",
-        noModifiers: "У вас ще немає груп модифікаторів.",
-        badgeLabel: "Маркетинговий бейдж",
         cancel: "Скасувати",
-        save: "Зберегти"
+        save: "Зберегти позицію"
       }
     },
     modifiers: {
@@ -104,14 +132,14 @@ export const menu = {
           minLabel: "Мінімум виборів",
           maxLabel: "Максимум виборів",
           unlimited: "Безліміт",
-          requiredLabel: "Обов'язковий вибір (Клієнт не зможе замовити без вибору)",
+          requiredLabel: "Обов'язковий вибір (Клієнт не зможе замовити без вибору)"
         },
         option: {
           createTitle: "Додати опцію",
           editTitle: "Редагувати опцію",
           nameLabel: "Назва опції (напр. Екстра сир)",
           priceLabel: "Додаткова вартість (₴)",
-          availableLabel: "В наявності",
+          availableLabel: "В наявності"
         },
         cancel: "Скасувати",
         save: "Зберегти"
@@ -125,6 +153,14 @@ export const menu = {
       editBtn: "Редагувати",
       deleteBtn: "Видалити",
       deleteConfirm: "Ви впевнені, що хочете видалити цей набір? Він зникне з меню для всіх гостей.",
+      notifications: {
+        createSuccess: "Комбо успішно створено",
+        createError: "Помилка при створенні комбо",
+        updateSuccess: "Комбо оновлено",
+        updateError: "Помилка при оновленні комбо",
+        deleteSuccess: "Комбо видалено",
+        deleteError: "Помилка при видаленні комбо"
+      },
       modal: {
         createTitle: "Створення комбо",
         editTitle: "Редагування комбо",
@@ -141,7 +177,8 @@ export const menu = {
         notFound: "Страви не знайдено",
         originalPrice: "Вартість без комбо:",
         cancel: "Скасувати",
-        save: "Зберегти"
+        save: "Зберегти",
+        upsellTitle: "Рекомендовані товари для крос-продажів"
       }
     },
     badges: {
@@ -172,33 +209,6 @@ export const menu = {
       stockUnlimited: "∞",
       statusAvailable: "В меню",
       statusStopped: "У стоп-листі"
-    },
-    prices: {
-      title: "Управління цінами",
-      subtitle: "Масове редагування цін. Змінюйте вартість окремих страв або застосовуйте знижки/націнки до обраних позицій.",
-      searchPlaceholder: "Пошук страв...",
-      bulkActions: "Масові дії для обраних",
-      apply: "Застосувати",
-      increase: "Підняти ціну на",
-      decrease: "Знизити ціну на",
-      typePercent: "%",
-      typeFixed: "₴",
-      saveChanges: "Зберегти всі зміни",
-      discard: "Відхилити",
-      unsavedAlert: "У вас є незбережені зміни",
-      changedItemsCount: "Змінено позицій: {{count}}",
-      columns: {
-        dish: "Страва",
-        currentPrice: "Поточна ціна",
-        newPrice: "Нова ціна",
-        difference: "Різниця"
-      }
-    },
-  },
-  properties: {
-          allergensTitle: "Алергени страви",
-          addAllergenPlaceholder: "Додати новий алерген",
-          tagsTitle: "Особливості та Теги",
-          addTagPlaceholder: "Додати новий тег"
-        },
+    }
+  }
 };

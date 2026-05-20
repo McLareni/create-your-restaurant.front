@@ -39,14 +39,13 @@ export const useAccessStore = create<AccessState>((set, get) => ({
         isLoadingAccess: false 
       });
     } catch (error) {
-      // ТИМЧАСОВА ЗАГЛУШКА ДЛЯ РОЗРОБКИ
-      const mockPurchased = ['menu-engine', 'qr-tables', 'staff'];
       set({ 
-        purchasedModules: mockPurchased,
-        activeModules: [...mockPurchased], // За замовчуванням увімкнені всі куплені
-        permissions: ['menu:read', 'menu:edit', 'staff:view'], 
+        purchasedModules: [],
+        activeModules: [],
+        permissions: [],
         isLoadingAccess: false 
       });
+      throw error;
     }
   },
 
@@ -57,9 +56,6 @@ export const useAccessStore = create<AccessState>((set, get) => ({
   hasPermission: (permissionKey: string) => get().permissions.includes(permissionKey),
 
   toggleModule: (moduleKey: string, isActive: boolean) => {
-    // Тут в майбутньому буде API запит на збереження стану:
-    // apiClient.put(`/restaurants/${id}/modules/${moduleKey}/toggle`, { isActive })
-    
     set((state) => ({
       activeModules: isActive 
         ? [...state.activeModules, moduleKey] 
@@ -68,10 +64,9 @@ export const useAccessStore = create<AccessState>((set, get) => ({
   },
 
   purchaseModule: (moduleKey: string) => {
-    // Тут буде API запит на оплату/підключення
     set((state) => ({
       purchasedModules: [...state.purchasedModules, moduleKey],
-      activeModules: [...state.activeModules, moduleKey] // Автоматично вмикаємо після покупки
+      activeModules: [...state.activeModules, moduleKey]
     }));
   }
 }));

@@ -52,8 +52,8 @@ export const ModifiersTab = () => {
   const handleSaveGroup = () => {
     const formattedData = {
       ...groupForm,
-      minSelections: groupForm.minSelections ? parseInt(groupForm.minSelections) : 0,
-      maxSelections: groupForm.maxSelections ? parseInt(groupForm.maxSelections) : null,
+      minSelections: groupForm.minSelections ? parseInt(groupForm.minSelections, 10) : 0,
+      maxSelections: groupForm.maxSelections ? parseInt(groupForm.maxSelections, 10) : null,
       options: editingGroup ? undefined : [],
     };
     if (editingGroup) updateGroup({ id: editingGroup.id, data: formattedData });
@@ -77,16 +77,31 @@ export const ModifiersTab = () => {
     const group = groups.find((g: any) => g.id === activeGroupId);
     if (!group) return;
 
-    const formattedOption = { ...optionForm, price: optionForm.price ? parseFloat(optionForm.price) : 0 };
+    const formattedOption = { 
+      ...optionForm, 
+      price: optionForm.price ? parseFloat(optionForm.price) : 0 
+    };
     let newOptions = [...group.options];
 
     if (editingOption) {
       newOptions = newOptions.map((opt: any) => opt.id === editingOption.id ? { ...opt, ...formattedOption } : opt);
     } else {
-      newOptions.push(formattedOption);
+      newOptions.push({
+        id: crypto.randomUUID(),
+        ...formattedOption
+      });
     }
 
-    updateGroup({ id: activeGroupId, data: { name: group.name, options: newOptions } });
+    updateGroup({ 
+      id: activeGroupId, 
+      data: { 
+        name: group.name,
+        isRequired: group.isRequired,
+        minSelections: group.minSelections,
+        maxSelections: group.maxSelections,
+        options: newOptions 
+      } 
+    });
     setIsOptionModalOpen(false);
   };
 
@@ -98,7 +113,16 @@ export const ModifiersTab = () => {
       const group = groups.find((g: any) => g.id === deleteTarget.groupId);
       if (group) {
         const newOptions = group.options.filter((opt: any) => opt.id !== deleteTarget.id);
-        updateGroup({ id: group.id, data: { name: group.name, options: newOptions } });
+        updateGroup({ 
+          id: group.id, 
+          data: { 
+            name: group.name,
+            isRequired: group.isRequired,
+            minSelections: group.minSelections,
+            maxSelections: group.maxSelections,
+            options: newOptions 
+          } 
+        });
       }
     }
     setDeleteTarget(null);
@@ -106,7 +130,6 @@ export const ModifiersTab = () => {
 
   return (
     <div className="flex h-full flex-col pb-10">
-      
       <div className="sticky top-0 z-30 flex flex-col sm:flex-row sm:items-center justify-between mb-6 bg-brand-cream/80 dark:bg-brand-espresso/80 backdrop-blur-md py-3 border-b border-brand-gray/10 -mx-2 px-2 sm:-mx-6 sm:px-6">
         <div className="mb-3 sm:mb-0">
           <h2 className="text-xl font-bold text-brand-espresso dark:text-brand-cream tracking-tight flex items-center gap-2">
@@ -135,7 +158,6 @@ export const ModifiersTab = () => {
         <div className="flex flex-col gap-4">
           {groups.map((group: any) => (
             <div key={group.id} className="flex flex-col rounded-xl bg-white dark:bg-brand-mocha border border-brand-gray/10 shadow-xs transition-all">
-              
               <div className="flex items-center justify-between p-3 sm:p-4 hover:bg-brand-cream/30 dark:hover:bg-brand-gray/5 transition-colors rounded-xl">
                 <div className="flex items-center gap-2 flex-1 cursor-pointer select-none" onClick={() => toggleGroup(group.id)}>
                   <div className="p-1 rounded-md text-brand-gray">

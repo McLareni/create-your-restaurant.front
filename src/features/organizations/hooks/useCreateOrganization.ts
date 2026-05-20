@@ -6,6 +6,7 @@ import { useTranslation } from '@/shared/hooks/useTranslation';
 import { createOrganizationSchema, CreateOrganizationValues } from '../schemas/organization.schema';
 import { organizationApi } from '../api/organizations.api';
 import { useUserStore } from '@/shared/store/useUserStore';
+import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 
 export const useCreateOrganization = () => {
   const { t } = useTranslation();
@@ -25,6 +26,7 @@ export const useCreateOrganization = () => {
   const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
   const [isCheckingSlug, setIsCheckingSlug] = useState(false);
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   
   const [animationStep, setAnimationStep] = useState<number>(0);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -89,8 +91,18 @@ export const useCreateOrganization = () => {
         setAnimationStep(step);
         if (step === 4) {
           const redirectTimer = setTimeout(async () => {
-            // Безпечно оновлюємо дані користувача з новим рестораном без викидання з сесії
             await useUserStore.getState().fetchUser(true); 
+            
+            const updatedUser = useUserStore.getState().user;
+            const newRes = updatedUser?.restaurants?.find(r => r.name === formData.name);
+            if (newRes) {
+              useRestaurantStore.getState().setActiveRestaurant({
+                id: newRes.id,
+                name: newRes.name,
+                slug: (newRes as any).slug
+              });
+            }
+            
             router.push('/dashboard/menu-builder');
           }, 1500);
           timersRef.current.push(redirectTimer);
@@ -118,6 +130,7 @@ export const useCreateOrganization = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return;
     setErrors({});
 
     const validation = createOrganizationSchema.safeParse(formData);
@@ -132,11 +145,14 @@ export const useCreateOrganization = () => {
 
     if (slugAvailable === false) return;
 
+    setIsLoading(true);
     try {
       await organizationApi.create(validation.data);
       playSuccessAnimation();
     } catch (error) {
       setErrors({ name: t('organization.errors.serverError') });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -146,6 +162,7 @@ export const useCreateOrganization = () => {
     isCheckingSlug,
     slugAvailable,
     animationStep,
+    isLoading,
     handleChange,
     handleSubmit
   };

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { Card } from '@/shared/ui';
-import { Pencil, Trash2, ImageIcon, GripHorizontal, AlertTriangle, X, ShieldAlert, Tag } from 'lucide-react';
+import { Pencil, Trash2, ImageIcon, GripHorizontal, AlertTriangle, X, ShieldAlert } from 'lucide-react';
 import { Badge } from '../../../../shared/ui/badge';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -52,7 +52,7 @@ export const DishCard = ({ dish, categoryId, onEdit, onDelete, isOverlay = false
           <div className="text-[11px] text-brand-gray leading-relaxed overflow-y-auto custom-scrollbar pr-1 flex-1 pb-2">
             <p className="mb-2">{dish.description}</p>
             {dish.sku && <p className="text-[10px] font-mono mt-1 text-brand-copper">SKU: {dish.sku}</p>}
-            {dish.taxRate !== undefined && <p className="text-[10px] text-brand-gray/80 mt-0.5">ПДВ: {dish.taxRate}%</p>}
+            {dish.taxRate !== undefined && <p className="text-[10px] text-brand-gray/80 mt-0.5">{t('menu.constructor.dishes.modal.taxText')}: {dish.taxRate}%</p>}
           </div>
         </div>
 
@@ -85,7 +85,7 @@ export const DishCard = ({ dish, categoryId, onEdit, onDelete, isOverlay = false
               </span>
             ))}
             {hasAllergens && <span className="flex items-center justify-center w-4 h-4 rounded-full bg-yellow-50 text-yellow-600 border border-yellow-100 cursor-help" title={`${t('menu.constructor.dishes.modal.allergensLabel')}: ${allergensText}`}><AlertTriangle className="h-2.5 w-2.5"/></span>}
-            {dish.modifierIds && dish.modifierIds.length > 0 && <span className="flex items-center justify-center w-4 h-4 rounded-full bg-purple-50 text-purple-600 border border-purple-100" title="Має активні модифікатори"><ShieldAlert className="h-2.5 w-2.5"/></span>}
+            {dish.modifierIds && dish.modifierIds.length > 0 && <span className="flex items-center justify-center w-4 h-4 rounded-full bg-purple-50 text-purple-600 border border-purple-100" title={t('menu.constructor.dishes.modal.hasModifiers')}><ShieldAlert className="h-2.5 w-2.5"/></span>}
           </div>
 
           <div className="mb-2 min-h-8">
@@ -98,7 +98,7 @@ export const DishCard = ({ dish, categoryId, onEdit, onDelete, isOverlay = false
             <div>
               {hasVariants ? (
                 <p className="font-bold text-xs text-brand-copper">
-                  від {dish.variants[0].price} ₴
+                  {t('menu.constructor.dishes.moreBtn')} {dish.variants[0].price} ₴
                 </p>
               ) : (
                 <p className="font-bold text-xs text-brand-copper">

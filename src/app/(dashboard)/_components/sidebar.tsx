@@ -2,18 +2,22 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { useUserStore } from '@/shared/store/useUserStore';
+import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 import { useAccessStore } from '@/shared/store/useAccessStore';
 import { useNavigation } from '@/shared/hooks/useNavigation';
-import { Modal, Button } from '@/shared/ui';
-import { ChevronsUpDown, Plus, Lock, LogOut, Store, ChevronDown } from 'lucide-react';
+import { Modal, Button, ConfirmModal } from '@/shared/ui';
+import { apiClient } from '@/shared/api/client';
+import { ChevronsUpDown, Plus, Lock, LogOut, Store, ChevronDown, Trash2 } from 'lucide-react';
 
 export const Sidebar = () => {
   const { t } = useTranslation();
   const pathname = usePathname();
+  const router = useRouter();
   const { user, logout } = useUserStore();
+  const { activeRestaurant, setActiveRestaurant } = useRestaurantStore();
   const { hasModule, isPurchased, toggleModule, fetchAccessData } = useAccessStore(); 
   const { menuGroups } = useNavigation();
   
@@ -21,16 +25,62 @@ export const Sidebar = () => {
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({});
   const [isLockModalOpen, setIsLockModalOpen] = useState(false);
   const [lockedModule, setLockedModule] = useState<{name: string, key: string} | null>(null);
+  
+  const [restaurantToDelete, setRestaurantToDelete] = useState<any | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const currentRestaurant = user?.restaurants?.[0];
-  const currentOrgName = currentRestaurant?.name || t('sidebar.orgSelector.current');
-  const orgInitial = currentOrgName ? currentOrgName[0].toUpperCase() : 'G';
+  const restaurants = user?.restaurants || [];
 
   useEffect(() => {
-    if (currentRestaurant?.id) {
-      fetchAccessData(String(currentRestaurant.id));
+    if (restaurants.length > 0 && !activeRestaurant) {
+      setActiveRestaurant(restaurants[0]);
     }
-  }, [currentRestaurant?.id, fetchAccessData]);
+  }, [restaurants, activeRestaurant, setActiveRestaurant]);
+
+  useEffect(() => {
+    if (activeRestaurant?.id) {
+      fetchAccessData(String(activeRestaurant.id));
+    }
+  }, [activeRestaurant?.id, fetchAccessData]);
+
+  const handleRestaurantSwitch = (res: any) => {
+    setActiveRestaurant(res);
+    setIsOrgDropdownOpen(false);
+    router.refresh();
+  };
+
+  const handleDeleteRestaurantClick = (e: React.MouseEvent, res: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setRestaurantToDelete(res);
+  };
+
+  const handleConfirmDeleteRestaurant = async () => {
+    if (!restaurantToDelete) return;
+    setIsDeleting(true);
+    try {
+      await apiClient.delete(`/restaurants/${restaurantToDelete.id}`);
+      await useUserStore.getState().fetchUser(true);
+      
+      const updatedRestaurants = useUserStore.getState().user?.restaurants || [];
+      
+      if (activeRestaurant?.id === restaurantToDelete.id) {
+        if (updatedRestaurants.length > 0) {
+          setActiveRestaurant(updatedRestaurants[0]);
+        } else {
+          setActiveRestaurant(undefined as any);
+        }
+      }
+      
+      setIsOrgDropdownOpen(false);
+      router.refresh();
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsDeleting(false);
+      setRestaurantToDelete(null);
+    }
+  };
 
   const handleLockedClick = (e: React.MouseEvent, moduleName: string, moduleKey: string) => {
     e.preventDefault();
@@ -48,6 +98,9 @@ export const Sidebar = () => {
   const toggleSubMenu = (id: string) => {
     setExpandedMenus(prev => ({ ...prev, [id]: !prev[id] }));
   };
+
+  const currentOrgName = activeRestaurant?.name || t('sidebar.orgSelector.current');
+  const orgInitial = currentOrgName ? currentOrgName[0].toUpperCase() : 'G';
 
   return (
     <aside className="flex w-72 flex-col bg-brand-espresso text-brand-cream border-r border-brand-espresso shadow-2xl h-screen sticky top-0">
@@ -69,18 +122,47 @@ export const Sidebar = () => {
         </button>
 
         {isOrgDropdownOpen && (
-          <div className="absolute left-4 right-4 top-full z-50 mt-2 rounded-xl border border-brand-gray/20 bg-brand-mocha shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-            <div className="p-2">
-              <button className="flex w-full items-center gap-3 rounded-lg p-2 transition-colors hover:bg-white/5">
-                <Store className="h-5 w-5 text-brand-gray" />
-                <span className="text-sm font-medium">{currentOrgName}</span>
-              </button>
+          <div className="absolute left-4 right-4 top-full z-50 mt-2 rounded-xl border border-brand-gray/20 bg-brand-mocha shadow-xl max-h-66 overflow-y-auto custom-scrollbar animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="p-2 flex flex-col gap-1">
+              {restaurants.map((res) => (
+                <div 
+                  key={res.id}
+                  className={`flex w-full items-center justify-between rounded-lg p-1 transition-colors hover:bg-white/5 ${activeRestaurant?.id === res.id ? 'bg-brand-copper/20' : ''}`}
+                >
+                  <button 
+                    onClick={() => handleRestaurantSwitch(res)}
+                    className={`flex flex-1 items-center gap-3 p-1.5 text-left overflow-hidden ${activeRestaurant?.id === res.id ? 'text-brand-gold font-semibold' : 'text-brand-cream'}`}
+                  >
+                    <Store className="h-4 w-4 text-brand-gray shrink-0" />
+                    <span className="text-sm truncate">{res.name}</span>
+                  </button>
+                  
+                  <button
+                    onClick={(e) => handleDeleteRestaurantClick(e, res)}
+                    className="p-1.5 text-brand-gray hover:text-red-400 transition-colors rounded-md hover:bg-red-500/10 shrink-0"
+                    title={t('sidebar.orgSelector.delete')}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ))}
             </div>
-            <div className="border-t border-brand-gray/20 p-2">
-              <Link href="/create-organization" className="flex w-full items-center gap-2 rounded-lg p-2 text-brand-copper transition-colors hover:bg-brand-copper/10">
-                <Plus className="h-4 w-4" />
-                <span className="text-sm font-medium">{t('sidebar.orgSelector.addNew')}</span>
-              </Link>
+            
+            <div className="border-t border-brand-gray/20 p-2 sticky bottom-0 bg-brand-mocha">
+              {restaurants.length < 3 ? (
+                <Link 
+                  href="/create-organization" 
+                  onClick={() => setIsOrgDropdownOpen(false)} 
+                  className="flex w-full items-center gap-2 rounded-lg p-2 text-brand-copper transition-colors hover:bg-brand-copper/10"
+                >
+                  <Plus className="h-4 w-4" />
+                  <span className="text-sm font-medium">{t('sidebar.orgSelector.addNew')}</span>
+                </Link>
+              ) : (
+                <div className="text-[10px] text-center text-red-400 bg-red-500/10 py-2 px-3 rounded-lg border border-red-500/20 font-medium mx-1 select-none">
+                  {t('sidebar.limitReached')}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -178,11 +260,18 @@ export const Sidebar = () => {
           <div className="rounded-xl bg-brand-cream/40 p-4 border border-brand-gray/10"><span className="text-sm font-bold text-brand-espresso uppercase tracking-wider">{lockedModule?.name}</span></div>
           <p className="text-sm text-brand-gray leading-relaxed">{t('sidebar.locked.modalDesc')}</p>
           <div className="flex justify-end pt-4 border-t border-brand-gray/10 mt-2 gap-3">
-            <Button variant="ghost" onClick={() => setIsLockModalOpen(false)}>{t('common.confirmModal.cancel')}</Button>
+            <Button variant="ghost" onClick={() => setIsLockModalOpen(false)}>{t('confirmModal.cancel')}</Button>
             <Button variant="brand" onClick={handleActivateLocked}>{t('sidebar.locked.activateBtn')}</Button>
           </div>
         </div>
       </Modal>
+
+      <ConfirmModal 
+        isOpen={!!restaurantToDelete} 
+        onClose={() => isDeleting ? null : setRestaurantToDelete(null)} 
+        onConfirm={handleConfirmDeleteRestaurant} 
+        description={`${t('sidebar.orgSelector.deleteConfirm')} "${restaurantToDelete?.name}"? ${t('confirmModal.actionIrreversible')}`}
+      />
     </aside>
   );
 };

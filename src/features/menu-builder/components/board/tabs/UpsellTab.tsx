@@ -4,6 +4,7 @@ import { Checkbox } from '@/shared/ui';
 import { Sparkles } from 'lucide-react';
 import { DishFormValues } from '../../../schemas/dishes.schema';
 import { useAvailableDishesList } from '../../../hooks/useAvailableDishesList';
+import { useTranslation } from '@/shared/hooks/useTranslation';
 
 interface UpsellTabProps {
   dishForm: DishFormValues;
@@ -12,6 +13,7 @@ interface UpsellTabProps {
 }
 
 export const UpsellTab = ({ dishForm, setDishForm, currentDishId }: UpsellTabProps) => {
+  const { t } = useTranslation();
   const { dishes, isLoading } = useAvailableDishesList(currentDishId);
 
   if (isLoading) {
@@ -20,12 +22,12 @@ export const UpsellTab = ({ dishForm, setDishForm, currentDishId }: UpsellTabPro
 
   return (
     <div className="flex flex-col gap-3 animate-in fade-in duration-100">
-      <span className="text-xs font-semibold flex items-center gap-2">
-        <Sparkles className="h-4 w-4 text-brand-copper" /> Рекомендації Cross-Sell / Upsell
+      <span className="text-xs font-semibold flex items-center gap-2 text-brand-espresso dark:text-brand-cream">
+        <Sparkles className="h-4 w-4 text-brand-copper" /> {t('menu.constructor.combos.modal.upsellTitle')}
       </span>
       <div className="grid grid-cols-2 gap-2 p-2 rounded-xl border border-brand-gray/10 bg-brand-cream/10 dark:bg-brand-gray/5 max-h-40 overflow-y-auto custom-scrollbar">
         {dishes.length === 0 ? (
-          <div className="col-span-2 text-center p-4 text-xs text-brand-gray italic">Немає інших страв для рекомендацій</div>
+          <div className="col-span-2 text-center p-4 text-xs text-brand-gray italic">{t('menu.constructor.combos.modal.emptyIncluded')}</div>
         ) : (
           dishes.map(dish => (
             <div key={dish.id} className="bg-white dark:bg-brand-mocha border border-brand-gray/10 p-2 rounded-lg shadow-xs">
@@ -34,7 +36,7 @@ export const UpsellTab = ({ dishForm, setDishForm, currentDishId }: UpsellTabPro
                 label={
                   <div className="flex flex-col text-left">
                     <span className="text-xs font-bold text-brand-espresso dark:text-brand-cream line-clamp-1">{dish.name}</span>
-                    <span className="text-[10px] text-brand-gray">{dish.price} ₴</span>
+                    <span className="text-[10px] text-brand-gray">{dish.price} {t('menu.currency')}</span>
                   </div>
                 }
                 checked={dishForm.upsellDishIds?.includes(dish.id)}

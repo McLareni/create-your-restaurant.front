@@ -7,18 +7,33 @@ import { Zap } from 'lucide-react';
 import { useMarketplace } from '../hooks/useMarketplace';
 import { ModuleCard } from './moduleCard';
 import { useAccessStore } from '@/shared/store/useAccessStore';
+import { useUserStore } from '@/shared/store/useUserStore';
+import toast from 'react-hot-toast';
 
 export const MarketplaceList = () => {
   const { t } = useTranslation();
-  const { modules } = useMarketplace();
+  const { modules, connectModule } = useMarketplace();
+  const user = useUserStore((state) => state.user);
+  const restaurantId = Number(user?.restaurants?.[0]?.id || 1);
   
   const { hasModule, isPurchased, toggleModule, purchaseModule } = useAccessStore();
-  
   const [selectedModule, setSelectedModule] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleConfirmConnection = async () => {
-    if (selectedModule) {
+    if (!selectedModule) return;
+    
+    setIsSubmitting(true);
+    try {
+      // Спершу зберігаємо на бекенді через проксі-апі
+      await connectModule(selectedModule);
+      // Оновлюємо локальний Zustand стор
       purchaseModule(selectedModule);
+      toast.success(t('marketplace.status.active'));
+    } catch (error) {
+      toast.error(t('auth.errors.defaultError'));
+    } finally {
+      setIsSubmitting(false);
       setSelectedModule(null);
     }
   };
@@ -64,12 +79,12 @@ export const MarketplaceList = () => {
 
       <ConfirmModal 
         isOpen={!!selectedModule} 
-        onClose={() => setSelectedModule(null)} 
+        onClose={() => !isSubmitting && setSelectedModule(null)} 
         onConfirm={handleConfirmConnection} 
         title={t('marketplace.connectModal.title')}
         description={getModalDescription()}
-        confirmLabel={t('marketplace.connectModal.confirmBtn')} // Передаємо текст "Підключити"
-        isDestructive={false} // Вимикаємо червоний колір
+        confirmLabel={isSubmitting ? t('pos.connectChecking') : t('marketplace.connectModal.confirmBtn')}
+        isDestructive={false}
       />
     </div>
   );

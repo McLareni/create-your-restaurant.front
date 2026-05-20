@@ -34,7 +34,6 @@ export const MenuBoard = () => {
       onDragEnd={board.handleDragEnd}
     >
       <div className="relative min-h-100 pb-6 flex flex-col w-full px-0">
-
         <div className="sticky top-0 z-30 flex items-center justify-between mb-4 bg-brand-cream/70 dark:bg-brand-mocha/70 backdrop-blur-md py-2.5 border-b border-brand-gray/10 -mx-6 px-6">
           <div>
             <h2 className="text-base font-bold text-brand-espresso dark:text-brand-cream tracking-tight flex items-center gap-2">
@@ -85,7 +84,8 @@ export const MenuBoard = () => {
           ) : null}
         </DragOverlay>
 
-        <CategoryModal isOpen={board.isCatModalOpen} onClose={() => board.setIsCatModalOpen(false)} isEditing={!!board.editingCategory} catName={board.catName} setCatName={board.setCatName} onSave={board.handleSaveCategory} />
+        <CategoryModal isOpen={board.isCatModalOpen} onClose={() => board.setIsCatModalOpen(false)} isEditing={!!board.editingCategory} catName={board.catName} setCatName={board.setCatName} onSave={board.handleSaveCategory} isLoading={board.isMenuLoading} />
+        
         <DishModal 
           isOpen={board.isDishModalOpen} 
           onClose={() => board.setIsDishModalOpen(false)} 
@@ -96,6 +96,8 @@ export const MenuBoard = () => {
           handleImageUpload={board.handleImageUpload} 
           modifierGroups={board.modifierGroups} 
           currentDishId={board.editingDish?.id}
+          errors={board.formErrors}
+          isLoading={board.isMenuLoading}
         />
         <ConfirmModal isOpen={!!board.deleteTarget} onClose={() => board.setDeleteTarget(null)} onConfirm={board.handleConfirmDelete} description={board.deleteTarget?.type === 'category' ? t('menu.constructor.categories.deleteConfirm') : t('menu.constructor.dishes.deleteConfirm')} />
       </div>

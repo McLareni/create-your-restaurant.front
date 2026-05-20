@@ -46,14 +46,13 @@ export const CharacteristicsTab = ({ dishForm, setDishForm }: CharacteristicsTab
   };
 
   return (
-    <div className="grid grid-cols-2 gap-4 h-full overflow-hidden">
-      {/* Секція алергенів */}
-      <div className="flex flex-col gap-3 border-r border-brand-gray/10 pr-3 h-full overflow-y-auto custom-scrollbar">
-        <span className="text-xs font-semibold flex items-center gap-1.5 text-brand-espresso dark:text-brand-cream">
+    <div className="grid grid-cols-2 gap-4 h-full min-h-0">
+      <div className="flex flex-col gap-3 border-r border-brand-gray/10 pr-3 h-full overflow-hidden">
+        <span className="text-xs font-semibold flex items-center gap-1.5 text-brand-espresso dark:text-brand-cream shrink-0">
           <AlertTriangle className="h-3.5 w-3.5 text-amber-500" /> 
           {t('menu.constructor.dishes.modal.properties.allergensTitle')}
         </span>
-        <div className="flex gap-2">
+        <div className="flex gap-2 shrink-0">
           <Input
             id="new-allergen-input"
             placeholder={t('menu.constructor.dishes.modal.properties.addAllergenPlaceholder')}
@@ -65,9 +64,9 @@ export const CharacteristicsTab = ({ dishForm, setDishForm }: CharacteristicsTab
             <Plus className="h-3 w-3" />
           </Button>
         </div>
-        <div className="grid grid-cols-1 gap-2 p-2 rounded-xl border border-brand-gray/10 bg-brand-cream/5 max-h-44 overflow-y-auto custom-scrollbar">
+        <div className="grid grid-cols-1 gap-2 p-2 rounded-xl border border-brand-gray/10 bg-brand-cream/5 flex-1 overflow-y-auto custom-scrollbar">
           {allergens.map((item) => (
-            <div key={item} className="bg-white dark:bg-brand-mocha p-1.5 rounded-lg border border-brand-gray/10">
+            <div key={item} className="bg-white dark:bg-brand-mocha p-1.5 rounded-lg border border-brand-gray/10 h-max">
               <Checkbox
                 id={`allergen-${item}`}
                 label={<span className="text-xs font-medium">{item}</span>}
@@ -79,13 +78,12 @@ export const CharacteristicsTab = ({ dishForm, setDishForm }: CharacteristicsTab
         </div>
       </div>
 
-      {/* Секція тегів */}
-      <div className="flex flex-col gap-3 h-full overflow-y-auto custom-scrollbar">
-        <span className="text-xs font-semibold flex items-center gap-1.5 text-brand-copper">
+      <div className="flex flex-col gap-3 h-full overflow-hidden">
+        <span className="text-xs font-semibold flex items-center gap-1.5 text-brand-copper shrink-0">
           <Tag className="h-3.5 w-3.5" /> 
           {t('menu.constructor.dishes.modal.properties.tagsTitle')}
         </span>
-        <div className="flex gap-2">
+        <div className="flex gap-2 shrink-0">
           <Input
             id="new-tag-input"
             placeholder={t('menu.constructor.dishes.modal.properties.addTagPlaceholder')}
@@ -97,9 +95,9 @@ export const CharacteristicsTab = ({ dishForm, setDishForm }: CharacteristicsTab
             <Plus className="h-3 w-3" />
           </Button>
         </div>
-        <div className="grid grid-cols-1 gap-2 p-2 rounded-xl border border-brand-gray/10 bg-brand-cream/5 max-h-44 overflow-y-auto custom-scrollbar">
+        <div className="grid grid-cols-1 gap-2 p-2 rounded-xl border border-brand-gray/10 bg-brand-cream/5 flex-1 overflow-y-auto custom-scrollbar">
           {tags.map((item) => (
-            <div key={item} className="bg-white dark:bg-brand-mocha p-1.5 rounded-lg border border-brand-gray/10">
+            <div key={item} className="bg-white dark:bg-brand-mocha p-1.5 rounded-lg border border-brand-gray/10 h-max">
               <Checkbox
                 id={`tag-${item}`}
                 label={<span className="text-xs font-medium">{item}</span>}

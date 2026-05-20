@@ -13,6 +13,14 @@ export const staff = {
   },
   statusActive: "Доступ відкрито",
   statusInactive: "Доступ закрито",
+  notifications: {
+    createSuccess: "Працівника успішно додано!",
+    createError: "Помилка при додаванні працівника",
+    updateSuccess: "Дані працівника оновлено!",
+    updateError: "Помилка при оновленні даних",
+    deleteSuccess: "Працівника видалено",
+    deleteError: "Помилка при видаленні"
+  },
   modal: {
     createTitle: "Новий співробітник",
     editTitle: "Редагування профілю",

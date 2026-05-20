@@ -1,40 +1,48 @@
 'use client';
 
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import { Loader2, CheckCircle2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 interface CreateOrgAnimationProps {
-  state: any; 
+  state: {
+    animationStep: number;
+    formData: {
+      name: string;
+      slug: string;
+    };
+  };
 }
 
 export const CreateOrgAnimation = ({ state }: CreateOrgAnimationProps) => {
   const { t } = useTranslation();
   const { animationStep, formData } = state;
 
-  return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-brand-espresso text-brand-cream">
-      <div className="w-full max-w-md text-center space-y-6">
-        <div className="relative mx-auto h-24 w-24">
-          {animationStep === 4 ? (
-            <CheckCircle2 className="h-full w-full text-brand-copper animate-in zoom-in duration-500" />
-          ) : (
-            <Loader2 className="h-full w-full text-brand-copper animate-spin" />
-          )}
-        </div>
-        
-        <h2 className="text-2xl font-serif font-medium transition-all duration-300">
-          {animationStep === 1 && t('organization.animation.step1')}
-          {animationStep === 2 && `${t('organization.animation.step2')} ${formData.slug}${process.env.NEXT_PUBLIC_DOMAIN_SUFFIX || '.gastro.com'}...`}
-          {animationStep === 3 && t('organization.animation.step3')}
-          {animationStep === 4 && t('organization.animation.step4')}
-        </h2>
+  const getStepText = () => {
+    switch (animationStep) {
+      case 1:
+        return t('organization.animation.step1');
+      case 2:
+        return `${t('organization.animation.step2')} ${formData.slug}${process.env.NEXT_PUBLIC_DOMAIN_SUFFIX || '.gastro.com'}...`;
+      case 3:
+        return t('organization.animation.step3');
+      case 4:
+        return t('organization.animation.step4');
+      default:
+        return '';
+    }
+  };
 
-        <div className="h-2 w-full bg-brand-mocha rounded-full overflow-hidden">
-          <div 
-            className="h-full bg-brand-copper transition-all duration-1000 ease-in-out"
-            style={{ width: `${(animationStep / 4) * 100}%` }}
-          />
-        </div>
+  return (
+    <div className="flex h-screen w-full flex-col items-center justify-center bg-brand-cream dark:bg-brand-espresso p-6 text-center transition-colors">
+      <div className="w-full max-w-md rounded-3xl bg-white dark:bg-brand-mocha p-8 shadow-xl border border-brand-gray/20 flex flex-col items-center gap-6">
+        {animationStep < 4 ? (
+          <Loader2 className="h-12 w-12 animate-spin text-brand-copper" />
+        ) : (
+          <div className="h-12 w-12 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center text-2xl font-bold">✓</div>
+        )}
+        <p className="text-base font-medium text-brand-espresso dark:text-brand-cream animate-pulse">
+          {getStepText()}
+        </p>
       </div>
     </div>
   );

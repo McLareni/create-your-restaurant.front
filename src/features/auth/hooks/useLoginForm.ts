@@ -52,14 +52,20 @@ export const useLoginForm = () => {
   }, [email, isEmailDirty, t]);
 
   useEffect(() => {
-    if (step !== 2 || timeLeft <= 0) return;
+    if (step !== 2) return;
     
     const timerId = setInterval(() => {
-      setTimeLeft((prev) => prev - 1);
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timerId);
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
     
     return () => clearInterval(timerId);
-  }, [step, timeLeft]);
+  }, [step]);
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
@@ -83,7 +89,7 @@ export const useLoginForm = () => {
       setTimeLeft(120);
       setCodeError('');
     } catch (error) {
-      setCodeError(error instanceof Error ? error.message : 'defaultError');
+      setCodeError(t('auth.errors.defaultError'));
     } finally {
       setIsLoading(false);
     }
@@ -124,8 +130,7 @@ export const useLoginForm = () => {
         await authApi.verifyLoginCode(email, code);
         router.push('/dashboard');
       } catch (error) {
-        const errorKey = error instanceof Error ? error.message : 'defaultError';
-        setCodeError(t(`auth.errors.${errorKey}`));
+        setCodeError(t('auth.errors.verifyFailed'));
       } finally {
         setIsLoading(false);
       }

@@ -11,7 +11,7 @@ interface CreateOrgFormProps {
 export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
   const { t } = useTranslation();
   const { 
-    formData, errors, isCheckingSlug, slugAvailable, 
+    formData, errors, isCheckingSlug, slugAvailable, isLoading,
     handleChange, handleSubmit 
   } = state;
 
@@ -42,6 +42,7 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
                 value={formData.name}
                 onChange={(e) => handleChange('name', e.target.value)}
                 error={errors.name}
+                disabled={isLoading}
               />
             </div>
 
@@ -53,6 +54,7 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
                 value={formData.slug}
                 onChange={(e) => handleChange('slug', e.target.value)}
                 error={errors.slug}
+                disabled={isLoading}
                 className={slugAvailable ? 'border-green-500 focus:border-green-500 focus:ring-green-500' : ''}
                 rightElement={
                   <>
@@ -71,6 +73,7 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
               value={formData.type || ''}
               onChange={(e) => handleChange('type', e.target.value)}
               error={errors.type}
+              disabled={isLoading}
               className={!formData.type ? 'text-brand-gray/60' : ''}
             >
               <option value="" disabled>{t('organization.create.typePlaceholder')}</option>
@@ -88,6 +91,7 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
               value={formData.currency || ''}
               onChange={(e) => handleChange('currency', e.target.value)}
               error={errors.currency}
+              disabled={isLoading}
               className={!formData.currency ? 'text-brand-gray/60' : ''}
             >
               <option value="" disabled>{t('organization.create.currencyPlaceholder')}</option>
@@ -108,6 +112,7 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
                 value={formData.language || ''}
                 onChange={(e) => handleChange('language', e.target.value)}
                 error={errors.language}
+                disabled={isLoading}
                 className={!formData.language ? 'text-brand-gray/60' : ''}
               >
                 <option value="" disabled>{t('organization.create.languagePlaceholder')}</option>
@@ -132,6 +137,7 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
                 value={formData.city}
                 onChange={(e) => handleChange('city', e.target.value)}
                 error={errors.city}
+                disabled={isLoading}
               />
             </div>
 
@@ -143,6 +149,7 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
                 value={formData.phone}
                 onChange={(e) => handleChange('phone', e.target.value)}
                 error={errors.phone}
+                disabled={isLoading}
               />
             </div>
           </div>
@@ -152,7 +159,8 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
               variant="brand" 
               type="submit" 
               className="w-full h-14 text-lg"
-              disabled={isCheckingSlug || slugAvailable === false}
+              isLoading={isLoading}
+              disabled={isLoading || isCheckingSlug || slugAvailable === false}
             >
               {t('organization.create.submitBtn')}
             </Button>

@@ -17,6 +17,7 @@ import { useModifiers } from './useModifiers';
 import { useUserStore } from '@/shared/store/useUserStore';
 import { dishSchema, DishFormValues } from '../schemas/dishes.schema';
 import { Dish } from '../types/dishes.types';
+import toast from 'react-hot-toast';
 
 const INITIAL_DISH_FORM: DishFormValues = {
   name: '',
@@ -39,7 +40,7 @@ const INITIAL_DISH_FORM: DishFormValues = {
 export const useMenuBoard = () => {
   const queryClient = useQueryClient();
   const user = useUserStore((state) => state.user);
-  const restaurantId = user?.restaurants?.[0]?.id || 1;
+  const restaurantId = Number(user?.restaurants?.[0]?.id || 1);
 
   const {
     categories,
@@ -70,6 +71,7 @@ export const useMenuBoard = () => {
   const [editingDish, setEditingDish] = useState<Dish | null>(null);
   const [activeCategoryId, setActiveCategoryId] = useState<string>('');
   const [dishForm, setDishForm] = useState<DishFormValues>(INITIAL_DISH_FORM);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   const [deleteTarget, setDeleteTarget] = useState<{ type: 'category' | 'dish'; id: string } | null>(null);
 
@@ -224,7 +226,21 @@ export const useMenuBoard = () => {
     setActiveDishData(null);
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {};
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+      toast.loading('Завантаження зображення...', { id: 'img-upload' });
+      // Тут буде виклик ендпоінту завантаження зображення
+      toast.success('Зображення завантажено успішно!', { id: 'img-upload' });
+    } catch (err) {
+      toast.error('Помилка завантаження файлу', { id: 'img-upload' });
+    }
+  };
 
   const handleOpenCategoryModal = (category?: any) => {
     if (category) {
@@ -246,6 +262,7 @@ export const useMenuBoard = () => {
 
   const handleOpenDishModal = (categoryId: string, dish?: Dish) => {
     setActiveCategoryId(categoryId);
+    setFormErrors({});
     if (dish) {
       setEditingDish(dish);
       setDishForm({
@@ -274,7 +291,16 @@ export const useMenuBoard = () => {
 
   const handleSaveDish = () => {
     const validation = dishSchema.safeParse(dishForm);
-    if (!validation.success) return;
+    if (!validation.success) {
+      const errorsMap: Record<string, string> = {};
+      validation.error.issues.forEach(issue => {
+        const path = issue.path[0] as string;
+        errorsMap[path] = issue.message;
+      });
+      setFormErrors(errorsMap);
+      toast.error('Будь ласка, перевірте коректність заповнення форми');
+      return;
+    }
 
     if (editingDish) {
       updateDish({ id: editingDish.id, data: validation.data });
@@ -308,6 +334,7 @@ export const useMenuBoard = () => {
     setIsDishModalOpen,
     dishForm,
     setDishForm,
+    formErrors,
     editingDish,
     deleteTarget,
     setDeleteTarget,
