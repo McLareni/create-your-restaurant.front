@@ -77,25 +77,30 @@ export const useMenu = () => {
     },
   });
 
+  // ОНОВЛЕНА МУТАЦІЯ ДЛЯ СТРАВ
   const reorderDishesMutation = useMutation({
-    mutationFn: async ({ categoryId, items }: { categoryId: string; items: any[] }) => {
-      return items; 
-    },
-    onMutate: async ({ categoryId, items }) => {
+    mutationFn: (items: { id: string; sortOrder: number }[]) => menuApi.reorderDishes(items),
+    onMutate: async (newItems) => {
       await queryClient.cancelQueries({ queryKey: ['fullMenu', restaurantId] });
       const previousMenu = queryClient.getQueryData(['fullMenu', restaurantId]);
 
       queryClient.setQueryData(['fullMenu', restaurantId], (old: any) => {
         if (!old) return old;
-        const updatedCategories = old.categories.map((c: any) => {
-          if (c.id === categoryId) {
-            const updatedDishes = [...c.dishes].sort((a: any, b: any) => {
-              return items.findIndex(i => i.id === a.id) - items.findIndex(i => i.id === b.id);
-            });
-            return { ...c, dishes: updatedDishes };
-          }
-          return c;
+        
+        const updatedCategories = old.categories.map((category: any) => {
+          // Оновлюємо sortOrder для страв, які є в масиві newItems
+          const updatedDishes = category.dishes.map((dish: any) => {
+            const item = newItems.find((i) => i.id === dish.id);
+            return item ? { ...dish, sortOrder: item.sortOrder } : dish;
+          });
+          
+          return {
+            ...category,
+            // Сортуємо страви локально для миттєвого відображення
+            dishes: updatedDishes.sort((a: any, b: any) => (a.sortOrder || 0) - (b.sortOrder || 0)),
+          };
         });
+        
         return { ...old, categories: updatedCategories };
       });
 

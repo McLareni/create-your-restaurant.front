@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslation } from '@/shared/hooks/useTranslation';
 import { Button, ConfirmModal } from '@/shared/ui';
-import { Plus, Pencil, Trash2, Layers, ChevronDown, ChevronRight, LayoutList } from 'lucide-react';
+import { Plus, Pencil, Trash2, Layers, ChevronDown, ChevronRight } from 'lucide-react';
 import { useModifiers } from '../../hooks/useModifiers';
 import { ModifierGroupModal } from './modifierGroupModal';
 import { ModifierOptionModal } from './modifierOptionModal';
@@ -11,6 +12,7 @@ const INITIAL_GROUP_FORM = { name: '', isRequired: false, minSelections: '', max
 const INITIAL_OPTION_FORM = { name: '', price: '', isAvailable: true };
 
 export const ModifiersTab = () => {
+  const { t } = useTranslation();
   const { groups, isLoading, createGroup, updateGroup, deleteGroup } = useModifiers();
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   
@@ -109,12 +111,12 @@ export const ModifiersTab = () => {
         <div className="mb-3 sm:mb-0">
           <h2 className="text-xl font-bold text-brand-espresso dark:text-brand-cream tracking-tight flex items-center gap-2">
             <Layers className="h-5 w-5 text-brand-copper" />
-            Групи модифікаторів
+            {t('menu.constructor.modifiers.title')}
           </h2>
-          <p className="text-sm text-brand-gray mt-1">Створюйте додатки, які клієнти зможуть обирати до страв.</p>
+          <p className="text-sm text-brand-gray mt-1">{t('menu.constructor.modifiers.emptyDesc')}</p>
         </div>
         <Button variant="brand" onClick={() => handleOpenGroupModal()} className="h-10 px-5 rounded-lg text-sm shadow-md" icon={<Plus className="h-4 w-4" />}>
-          Створити групу
+          {t('menu.constructor.modifiers.addBtn')}
         </Button>
       </div>
 
@@ -123,10 +125,10 @@ export const ModifiersTab = () => {
           <div className="h-16 w-16 bg-brand-cream dark:bg-brand-gray/10 rounded-full flex items-center justify-center mb-4">
             <Layers className="h-8 w-8 text-brand-copper" />
           </div>
-          <h3 className="text-xl font-bold text-brand-espresso dark:text-brand-cream mb-2">Немає модифікаторів</h3>
-          <p className="text-brand-gray max-w-sm mb-6 text-sm">Додайте першу групу модифікаторів (наприклад "Ступінь просмаження" або "Додатки до піци").</p>
+          <h3 className="text-xl font-bold text-brand-espresso dark:text-brand-cream mb-2">{t('menu.constructor.modifiers.emptyTitle')}</h3>
+          <p className="text-brand-gray max-w-sm mb-6 text-sm">{t('menu.constructor.modifiers.emptyStateDesc')}</p>
           <Button variant="outline" onClick={() => handleOpenGroupModal()} className="border-brand-copper text-brand-copper" icon={<Plus className="h-4 w-4" />}>
-            Створити першу групу
+            {t('menu.constructor.modifiers.addFirstBtn')}
           </Button>
         </div>
       ) : (
@@ -142,10 +144,10 @@ export const ModifiersTab = () => {
                   <div>
                     <h3 className="text-base font-bold text-brand-espresso dark:text-brand-cream flex items-center gap-2">
                       {group.name}
-                      {group.isRequired && <span className="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-red-50 text-red-600 border border-red-100">Обов'язково</span>}
+                      {group.isRequired && <span className="px-2 py-0.5 rounded text-[10px] uppercase font-bold bg-red-50 text-red-600 border border-red-100">{t('menu.constructor.modifiers.requiredBadge')}</span>}
                     </h3>
                     <p className="text-xs text-brand-gray mt-0.5">
-                      Мінімум: {group.minSelections} | Максимум: {group.maxSelections || 'Безліміт'} • {group.options.length} опцій
+                      {t('menu.constructor.modifiers.minSelect')} {group.minSelections} | {t('menu.constructor.modifiers.maxSelect')} {group.maxSelections || t('menu.constructor.modifiers.unlimited')} • {group.options.length} {t('menu.constructor.modifiers.optionsCount')}
                     </p>
                   </div>
                 </div>
@@ -160,10 +162,10 @@ export const ModifiersTab = () => {
                 </div>
               </div>
 
-              <div className={`transition-all duration-300 ease-in-out origin-top ${expandedGroups[group.id] ? 'max-h-[2000px] opacity-100 border-t border-brand-gray/10' : 'max-h-0 opacity-0 overflow-hidden border-t-0'}`}>
+              <div className={`transition-all duration-300 ease-in-out origin-top ${expandedGroups[group.id] ? 'max-h-500 opacity-100 border-t border-brand-gray/10' : 'max-h-0 opacity-0 overflow-hidden border-t-0'}`}>
                 <div className="p-2 sm:p-4 flex flex-col gap-2">
                   {group.options.length === 0 ? (
-                    <div className="p-4 text-center text-sm text-brand-gray">У цій групі ще немає опцій.</div>
+                    <div className="p-4 text-center text-sm text-brand-gray">{t('menu.constructor.modifiers.emptyOptions')}</div>
                   ) : (
                     group.options.map((option: any) => (
                       <div key={option.id} className={`flex items-center justify-between p-3 rounded-lg border border-brand-gray/10 bg-brand-cream/10 dark:bg-brand-gray/5 hover:border-brand-copper/30 transition-colors ${!option.isAvailable ? 'opacity-60' : ''}`}>
@@ -176,7 +178,7 @@ export const ModifiersTab = () => {
                         
                         <div className="flex items-center gap-4 sm:gap-6">
                           <span className="text-sm font-bold text-brand-copper">
-                            {option.price > 0 ? `+ ${option.price} ₴` : 'Безкоштовно'}
+                            {option.price > 0 ? `+ ${option.price} ${t('menu.currency')}` : t('menu.constructor.modifiers.free')}
                           </span>
                           <div className="flex items-center gap-1">
                             <button onClick={() => handleOpenOptionModal(group.id, option)} className="p-1.5 rounded-md text-brand-gray hover:text-brand-copper hover:bg-white transition-colors">
@@ -197,7 +199,7 @@ export const ModifiersTab = () => {
                     className="mt-2 h-9 border-dashed border-2 border-brand-gray/30 text-brand-gray hover:border-brand-copper hover:text-brand-copper bg-transparent transition-colors"
                     icon={<Plus className="h-4 w-4" />}
                   >
-                    Додати опцію
+                    {t('menu.constructor.modifiers.addOptionBtn')}
                   </Button>
                 </div>
               </div>
@@ -208,7 +210,7 @@ export const ModifiersTab = () => {
 
       <ModifierGroupModal isOpen={isGroupModalOpen} onClose={() => setIsGroupModalOpen(false)} isEditing={!!editingGroup} form={groupForm} setForm={setGroupForm} onSave={handleSaveGroup} />
       <ModifierOptionModal isOpen={isOptionModalOpen} onClose={() => setIsOptionModalOpen(false)} isEditing={!!editingOption} form={optionForm} setForm={setOptionForm} onSave={handleSaveOption} />
-      <ConfirmModal isOpen={!!deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={handleConfirmDelete} description={deleteTarget?.type === 'group' ? 'Видалити цю групу модифікаторів?' : 'Видалити цю опцію?'} />
+      <ConfirmModal isOpen={!!deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={handleConfirmDelete} description={deleteTarget?.type === 'group' ? t('menu.constructor.modifiers.deleteConfirm') : t('menu.constructor.modifiers.deleteOptionConfirm')} />
     </div>
   );
 };

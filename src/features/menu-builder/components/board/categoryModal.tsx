@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import { Button, Modal, Input } from '@/shared/ui';
+import { Button, FloatingPanel, Input } from '@/shared/ui';
 
 interface CategoryModalProps {
   isOpen: boolean;
@@ -16,7 +16,7 @@ export const CategoryModal = ({ isOpen, onClose, isEditing, catName, setCatName,
   const { t } = useTranslation();
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={isEditing ? t('menu.constructor.categories.modal.editTitle') : t('menu.constructor.categories.modal.createTitle')}>
+    <FloatingPanel panelId="category-modal" isOpen={isOpen} onClose={onClose} title={isEditing ? t('menu.constructor.categories.modal.editTitle') : t('menu.constructor.categories.modal.createTitle')}>
       <div className="flex flex-col gap-4">
         <Input 
           id="catName" 
@@ -33,6 +33,6 @@ export const CategoryModal = ({ isOpen, onClose, isEditing, catName, setCatName,
           </Button>
         </div>
       </div>
-    </Modal>
+    </FloatingPanel>
   );
 };

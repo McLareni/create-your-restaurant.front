@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import { apiClient } from '@/shared/api/client';
 import { authApi } from '@/features/auth/api/auth.api';
 
-// ДОДАНО id СЮДИ:
 export interface RestaurantSummary {
   id: number | string; 
   name: string;
@@ -22,7 +21,7 @@ interface UserState {
   user: User | null;
   isLoading: boolean;
   setUser: (user: User | null) => void;
-  fetchUser: () => Promise<void>;
+  fetchUser: (force?: boolean) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -34,13 +33,14 @@ export const useUserStore = create<UserState>((set, get) => ({
   
   setUser: (user) => set({ user }),
   
-  fetchUser: async () => {
-    if (get().user) {
+  fetchUser: async (force = false) => {
+    // Якщо користувач уже є і ми не вимагаємо force-оновлення — просто вимикаємо лоадер
+    if (get().user && !force) {
       set({ isLoading: false });
       return;
     }
 
-    if (fetchPromise) {
+    if (fetchPromise && !force) {
       await fetchPromise;
       return;
     }

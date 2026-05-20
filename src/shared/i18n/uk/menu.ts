@@ -33,6 +33,8 @@ export const menu = {
       addBtn: "Додати страву",
       editBtn: "Редагувати",
       deleteBtn: "Видалити",
+      descTitle: "Опис страви",
+      moreBtn: "Детальніше...",
       deleteConfirm: "Ви впевнені, що хочете видалити цю страву? Вона зникне з меню для всіх гостей.",
       modal: {
         createTitle: "Нова страва",
@@ -51,12 +53,15 @@ export const menu = {
         caloriesPlaceholder: "450 ккал",
         media: "Галерея медіа",
         mediaHint: "Перетягніть фото сюди або клікніть для завантаження. Перше фото буде головним.",
+        changeImage: "Змінити",
         properties: "Характеристики та Алергени",
         tags: {
           vegan: "Веган",
           spicy: "Гостре",
           lactoseFree: "Без лактози"
         },
+        allergensInputLabel: "Алергени (через кому)",
+        allergensInputPlaceholder: "Наприклад: лактоза, арахіс, мед...",
         allergensLabel: "Алергени",
         allergensPlaceholder: "Оберіть алергени...",
         allergens: {
@@ -65,34 +70,49 @@ export const menu = {
           nuts: "Горіхи",
           seafood: "Морепродукти"
         },
+        addModifiersLabel: "Додати модифікатори",
+        noModifiers: "У вас ще немає груп модифікаторів.",
         badgeLabel: "Маркетинговий бейдж",
         cancel: "Скасувати",
         save: "Зберегти"
       }
     },
     modifiers: {
-      title: "Модифікатори та Додатки",
-      emptyTitle: "Модифікатори відсутні",
-      emptyDesc: "Створіть опції, щоб гості могли налаштовувати страви під себе.",
-      addBtn: "Додати модифікатор",
+      title: "Групи модифікаторів",
+      emptyTitle: "Немає модифікаторів",
+      emptyDesc: "Створюйте додатки, які клієнти зможуть обирати до страв.",
+      emptyStateDesc: "Додайте першу групу модифікаторів (наприклад \"Ступінь просмаження\" або \"Додатки до піци\").",
+      addBtn: "Створити групу",
+      addFirstBtn: "Створити першу групу",
       editBtn: "Редагувати",
       deleteBtn: "Видалити",
-      deleteConfirm: "Ви впевнені, що хочете видалити цей модифікатор? Він буде відв'язаний від усіх страв.",
+      deleteConfirm: "Видалити цю групу модифікаторів?",
+      deleteOptionConfirm: "Видалити цю опцію?",
+      requiredBadge: "Обов'язково",
+      minSelect: "Мінімум:",
+      maxSelect: "Максимум:",
+      unlimited: "Безліміт",
+      optionsCount: "опцій",
+      emptyOptions: "У цій групі ще немає опцій.",
+      free: "Безкоштовно",
+      addOptionBtn: "Додати опцію",
       modal: {
-        createTitle: "Створення модифікатора",
-        editTitle: "Редагування модифікатора",
-        nameLabel: "Внутрішня назва",
-        namePlaceholder: "Наприклад: Розмір піци",
-        typeLabel: "Тип",
-        typeSingle: "Одиночний (Так/Ні)",
-        typeGroup: "Груповий вибір",
-        limitsLabel: "Ліміти вибору",
-        minSelect: "Мінімум",
-        maxSelect: "Максимум",
-        optionsLabel: "Варіанти (Опції)",
-        addOptionBtn: "Додати варіант",
-        optionNamePlaceholder: "Назва",
-        optionPricePlaceholder: "Ціна",
+        group: {
+          createTitle: "Створити групу модифікаторів",
+          editTitle: "Редагувати групу",
+          nameLabel: "Назва групи (напр. Ступінь просмаження)",
+          minLabel: "Мінімум виборів",
+          maxLabel: "Максимум виборів",
+          unlimited: "Безліміт",
+          requiredLabel: "Обов'язковий вибір (Клієнт не зможе замовити без вибору)",
+        },
+        option: {
+          createTitle: "Додати опцію",
+          editTitle: "Редагувати опцію",
+          nameLabel: "Назва опції (напр. Екстра сир)",
+          priceLabel: "Додаткова вартість (₴)",
+          availableLabel: "В наявності",
+        },
         cancel: "Скасувати",
         save: "Зберегти"
       }
@@ -131,7 +151,6 @@ export const menu = {
       CHEF_CHOICE: "Вибір шефа",
       TOP_RATED: "Топ рейтинг"
     },
-
     inventory: {
       title: "Інвентаризація та Стоп-листи",
       subtitle: "Контроль залишків у реальному часі. Зміни миттєво відображаються у гостей.",
@@ -154,7 +173,6 @@ export const menu = {
       statusAvailable: "В меню",
       statusStopped: "У стоп-листі"
     },
-
     prices: {
       title: "Управління цінами",
       subtitle: "Масове редагування цін. Змінюйте вартість окремих страв або застосовуйте знижки/націнки до обраних позицій.",
@@ -176,5 +194,11 @@ export const menu = {
         difference: "Різниця"
       }
     },
-  }
+  },
+  properties: {
+          allergensTitle: "Алергени страви",
+          addAllergenPlaceholder: "Додати новий алерген",
+          tagsTitle: "Особливості та Теги",
+          addTagPlaceholder: "Додати новий тег"
+        },
 };

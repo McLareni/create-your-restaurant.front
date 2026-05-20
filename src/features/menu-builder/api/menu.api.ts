@@ -27,5 +27,9 @@ export const menuApi = {
 
   deleteDish: async (id: string): Promise<any> => {
     return await apiClient.delete<any>(`/menu/owner/dishes/${id}`);
-  }
+  },
+  
+  reorderDishes: async (items: { id: string; sortOrder: number }[]) => {
+    return apiClient.patch('/menu/owner/dishes/reorder', { items });
+  },
 };

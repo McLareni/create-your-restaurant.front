@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { createOrganizationSchema, CreateOrganizationValues } from '../schemas/organization.schema';
 import { organizationApi } from '../api/organizations.api';
+import { useUserStore } from '@/shared/store/useUserStore';
 
 export const useCreateOrganization = () => {
   const { t } = useTranslation();
@@ -27,6 +28,7 @@ export const useCreateOrganization = () => {
   
   const [animationStep, setAnimationStep] = useState<number>(0);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const timersRef = useRef<NodeJS.Timeout[]>([]);
 
   useEffect(() => {
     if (!isSlugManuallyEdited && formData.name) {
@@ -54,7 +56,6 @@ export const useCreateOrganization = () => {
     debounceTimerRef.current = setTimeout(async () => {
       try {
         const res = await organizationApi.checkSlug(formData.slug!);
-        
         setSlugAvailable(res.isAvailable);
         if (!res.isAvailable) {
           setErrors(prev => ({ ...prev, slug: t('organization.errors.slugTaken') }));
@@ -72,8 +73,36 @@ export const useCreateOrganization = () => {
     return () => {
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData.slug]);
+  }, [formData.slug, t]);
+
+  useEffect(() => {
+    return () => {
+      timersRef.current.forEach(clearTimeout);
+    };
+  }, []);
+
+  const playSuccessAnimation = () => {
+    setAnimationStep(1);
+
+    const schedule = (step: number, delay: number) => {
+      const timer = setTimeout(async () => {
+        setAnimationStep(step);
+        if (step === 4) {
+          const redirectTimer = setTimeout(async () => {
+            // Безпечно оновлюємо дані користувача з новим рестораном без викидання з сесії
+            await useUserStore.getState().fetchUser(true); 
+            router.push('/dashboard/menu-builder');
+          }, 1500);
+          timersRef.current.push(redirectTimer);
+        }
+      }, delay);
+      timersRef.current.push(timer);
+    };
+
+    schedule(2, 2000);
+    schedule(3, 4000);
+    schedule(4, 6000);
+  };
 
   const handleChange = (field: keyof CreateOrganizationValues, value: string) => {
     if (field === 'slug') setIsSlugManuallyEdited(true);
@@ -85,16 +114,6 @@ export const useCreateOrganization = () => {
 
     setFormData(prev => ({ ...prev, [field]: finalValue }));
     if (errors[field]) setErrors(prev => ({ ...prev, [field]: undefined }));
-  };
-
-  const playSuccessAnimation = () => {
-    setAnimationStep(1);
-    setTimeout(() => setAnimationStep(2), 2000);
-    setTimeout(() => setAnimationStep(3), 4000);
-    setTimeout(() => {
-      setAnimationStep(4);
-      setTimeout(() => router.push('/dashboard'), 1500);
-    }, 6000);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

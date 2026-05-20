@@ -7,14 +7,15 @@ import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
 import { Button } from '@/shared/ui';
 import { Plus, GripVertical, Pencil, Trash2, Star, ChevronDown, ChevronRight } from 'lucide-react';
 import { DishCard } from './dishCard';
+import { Dish } from '../../types/dishes.types';
 
 interface SortableCategoryProps {
   category: any;
-  categoryDishes: any[];
+  categoryDishes: Dish[];
   onEditCategory: (category: any) => void;
   onDeleteCategory: (target: { type: 'category'; id: string }) => void;
   onAddDish: (categoryId: string) => void;
-  onEditDish: (categoryId: string, dish: any) => void;
+  onEditDish: (categoryId: string, dish: Dish) => void;
   onDeleteDish: (target: { type: 'dish'; id: string }) => void;
   t: (key: string) => string;
 }
@@ -35,8 +36,8 @@ export const SortableCategory = ({ category, categoryDishes, onEditCategory, onD
   };
 
   return (
-    <div ref={setNodeRef} style={style} className={`flex flex-col rounded-xl bg-brand-cream/10 dark:bg-brand-mocha/5 p-2 transition-all duration-300 ${isDragging ? 'ring-2 ring-brand-copper shadow-xl scale-[1.01] bg-white' : ''}`}>
-      <div className="flex items-center justify-between rounded-lg bg-white dark:bg-brand-mocha p-2 border border-brand-gray/10 shadow-xs hover:border-brand-copper/20 transition-colors z-10">
+    <div ref={setNodeRef} style={style} className={`flex flex-col rounded-xl bg-brand-cream/10 dark:bg-brand-mocha/5 p-2 w-full transition-all duration-300 ${isDragging ? 'ring-1 ring-brand-copper/30 shadow-xl scale-[1.01] bg-white' : ''}`}>
+      <div className="flex items-center justify-between rounded-lg bg-white dark:bg-brand-mocha p-2 border border-brand-gray/10 shadow-xs hover:border-brand-copper/20 transition-colors z-10 w-full">
         
         <div className="flex items-center gap-1 flex-1">
           <div 
@@ -59,10 +60,10 @@ export const SortableCategory = ({ category, categoryDishes, onEditCategory, onD
             onClick={() => setIsExpanded(!isExpanded)}
           >
             <div>
-              <h2 className="text-sm font-bold text-brand-espresso dark:text-brand-cream tracking-tight">
+              <h2 className="text-xs font-bold text-brand-espresso dark:text-brand-cream tracking-tight">
                 {category.name}
               </h2>
-              <span className="text-[11px] font-medium text-brand-gray">
+              <span className="text-[10px] font-medium text-brand-gray">
                 {categoryDishes.length} {t('menu.constructor.tabs.dishes').toLowerCase()}
               </span>
             </div>
@@ -80,7 +81,7 @@ export const SortableCategory = ({ category, categoryDishes, onEditCategory, onD
           <Button 
             variant="outline" 
             onClick={() => onAddDish(category.id)}
-            className="h-8 text-xs px-2.5 border-2 border-brand-copper text-brand-copper bg-transparent hover:bg-brand-copper hover:text-white transition-colors font-medium shadow-sm"
+            className="h-7 text-[11px] px-2.5 border-brand-copper text-brand-copper bg-transparent hover:bg-brand-copper hover:text-white transition-colors font-medium shadow-xs rounded-md"
             icon={<Plus className="h-3 w-3" />}
           >
             <span className="hidden sm:inline">{t('menu.constructor.dishes.addBtn')}</span>
@@ -88,11 +89,12 @@ export const SortableCategory = ({ category, categoryDishes, onEditCategory, onD
         </div>
       </div>
 
-      <div className={`transition-all duration-300 ease-in-out origin-top ${isExpanded ? 'max-h-1250 opacity-100 mt-3 scale-y-100' : 'max-h-0 opacity-0 overflow-hidden scale-y-95'}`}>
-        <SortableContext items={categoryDishes.map((d: any) => d.id)} strategy={rectSortingStrategy}>
+      {/* Grid container stretches horizontally across the screen seamlessly */}
+      <div className={`transition-all duration-300 ease-in-out origin-top w-full ${isExpanded ? 'max-h-500 opacity-100 mt-2 scale-y-100' : 'max-h-0 opacity-0 overflow-hidden scale-y-95'}`}>
+        <SortableContext items={categoryDishes.map((d: Dish) => d.id)} strategy={rectSortingStrategy}>
           {categoryDishes.length > 0 ? (
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 px-1 pb-1">
-              {categoryDishes.map((dish: any) => (
+            <div className="grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-3 px-1 pb-1 items-start w-full justify-items-start">
+              {categoryDishes.map((dish: Dish) => (
                 <DishCard 
                   key={dish.id} 
                   dish={dish} 
@@ -103,17 +105,15 @@ export const SortableCategory = ({ category, categoryDishes, onEditCategory, onD
               ))}
             </div>
           ) : (
-            <div className="mx-1 mb-1 rounded-xl border border-dashed border-brand-gray/20 bg-white/40 dark:bg-brand-mocha/10 p-6 text-center transition-colors hover:border-brand-copper/30 hover:bg-white flex flex-col items-center justify-center gap-2">
-              <div className="p-2 rounded-full bg-brand-cream dark:bg-brand-gray/10">
-                <Star className="h-4 w-4 text-brand-gray/40" />
-              </div>
-              <p className="text-brand-gray font-medium text-xs">
+            <div className="mx-1 mb-1 rounded-xl border border-dashed border-brand-gray/20 bg-white/40 dark:bg-brand-mocha/10 p-4 text-center transition-colors hover:border-brand-copper/30 hover:bg-white flex flex-col items-center justify-center gap-1.5 w-full">
+              <Star className="h-4 w-4 text-brand-gray/30" />
+              <p className="text-brand-gray font-medium text-[11px]">
                 {t('menu.constructor.dishes.emptyTitle')}
               </p>
               <Button 
                 variant="outline" 
                 onClick={() => onAddDish(category.id)} 
-                className="mt-1 h-7 text-xs border-brand-copper text-brand-copper hover:bg-brand-copper hover:text-white px-3"
+                className="mt-0.5 h-6 text-[10px] border-brand-copper text-brand-copper hover:bg-brand-copper hover:text-white px-2.5 rounded-md"
               >
                 {t('menu.constructor.dishes.addBtn')}
               </Button>

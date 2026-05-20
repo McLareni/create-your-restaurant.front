@@ -2,16 +2,17 @@ import { apiClient } from '@/shared/api/client';
 import { Dish, CreateDishDTO } from '../types/dishes.types';
 
 export const dishesApi = {
-  // Примітка: метод getAll може потребувати оновлення, залежно від того,
-  // чи є окремий GET ендпоінт для всіх страв, чи вони приходять вкладеними в категорії
-  getAll: async (): Promise<Dish[]> => {
-    try {
-      const response = await apiClient.get<any>('/menu/owner/dishes');
-      return Array.isArray(response) ? response : response.dishes || [];
-    } catch (error) {
-      console.warn("GET /dishes не знайдено, повертаємо порожній масив");
-      return [];
-    }
+  getAll: async (restaurantId: number): Promise<Dish[]> => {
+    const response = await apiClient.get<{ categories: { dishes: Dish[] }[] }>(`/menu/owner/${restaurantId}`);
+    return response.categories.flatMap(cat => cat.dishes);
+  },
+
+  getTagsLookup: async (): Promise<string[]> => {
+    return apiClient.get<string[]>('/menu/owner/dishes/lookups/tags');
+  },
+
+  getAllergensLookup: async (): Promise<string[]> => {
+    return apiClient.get<string[]>('/menu/owner/dishes/lookups/allergens');
   },
 
   create: async (categoryId: string, data: CreateDishDTO): Promise<Dish> => {
@@ -26,13 +27,5 @@ export const dishesApi = {
 
   delete: async (id: string): Promise<void> => {
     await apiClient.delete(`/menu/owner/dishes/${id}`);
-  },
-
-  bulkUpdatePrices: async (updates: { id: string; price: number }[]): Promise<void> => {
-    await Promise.all(
-      updates.map((update) => 
-        apiClient.patch(`/menu/owner/dishes/${update.id}`, { price: update.price })
-      )
-    );
   }
 };

@@ -173,13 +173,13 @@ export const Sidebar = () => {
         </div>
       </div>
 
-      <Modal isOpen={isLockModalOpen} onClose={() => setIsLockModalOpen(false)} title="Активація модуля">
+      <Modal isOpen={isLockModalOpen} onClose={() => setIsLockModalOpen(false)} title={t('sidebar.locked.modalTitle')}>
         <div className="flex flex-col gap-5">
           <div className="rounded-xl bg-brand-cream/40 p-4 border border-brand-gray/10"><span className="text-sm font-bold text-brand-espresso uppercase tracking-wider">{lockedModule?.name}</span></div>
-          <p className="text-sm text-brand-gray leading-relaxed">Цей модуль вже підключено до вашого закладу, але наразі він вимкнений. Бажаєте активувати його зараз, щоб відновити роботу?</p>
+          <p className="text-sm text-brand-gray leading-relaxed">{t('sidebar.locked.modalDesc')}</p>
           <div className="flex justify-end pt-4 border-t border-brand-gray/10 mt-2 gap-3">
             <Button variant="ghost" onClick={() => setIsLockModalOpen(false)}>{t('common.confirmModal.cancel')}</Button>
-            <Button variant="brand" onClick={handleActivateLocked}>Активувати</Button>
+            <Button variant="brand" onClick={handleActivateLocked}>{t('sidebar.locked.activateBtn')}</Button>
           </div>
         </div>
       </Modal>

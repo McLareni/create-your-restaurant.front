@@ -22,11 +22,10 @@ export const categoriesApi = {
     await apiClient.delete(`/menu/owner/categories/${id}`);
   },
 
-  reorder: async (items: Category[]): Promise<void> => {
-    await Promise.all(
-      items.map((item) => 
-        apiClient.patch(`/menu/owner/categories/${item.id}`, { sortOrder: item.sortOrder })
-      )
-    );
+  // Послідовне оновлення сортування для запобігання стану перегонів в БД
+  reorder: async (items: { id: string; sortOrder: number }[]): Promise<void> => {
+    for (const item of items) {
+      await apiClient.patch(`/menu/owner/categories/${item.id}`, { sortOrder: item.sortOrder });
+    }
   }
 };

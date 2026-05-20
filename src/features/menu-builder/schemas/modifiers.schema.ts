@@ -1,17 +1,18 @@
 import { z } from 'zod';
 
 export const modifierOptionSchema = z.object({
-  id: z.string(),
-  name: z.string().min(1, 'Назва опції обов\'язкова'),
-  price: z.number().min(0, 'Ціна не може бути від\'ємною'),
+  id: z.string().optional(),
+  name: z.string().min(1, 'menu.constructor.modifiers.modal.option.nameLabel'),
+  price: z.number().min(0, 'menu.constructor.modifiers.modal.option.priceLabel'),
+  isAvailable: z.boolean().default(true)
 });
 
 export const modifierGroupSchema = z.object({
-  name: z.string().min(2, 'Назва має містити мінімум 2 символи'),
-  type: z.enum(['SINGLE', 'GROUP']),
-  minSelect: z.number().min(0),
-  maxSelect: z.number().min(1),
-  options: z.array(modifierOptionSchema).min(1, 'Додайте хоча б одну опцію'),
+  name: z.string().min(2, 'menu.constructor.modifiers.modal.group.nameLabel'),
+  isRequired: z.boolean().default(false),
+  minSelections: z.number().min(0).default(0),
+  maxSelections: z.number().nullable().optional(),
+  options: z.array(modifierOptionSchema).default([])
 });
 
 export type ModifierFormValues = z.infer<typeof modifierGroupSchema>;

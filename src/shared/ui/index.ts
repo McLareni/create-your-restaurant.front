@@ -10,3 +10,4 @@ export * from './confirmModal';
 export * from './switch';
 export * from './emptyState';
 export * from './card';
+export * from './floatingPanel';

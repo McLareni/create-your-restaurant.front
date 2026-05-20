@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { Button, Input, Select, Modal, ConfirmModal, EmptyState } from '@/shared/ui';
 import { PackagePlus, Plus, Search, X } from 'lucide-react';
 import { useCombos } from '../../hooks/useCombos';
-import { mockAvailableDishes } from '../../api/combos.api';
+import { useMenu } from '../../hooks/useMenu';
 import { Combo, CreateComboDTO, ComboDish } from '../../types/combos.types';
 import { ComboCard } from './comboCard';
 import { useCrudModal } from '@/shared/hooks/useCrudModal';
@@ -15,6 +15,7 @@ const INITIAL_FORM_DATA: CreateComboDTO = { name: '', priceType: 'FIXED', priceV
 export const CombosTab = () => {
   const { t } = useTranslation();
   const { combos, createCombo, updateCombo, deleteCombo } = useCombos();
+  const { categories } = useMenu();
   const [searchQuery, setSearchQuery] = useState('');
 
   const {
@@ -61,7 +62,21 @@ export const CombosTab = () => {
     setFormData(prev => ({ ...prev, dishes: prev.dishes.filter(d => d.id !== id) }));
   };
 
-  const filteredDishes = mockAvailableDishes.filter(d => d.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  const allAvailableDishes = useMemo<ComboDish[]>(() => {
+    if (!categories) return [];
+    return categories.flatMap((cat: any) => 
+      (cat.dishes || []).map((dish: any) => ({
+        id: dish.id,
+        name: dish.name,
+        price: dish.price,
+      }))
+    );
+  }, [categories]);
+
+  const filteredDishes = allAvailableDishes.filter((d: ComboDish) => 
+    d.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  
   const calculateOriginalPrice = (dishes: ComboDish[]) => dishes.reduce((sum, d) => sum + d.price, 0);
 
   return (
@@ -81,7 +96,7 @@ export const CombosTab = () => {
             className="grid gap-5"
             style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}
           >
-            {combos.map(combo => <ComboCard key={combo.id} combo={combo} onEdit={onOpenEdit} onDelete={setDeleteId} />)}
+            {combos.map((combo: Combo) => <ComboCard key={combo.id} combo={combo} onEdit={onOpenEdit} onDelete={setDeleteId} />)}
           </div>
         </div>
       )}
@@ -109,7 +124,7 @@ export const CombosTab = () => {
 
             {searchQuery && (
               <div className="mb-4 bg-white dark:bg-brand-mocha border border-brand-gray/20 dark:border-brand-gray/20 rounded-lg shadow-sm max-h-40 overflow-y-auto custom-scrollbar">
-                {filteredDishes.length > 0 ? filteredDishes.map(dish => (
+                {filteredDishes.length > 0 ? filteredDishes.map((dish: ComboDish) => (
                   <button key={dish.id} onClick={() => { addDishToCombo(dish); setSearchQuery(''); }} className="w-full flex items-center justify-between p-3 text-left hover:bg-brand-cream/50 dark:hover:bg-white/5 border-b border-brand-gray/10 dark:border-brand-gray/20 last:border-0 outline-none">
                     <span className="text-sm text-brand-espresso dark:text-brand-cream font-medium">{dish.name}</span><span className="text-xs text-brand-gray">{dish.price} {t('menu.currency')}</span>
                   </button>
@@ -120,7 +135,8 @@ export const CombosTab = () => {
 
           <div>
             <label className="text-sm font-medium text-brand-espresso dark:text-brand-cream mb-2 block">{t('menu.constructor.combos.modal.includedDishes')}</label>
-<div className="bg-brand-cream/30 dark:bg-brand-mocha/30 border border-brand-gray/20 dark:border-brand-gray/20 rounded-xl p-3 min-h-25 flex flex-col gap-2">              {formData.dishes.length > 0 ? formData.dishes.map(dish => (
+            <div className="bg-brand-cream/30 dark:bg-brand-mocha/30 border border-brand-gray/20 dark:border-brand-gray/20 rounded-xl p-3 min-h-25 flex flex-col gap-2">              
+              {formData.dishes.length > 0 ? formData.dishes.map((dish: ComboDish) => (
                 <div key={dish.id} className="flex items-center justify-between bg-white dark:bg-brand-espresso border border-brand-gray/10 dark:border-brand-gray/20 p-2.5 rounded-lg">
                   <span className="text-sm text-brand-espresso dark:text-brand-cream font-medium">{dish.name}</span>
                   <button onClick={() => removeDishFromCombo(dish.id)} className="text-brand-gray hover:text-red-500 outline-none"><X className="h-4 w-4" /></button>
