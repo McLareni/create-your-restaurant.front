@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, Button, Input, Switch } from '@/shared/ui';
 import { ArrowRightLeft, CheckCircle2, AlertCircle, Save } from 'lucide-react';
 import { useAccessStore } from '@/shared/store/useAccessStore';
@@ -12,6 +12,15 @@ export default function PosIntegrationPage() {
   const [apiKey, setApiKey] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   if (!hasModule('pos-sync')) {
     return (
@@ -30,7 +39,7 @@ export default function PosIntegrationPage() {
 
   const handleConnect = () => {
     setIsSyncing(true);
-    setTimeout(() => {
+    timeoutRef.current = setTimeout(() => {
       setIsSyncing(false);
       setIsConnected(true);
     }, 1500);

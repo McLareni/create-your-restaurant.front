@@ -15,7 +15,7 @@ const INITIAL_FORM_DATA: CreateStaffDTO = { firstName: '', lastName: '', email: 
 
 export const StaffList = () => {
   const { t } = useTranslation();
-  const { staff, createStaff, updateStaff, deleteStaff } = useStaff();
+  const { staff, createStaff, updateStaff, deleteStaff, isLoading } = useStaff();
   const [searchQuery, setSearchQuery] = useState('');
   const [validationError, setValidationError] = useState<string | null>(null);
 
@@ -76,14 +76,19 @@ export const StaffList = () => {
               className="h-11 w-full rounded-full border border-brand-gray/30 dark:border-brand-gray/50 bg-white dark:bg-brand-mocha pl-9 pr-4 text-sm text-brand-espresso dark:text-brand-cream outline-none transition-colors focus:border-brand-copper focus:ring-1 focus:ring-brand-copper" 
             />
           </div>
-          <Button variant="brand" icon={<Plus className="h-4 w-4" />} onClick={openCreateModal} className="shrink-0">
+          <Button variant="brand" icon={<Plus className="h-4 w-4" />} onClick={openCreateModal} className="shrink-0" disabled={isLoading}>
             {t('staff.addBtn')}
           </Button>
         </div>
       </div>
 
       <div className="flex-1 overflow-hidden flex flex-col">
-        {staff.length === 0 ? (
+        {isLoading && staff.length === 0 ? (
+          <div className="flex flex-col gap-4 py-2 w-full animate-pulse">
+            <div className="h-24 w-full rounded-xl bg-brand-gray/10"></div>
+            <div className="h-24 w-full rounded-xl bg-brand-gray/10"></div>
+          </div>
+        ) : staff.length === 0 ? (
           <EmptyState icon={<Users />} title={t('staff.emptyTitle')} description={t('staff.emptyDesc')} actionLabel={t('staff.addBtn')} onAction={openCreateModal} />
         ) : (
           <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar pb-6">
@@ -110,6 +115,7 @@ export const StaffList = () => {
         setFormData={setFormData} 
         onSave={onSave} 
         validationError={validationError} 
+        isLoading={isLoading}
       />
 
       <ConfirmModal isOpen={!!deleteId} onClose={() => setDeleteId(null)} onConfirm={confirmDelete} description={t('staff.deleteConfirm')} />

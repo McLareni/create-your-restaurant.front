@@ -13,15 +13,21 @@ export const ingredientItemSchema = z.object({
   unit: z.string().catch('г')
 });
 
+const safeNumberPreprocess = z.preprocess((val) => {
+  if (val === '' || val === undefined || val === null) return null;
+  const parsed = Number(val);
+  return isNaN(parsed) ? null : parsed;
+}, z.number().nullable().optional());
+
 export const dishSchema = z.object({
   name: z.string().min(1, 'Назва страви обов\'язкова'),
   description: z.string().nullable().catch('').transform(val => val || ''),
   price: z.number().min(0, 'Ціна не може бути від\'ємною').catch(0),
   variants: z.array(dishVariantSchema).catch([]),
   taxRate: z.number().min(0).max(100).catch(20),
-  weight: z.number().nullable().optional().catch(null),
-  cookingTime: z.number().nullable().optional().catch(null),
-  calories: z.number().nullable().optional().catch(null),
+  weight: safeNumberPreprocess,
+  cookingTime: safeNumberPreprocess,
+  calories: safeNumberPreprocess,
   isVegan: z.boolean().default(false).catch(false),
   isSpicy: z.boolean().default(false).catch(false),
   isLactoseFree: z.boolean().default(false).catch(false),

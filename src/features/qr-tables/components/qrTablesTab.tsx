@@ -8,6 +8,7 @@ import { useTables } from '../hooks/useTables';
 import { Table, CreateTableDTO } from '../types/tables.types';
 import { TableCard } from './tableCard';
 import { useCrudModal } from '@/shared/hooks/useCrudModal';
+import { tableSchema } from '../schemas/tables.schema';
 import QRCode from 'qrcode';
 
 const INITIAL_FORM_DATA: CreateTableDTO = { tableNumber: '', type: '', isActive: true };
@@ -50,9 +51,20 @@ export const QrTablesTab = () => {
   };
 
   const onSave = () => {
-    if (!formData.tableNumber.trim()) { setErrorMsg(t('qr.errors.numberRequired')); return; }
-    if (!formData.type.trim()) { setErrorMsg(t('qr.errors.typeRequired')); return; }
-    if (!isTableNumberUnique(formData.tableNumber, editingTable?.id)) { setErrorMsg(t('qr.errors.numberUnique')); return; }
+    setErrorMsg('');
+    
+    const validationResult = tableSchema.safeParse(formData);
+    if (!validationResult.success) {
+      const firstError = validationResult.error.issues[0]?.message;
+      setErrorMsg(t(firstError || 'common.errors.formValidation'));
+      return;
+    }
+
+    if (!isTableNumberUnique(formData.tableNumber, editingTable?.id)) {
+      setErrorMsg(t('qr.errors.numberUnique'));
+      return;
+    }
+    
     handleSave();
   };
 
@@ -117,16 +129,16 @@ export const QrTablesTab = () => {
             <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar pb-6">
               <div className="grid gap-5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
                 {tables.map(table => (
-  <TableCard 
-    key={table.id} 
-    table={table} 
-    isSelected={selectedIds.includes(table.id)}
-    onToggleSelect={handleToggleSelect}
-    onEdit={onOpenEdit} 
-    onDelete={setDeleteId}
-    onStatusChange={(id: string, isActive: boolean) => updateTable({ id, data: { isActive } })}
-  />
-))}
+                  <TableCard 
+                    key={table.id} 
+                    table={table} 
+                    isSelected={selectedIds.includes(table.id)}
+                    onToggleSelect={handleToggleSelect}
+                    onEdit={onOpenEdit} 
+                    onDelete={setDeleteId}
+                    onStatusChange={(id: string, isActive: boolean) => updateTable({ id, data: { isActive } })}
+                  />
+                ))}
               </div>
             </div>
           </div>

@@ -21,9 +21,12 @@ export interface Dish {
   price: number;
   variants: DishVariant[];
   taxRate: number;
-  weight: string;
-  cookingTime: string;
-  calories: string;
+  weight: number | null;
+  cookingTime: number | null;
+  calories: number | null;
+  isVegan: boolean;
+  isSpicy: boolean;
+  isLactoseFree: boolean;
   badge: string;
   allergens: string[];
   tags: string[];

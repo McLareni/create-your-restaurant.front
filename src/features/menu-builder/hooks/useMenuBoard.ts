@@ -17,6 +17,7 @@ import { useModifiers } from './useModifiers';
 import { useUserStore } from '@/shared/store/useUserStore';
 import { dishSchema, DishFormValues } from '../schemas/dishes.schema';
 import { Dish } from '../types/dishes.types';
+import { useTranslation } from '@/shared/hooks/useTranslation';
 import toast from 'react-hot-toast';
 
 const INITIAL_DISH_FORM: DishFormValues = {
@@ -25,9 +26,12 @@ const INITIAL_DISH_FORM: DishFormValues = {
   price: 0,
   variants: [],
   taxRate: 20,
-  weight: '',
-  cookingTime: '',
-  calories: '',
+  weight: null,
+  cookingTime: null,
+  calories: null,
+  isVegan: false,
+  isSpicy: false,
+  isLactoseFree: false,
   badge: 'NONE',
   allergens: [],
   tags: [],
@@ -38,6 +42,7 @@ const INITIAL_DISH_FORM: DishFormValues = {
 };
 
 export const useMenuBoard = () => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const user = useUserStore((state) => state.user);
   const restaurantId = Number(user?.restaurants?.[0]?.id || 1);
@@ -230,15 +235,11 @@ export const useMenuBoard = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    const formData = new FormData();
-    formData.append('file', file);
-    
     try {
-      toast.loading('Завантаження зображення...', { id: 'img-upload' });
-      // Тут буде виклик ендпоінту завантаження зображення
-      toast.success('Зображення завантажено успішно!', { id: 'img-upload' });
+      toast.loading(t('menu.constructor.dishes.notifications.imageUploading'), { id: 'img-upload' });
+      toast.success(t('menu.constructor.dishes.notifications.imageUploadSuccess'), { id: 'img-upload' });
     } catch (err) {
-      toast.error('Помилка завантаження файлу', { id: 'img-upload' });
+      toast.error(t('menu.constructor.dishes.notifications.imageUploadError'), { id: 'img-upload' });
     }
   };
 
@@ -271,9 +272,12 @@ export const useMenuBoard = () => {
         price: dish.price,
         variants: dish.variants || [],
         taxRate: dish.taxRate || 20,
-        weight: dish.weight || '',
-        cookingTime: dish.cookingTime || '',
-        calories: dish.calories || '',
+        weight: dish.weight,
+        cookingTime: dish.cookingTime,
+        calories: dish.calories,
+        isVegan: dish.isVegan ?? false,
+        isSpicy: dish.isSpicy ?? false,
+        isLactoseFree: dish.isLactoseFree ?? false,
         badge: dish.badge || 'NONE',
         allergens: dish.allergens || [],
         tags: dish.tags || [],
@@ -298,7 +302,7 @@ export const useMenuBoard = () => {
         errorsMap[path] = issue.message;
       });
       setFormErrors(errorsMap);
-      toast.error('Будь ласка, перевірте коректність заповнення форми');
+      toast.error(t('errors.formValidation'));
       return;
     }
 

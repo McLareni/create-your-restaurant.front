@@ -7,6 +7,8 @@ import { Plus, Pencil, Trash2, Layers, ChevronDown, ChevronRight } from 'lucide-
 import { useModifiers } from '../../hooks/useModifiers';
 import { ModifierGroupModal } from './modifierGroupModal';
 import { ModifierOptionModal } from './modifierOptionModal';
+import { modifierOptionSchema } from '../../schemas/modifiers.schema';
+import toast from 'react-hot-toast';
 
 const INITIAL_GROUP_FORM = { name: '', isRequired: false, minSelections: '', maxSelections: '' };
 const INITIAL_OPTION_FORM = { name: '', price: '', isAvailable: true };
@@ -77,9 +79,22 @@ export const ModifiersTab = () => {
     const group = groups.find((g: any) => g.id === activeGroupId);
     if (!group) return;
 
+    const parsedPrice = optionForm.price ? parseFloat(optionForm.price) : 0;
+    const validationPayload = {
+      name: optionForm.name,
+      price: parsedPrice,
+      isAvailable: optionForm.isAvailable
+    };
+
+    const validationResult = modifierOptionSchema.safeParse(validationPayload);
+    if (!validationResult.success) {
+      toast.error(t('errors.formValidation'));
+      return;
+    }
+
     const formattedOption = { 
       ...optionForm, 
-      price: optionForm.price ? parseFloat(optionForm.price) : 0 
+      price: parsedPrice 
     };
     let newOptions = [...group.options];
 
