@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import { Button, Input, Modal, ConfirmModal, Checkbox, Switch, EmptyState } from '@/shared/ui';
+import { Button, Input, ConfirmModal, Checkbox, Switch, EmptyState, FloatingPanel } from '@/shared/ui';
 import { Plus, Printer, QrCode } from 'lucide-react';
 import { useTables } from '../hooks/useTables';
 import { Table, CreateTableDTO } from '../types/tables.types';
@@ -20,6 +20,7 @@ export const QrTablesTab = () => {
   const [errorMsg, setErrorMsg] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [printingDataUrls, setPrintingDataUrls] = useState<Record<string, string>>({});
+  const printTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const {
     isModalOpen,
@@ -39,6 +40,12 @@ export const QrTablesTab = () => {
     updateItem: updateTable,
     deleteItem: deleteTable,
   });
+
+  useEffect(() => {
+    return () => {
+      if (printTimeoutRef.current) clearTimeout(printTimeoutRef.current);
+    };
+  }, []);
 
   const onOpenCreate = () => {
     setErrorMsg('');
@@ -87,15 +94,20 @@ export const QrTablesTab = () => {
     const urls: Record<string, string> = {};
     const tablesToPrint = tables.filter(t => selectedIds.includes(t.id));
     for (const table of tablesToPrint) {
-      urls[table.id] = await QRCode.toDataURL(table.qrUrl, { margin: 0, width: 300 });
+      if (!table.qrUrl) continue;
+      try {
+        urls[table.id] = await QRCode.toDataURL(table.qrUrl, { margin: 0, width: 300 });
+      } catch (err) {
+        console.error(err);
+      }
     }
     setPrintingDataUrls(urls);
-    setTimeout(() => {
+    
+    if (printTimeoutRef.current) clearTimeout(printTimeoutRef.current);
+    printTimeoutRef.current = setTimeout(() => {
       window.print();
     }, 500);
   };
-
-  const selectBaseClasses = "h-12 w-full rounded-md border bg-white dark:bg-brand-mocha px-3 py-2 text-sm text-brand-espresso dark:text-brand-cream outline-none transition-colors border-brand-gray/30 dark:border-brand-gray/50 focus:border-brand-copper focus:ring-1 focus:ring-brand-copper";
 
   return (
     <div className="flex h-full flex-col">
@@ -154,13 +166,26 @@ export const QrTablesTab = () => {
         ))}
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => !isLoading && setIsModalOpen(false)} title={editingTable ? t('qr.modal.editTitle') : t('qr.modal.createTitle')}>
-        <div className="flex flex-col gap-5">
+      <FloatingPanel 
+        panelId="qr-table-floating-panel"
+        isOpen={isModalOpen} 
+        onClose={() => !isLoading && setIsModalOpen(false)} 
+        title={editingTable ? t('qr.modal.editTitle') : t('qr.modal.createTitle')}
+        className="w-132 border-brand-copper/20 shadow-2xl"
+      >
+        <div className="flex flex-col gap-5 text-brand-espresso dark:text-brand-cream">
           <Input id="tableNumber" label={t('qr.modal.numberLabel')} placeholder={t('qr.modal.numberPlaceholder')} value={formData.tableNumber} onChange={(e) => { setFormData(prev => ({ ...prev, tableNumber: e.target.value })); setErrorMsg(''); }} disabled={isLoading} />
           
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="type" className="text-sm font-medium text-brand-espresso dark:text-brand-cream">{t('qr.modal.typeLabel')}</label>
-            <input id="type" list="uniqueTypesList" placeholder={t('qr.modal.typePlaceholder')} value={formData.type} onChange={(e) => { setFormData(prev => ({ ...prev, type: e.target.value })); setErrorMsg(''); }} className={selectBaseClasses} disabled={isLoading} />
+            <Input 
+              id="type" 
+              list="uniqueTypesList" 
+              label={t('qr.modal.typeLabel')}
+              placeholder={t('qr.modal.typePlaceholder')} 
+              value={formData.type} 
+              onChange={(e) => { setFormData(prev => ({ ...prev, type: e.target.value })); setErrorMsg(''); }} 
+              disabled={isLoading} 
+            />
             <datalist id="uniqueTypesList">
               {uniqueTypes.map(type => <option key={type} value={type} />)}
             </datalist>
@@ -173,12 +198,13 @@ export const QrTablesTab = () => {
           </div>
 
           {errorMsg && <div className="text-sm text-red-500 font-medium">{errorMsg}</div>}
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-brand-gray/10 dark:border-brand-gray/20">
+            <Button variant="ghost" className="h-9 text-xs font-semibold" onClick={() => setIsModalOpen(false)} disabled={isLoading}>{t('qr.modal.cancel')}</Button>
+            <Button variant="brand" className="px-5 h-9 text-xs font-bold shadow-md" onClick={onSave} isLoading={isLoading} disabled={isLoading}>{t('qr.modal.save')}</Button>
+          </div>
         </div>
-        <div className="flex justify-end gap-3 pt-6 mt-2 border-t border-brand-gray/10 dark:border-brand-gray/20">
-          <Button variant="ghost" onClick={() => setIsModalOpen(false)} disabled={isLoading}>{t('qr.modal.cancel')}</Button>
-          <Button variant="brand" onClick={onSave} isLoading={isLoading} disabled={isLoading}>{t('qr.modal.save')}</Button>
-        </div>
-      </Modal>
+      </FloatingPanel>
 
       <ConfirmModal isOpen={!!deleteId} onClose={() => setDeleteId(null)} onConfirm={onDeleteConfirm} description={t('qr.deleteConfirm')} />
     </div>

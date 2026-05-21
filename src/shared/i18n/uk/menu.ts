@@ -17,6 +17,10 @@ export const menu = {
       editBtn: "Редагувати",
       deleteBtn: "Видалити",
       deleteConfirm: "Ви впевнені, що хочете видалити цю категорію? Страви, які до неї прив'язані, залишаться без категорії.",
+      errors: {
+        nameMin: "Назва категорії має містити мінімум 2 символи",
+        nameMax: "Назва занадто довга (макс. 50 символів)"
+      },
       modal: {
         createTitle: "Нова категорія",
         editTitle: "Редагування категорії",
@@ -42,7 +46,7 @@ export const menu = {
         imageUploadError: "Помилка завантаження файлу"
       },
       modal: {
-        createTitle: "Нова страва",
+        createTitle: "Нова XML страва",
         editTitle: "Редагування страви",
         basicInfo: "Основна інформація",
         nameLabel: "Назва страви",
@@ -60,7 +64,6 @@ export const menu = {
         variantName: "Назва варіанту",
         variantPrice: "Ціна",
         variantSku: "Артикул (SKU)",
-        
         tabs: {
           pricing: "Ціноутворення",
           characteristics: "Характеристики"
@@ -101,6 +104,13 @@ export const menu = {
             kg: "кг"
           }
         },
+        errors: {
+          nameRequired: "Назва страви обов'язана для заповнення",
+          priceNegative: "Ціна не може бути від'ємною",
+          variantNameRequired: "Назва порції/розміру обов'язана",
+          ingredientNameRequired: "Назва складника обов'язана",
+          ingredientQtyNegative: "Кількість складника не може бути менше 0"
+        },
         cancel: "Скасувати",
         save: "Зберегти позицію"
       }
@@ -124,6 +134,13 @@ export const menu = {
       emptyOptions: "У цій групі ще немає опцій.",
       free: "Безкоштовно",
       addOptionBtn: "Додати опцію",
+      errors: {
+        nameMin: "Назва групи модифікаторів має містити мінімум 2 символи",
+        nameMax: "Назва групи занадто довга (макс. 50 символів)",
+        minSelectionsNegative: "Мінімум виборів не може бути менше 0",
+        maxSelectionsNegative: "Максимум виборів не може бути менше 0",
+        valueMin: "Значення додаткової вартості не може бути менше 0"
+      },
       modal: {
         group: {
           createTitle: "Створити групу модифікаторів",
@@ -160,6 +177,15 @@ export const menu = {
         updateError: "Помилка при оновленні комбо",
         deleteSuccess: "Комбо видалено",
         deleteError: "Помилка при видаленні комбо"
+      },
+      errors: {
+        dishIdRequired: "ID страви обовʼязковий",
+        dishNameRequired: "Назва страви обовʼязкова",
+        dishPriceNegative: "Ціна не може бути відʼємною",
+        nameMin: "Назва комбо має містити мінімум 2 символи",
+        valueMin: "Значення ціни або знижки не може бути менше 0",
+        dishesMin: "Оберіть принаймні одну страву для комбо",
+        discountMax: "Знижка не може перевищувати 100%"
       },
       modal: {
         createTitle: "Створення комбо",

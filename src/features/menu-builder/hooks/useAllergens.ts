@@ -9,20 +9,30 @@ export const useAllergens = () => {
     queryFn: () => dishesApi.getAllergensLookup()
   });
 
-  const createAllergen = useMutation({
+  const createAllergen = useMutation<string, Error, string>({
     mutationFn: async (name: string) => {
       return name;
     },
     onSuccess: (name) => {
-      queryClient.setQueryData(['allergens-lookup-list'], (old: string[] = []) => {
+      queryClient.setQueryData<string[]>(['allergens-lookup-list'], (old = []) => {
         if (old.includes(name)) return old;
         return [...old, name];
       });
     }
   });
 
+  const deleteAllergen = useMutation<void, Error, string>({
+    mutationFn: (name: string) => dishesApi.deleteAllergenLookup(name),
+    onSuccess: (_, name) => {
+      queryClient.setQueryData<string[]>(['allergens-lookup-list'], (old = []) => {
+        return old.filter(a => a !== name);
+      });
+    }
+  });
+
   return {
     allergens,
-    createAllergen: createAllergen.mutate
+    createAllergen: createAllergen.mutate,
+    deleteAllergen: deleteAllergen.mutate
   };
 };

@@ -11,7 +11,7 @@ import { useCrudModal } from '@/shared/hooks/useCrudModal';
 import { staffSchema } from '../schemas/staff.schema';
 import { StaffModal } from './staffModal';
 
-const INITIAL_FORM_DATA: CreateStaffDTO = { firstName: '', lastName: '', email: '', phone: '', role: 'WAITER', isActive: true };
+const INITIAL_FORM_DATA: CreateStaffDTO = { firstName: '', lastName: '', email: '', phone: '', role: 'WAITER', isActive: true, photo: '' };
 
 export const StaffList = () => {
   const { t } = useTranslation();

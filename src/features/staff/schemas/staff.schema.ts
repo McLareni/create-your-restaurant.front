@@ -9,6 +9,7 @@ export const staffSchema = z.object({
     message: 'staff.errors.roleRequired' 
   }),
   isActive: z.boolean().default(true),
+  photo: z.string().optional().default(''),
 });
 
 export type StaffFormValues = z.infer<typeof staffSchema>;

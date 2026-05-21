@@ -33,7 +33,10 @@ export const Sidebar = () => {
 
   useEffect(() => {
     if (restaurants.length > 0 && !activeRestaurant) {
-      setActiveRestaurant(restaurants[0]);
+      setActiveRestaurant({
+        ...restaurants[0],
+        id: Number(restaurants[0].id)
+      });
     }
   }, [restaurants, activeRestaurant, setActiveRestaurant]);
 
@@ -44,7 +47,10 @@ export const Sidebar = () => {
   }, [activeRestaurant?.id, fetchAccessData]);
 
   const handleRestaurantSwitch = (res: any) => {
-    setActiveRestaurant(res);
+    setActiveRestaurant({
+      ...res,
+      id: Number(res.id)
+    });
     setIsOrgDropdownOpen(false);
     router.refresh();
   };
@@ -66,7 +72,10 @@ export const Sidebar = () => {
       
       if (activeRestaurant?.id === restaurantToDelete.id) {
         if (updatedRestaurants.length > 0) {
-          setActiveRestaurant(updatedRestaurants[0]);
+          setActiveRestaurant({
+            ...updatedRestaurants[0],
+            id: Number(updatedRestaurants[0].id)
+          });
         } else {
           setActiveRestaurant(undefined as any);
         }

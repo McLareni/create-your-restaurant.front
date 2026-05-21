@@ -22,14 +22,20 @@ export const Sidebar = () => {
 
   useEffect(() => {
     if (restaurants.length > 0 && !activeRestaurant) {
-      setActiveRestaurant(restaurants[0]);
+      setActiveRestaurant({
+        ...restaurants[0],
+        id: Number(restaurants[0].id)
+      });
     }
   }, [restaurants, activeRestaurant, setActiveRestaurant]);
 
   const handleRestaurantChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selected = restaurants.find(r => r.id === Number(e.target.value));
     if (selected) {
-      setActiveRestaurant(selected);
+      setActiveRestaurant({
+        ...selected,
+        id: Number(selected.id)
+      });
       router.refresh();
     }
   };

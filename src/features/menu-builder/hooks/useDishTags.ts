@@ -21,8 +21,18 @@ export const useDishTags = () => {
     }
   });
 
+  const deleteTag = useMutation({
+    mutationFn: (name: string) => dishesApi.deleteTagLookup(name),
+    onSuccess: (_, name) => {
+      queryClient.setQueryData(['dish-tags-lookup-list'], (old: string[] = []) => {
+        return old.filter(t => t !== name);
+      });
+    }
+  });
+
   return {
     tags,
-    createTag: createTag.mutate
+    createTag: createTag.mutate,
+    deleteTag: deleteTag.mutate
   };
 };

@@ -84,9 +84,10 @@ export const DishModal = ({
       isOpen={isOpen} 
       onClose={onClose} 
       title={isEditing ? t('menu.constructor.dishes.modal.editTitle') : t('menu.constructor.dishes.modal.createTitle')}
-      className="w-240 max-w-6xl border-brand-copper/20 max-h-[calc(100vh-40px)] flex flex-col"
+      className="w-240 max-w-6xl border-brand-copper/20 max-h-[calc(100vh-40px)] flex flex-col animate-none"
     >
-      <div className="flex flex-col gap-4 text-brand-espresso dark:text-brand-cream w-full h-162.5 max-h-[calc(100vh-140px)] justify-between">
+      {/* h-162.5 фіксує модалку у висоту раз і назавжди, прибираючи стрибки розмірів */}
+      <div className="flex flex-col text-brand-espresso dark:text-brand-cream w-full h-162.5 max-h-[calc(100vh-140px)] justify-start gap-5 overflow-hidden">
         
         <div className="flex border-b border-brand-gray/10 dark:border-brand-gray/20 pb-0.5 gap-1 overflow-x-auto no-scrollbar shrink-0">
           {[
@@ -118,6 +119,7 @@ export const DishModal = ({
         </div>
 
         <div className="flex gap-5 items-start flex-1 overflow-hidden h-full py-1">
+          {/* Ліва робоча частина форми */}
           <div className="flex-1 h-full overflow-y-auto custom-scrollbar pr-1">
             
             {activeTab === 'general' && (
@@ -182,7 +184,7 @@ export const DishModal = ({
                   </div>
                   {errors.variants && <p className="text-xs text-red-500 mb-2">{errors.variants}</p>}
                   {dishForm.variants && dishForm.variants.length > 0 && (
-                    <div className="flex flex-col gap-1.5 max-h-70 overflow-y-auto custom-scrollbar pr-1">
+                    <div className="flex flex-col gap-1.5 max-h-48 overflow-y-auto custom-scrollbar pr-1">
                       {dishForm.variants.map((variant, idx) => (
                         <div key={idx} className="flex gap-2 items-end bg-white dark:bg-brand-mocha p-2 rounded-xl border border-brand-gray/10 shadow-xs">
                           <div className="flex-1"><Input id={`v-name-${idx}`} label={t('menu.constructor.dishes.modal.variantName')} value={variant.name} onChange={(e) => handleVariantChange(idx, 'name', e.target.value)} disabled={isLoading} className="h-8 text-xs" /></div>
@@ -202,7 +204,7 @@ export const DishModal = ({
             {activeTab === 'upsell' && <UpsellTab dishForm={dishForm} setDishForm={setDishForm} currentDishId={currentDishId} />}
 
             {activeTab === 'modifiers' && (
-              <div className="grid grid-cols-2 gap-2 p-2 rounded-xl border border-brand-gray/10 bg-brand-cream/10 max-h-120 overflow-y-auto custom-scrollbar animate-in fade-in duration-100">
+              <div className="grid grid-cols-2 gap-2 p-2 rounded-xl border border-brand-gray/10 bg-brand-cream/10 max-h-64 overflow-y-auto custom-scrollbar animate-in fade-in duration-100">
                 {modifierGroups.length === 0 ? (
                   <div className="col-span-2 text-center p-4 text-xs text-brand-gray">{t('menu.constructor.dishes.modal.noModifiers')}</div>
                 ) : (
@@ -238,12 +240,13 @@ export const DishModal = ({
             )}
           </div>
 
-          <div className="h-full flex flex-col justify-start shrink-0">
+          {/* Права частина: Прев'ю смартфона (h-auto self-start фіксує його від розтягування) */}
+          <div className="h-auto self-start shrink-0">
             <DishLivePreview form={dishForm} />
           </div>
         </div>
 
-        <div className="flex justify-end gap-3 pt-3 border-t border-brand-gray/10 dark:border-brand-gray/20 shrink-0">
+        <div className="flex justify-end gap-3 pt-3 mt-auto border-t border-brand-gray/10 dark:border-brand-gray/20 shrink-0">
           <Button variant="ghost" onClick={onClose} disabled={isLoading} className="h-9 text-xs font-semibold">
             {t('menu.constructor.dishes.modal.cancel')}
           </Button>

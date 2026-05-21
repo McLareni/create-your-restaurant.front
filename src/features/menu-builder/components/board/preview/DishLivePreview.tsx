@@ -42,7 +42,9 @@ export const DishLivePreview = ({ form }: DishLivePreviewProps) => {
               : form.price || 0} {t('menu.currency')}
           </span>
           {!form.isAvailable && (
-            <span className="text-[8px] font-bold text-red-500 bg-red-50 px-1 rounded border border-red-100">STOP</span>
+            <span className="text-[8px] font-bold text-red-500 bg-red-50 px-1 rounded border border-red-100 uppercase">
+              {t('menu.constructor.inventory.statusStopped')}
+            </span>
           )}
         </div>
       </div>

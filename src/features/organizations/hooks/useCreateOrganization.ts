@@ -97,7 +97,7 @@ export const useCreateOrganization = () => {
             const newRes = updatedUser?.restaurants?.find(r => r.name === formData.name);
             if (newRes) {
               useRestaurantStore.getState().setActiveRestaurant({
-                id: newRes.id,
+                id: Number(newRes.id),
                 name: newRes.name,
                 slug: (newRes as any).slug
               });

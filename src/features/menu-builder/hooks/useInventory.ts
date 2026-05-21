@@ -27,6 +27,7 @@ export const useInventory = () => {
     onMutate: async (updatedItem) => {
       await queryClient.cancelQueries({ queryKey: ['dishes', restaurantId] });
       await queryClient.cancelQueries({ queryKey: ['fullMenu', restaurantId] });
+      await queryClient.cancelQueries({ queryKey: ['dishes-lookup', restaurantId] });
 
       const previousDishes = queryClient.getQueryData<Dish[]>(['dishes', restaurantId]);
 
@@ -51,6 +52,7 @@ export const useInventory = () => {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['dishes', restaurantId] });
       queryClient.invalidateQueries({ queryKey: ['fullMenu', restaurantId] });
+      queryClient.invalidateQueries({ queryKey: ['dishes-lookup', restaurantId] });
     },
   });
 

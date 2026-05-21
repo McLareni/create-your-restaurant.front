@@ -2,14 +2,14 @@ import { z } from 'zod';
 
 export const dishVariantSchema = z.object({
   id: z.string().optional(),
-  name: z.string().min(1, 'Назва розміру/порції обов\'язкова').catch(''),
-  price: z.number().min(0, 'Ціна не може бути від\'ємною').catch(0),
+  name: z.string().min(1, 'menu.constructor.dishes.modal.errors.variantNameRequired').catch(''),
+  price: z.number().min(0, 'menu.constructor.dishes.modal.errors.priceNegative').catch(0),
   sku: z.string().optional().catch('')
 });
 
 export const ingredientItemSchema = z.object({
-  name: z.string().min(1, 'Назва складника обов\'язкова').catch(''),
-  quantity: z.number().min(0, 'Кількість не може бути від\'ємною').catch(0),
+  name: z.string().min(1, 'menu.constructor.dishes.modal.errors.ingredientNameRequired').catch(''),
+  quantity: z.number().min(0, 'menu.constructor.dishes.modal.errors.ingredientQtyNegative').catch(0),
   unit: z.string().catch('г')
 });
 
@@ -20,9 +20,9 @@ const safeNumberPreprocess = z.preprocess((val) => {
 }, z.number().nullable().optional());
 
 export const dishSchema = z.object({
-  name: z.string().min(1, 'Назва страви обов\'язкова'),
+  name: z.string().min(1, 'menu.constructor.dishes.modal.errors.nameRequired'),
   description: z.string().nullable().catch('').transform(val => val || ''),
-  price: z.number().min(0, 'Ціна не може бути від\'ємною').catch(0),
+  price: z.number().min(0, 'menu.constructor.dishes.modal.errors.priceNegative').catch(0),
   variants: z.array(dishVariantSchema).catch([]),
   taxRate: z.number().min(0).max(100).catch(20),
   weight: safeNumberPreprocess,

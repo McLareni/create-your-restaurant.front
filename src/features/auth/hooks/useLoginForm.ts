@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { z } from 'zod';
+import { useMutation } from '@tanstack/react-query';
 import { emailSchema, verifySchema } from '@/features/auth/schemas/login.schema';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { authApi } from '@/features/auth/api/auth.api';
@@ -14,7 +15,6 @@ export const useLoginForm = () => {
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [step, setStep] = useState<1 | 2>(1);
-  const [isLoading, setIsLoading] = useState(false);
   
   const [emailError, setEmailError] = useState('');
   const [codeError, setCodeError] = useState('');
@@ -23,6 +23,27 @@ export const useLoginForm = () => {
   const [isEmailSyntacticallyValid, setIsEmailSyntacticallyValid] = useState(false);
   
   const [timeLeft, setTimeLeft] = useState(120);
+
+  const requestCodeMutation = useMutation({
+    mutationFn: (targetEmail: string) => authApi.requestLoginCode(targetEmail),
+    onSuccess: () => {
+      setStep(2);
+      setTimeLeft(120);
+    },
+    onError: () => {
+      setEmailError(t('auth.errors.serverError'));
+    }
+  });
+
+  const verifyCodeMutation = useMutation({
+    mutationFn: (payload: { email: string; code: string }) => authApi.verifyLoginCode(payload.email, payload.code),
+    onSuccess: () => {
+      router.push('/dashboard');
+    },
+    onError: () => {
+      setCodeError(t('auth.errors.verifyFailed'));
+    }
+  });
 
   useEffect(() => {
     const result = emailSchema.safeParse({ email });
@@ -81,18 +102,12 @@ export const useLoginForm = () => {
   };
 
   const handleResendCode = async () => {
-    if (timeLeft > 0) return;
-    
-    setIsLoading(true);
-    try {
-      await authApi.requestLoginCode(email);
-      setTimeLeft(120);
-      setCodeError('');
-    } catch (error) {
-      setCodeError(t('auth.errors.defaultError'));
-    } finally {
-      setIsLoading(false);
-    }
+    if (timeLeft > 0 || requestCodeMutation.isPending) return;
+    setCodeError('');
+    requestCodeMutation.mutate(email, {
+      onSuccess: () => setTimeLeft(120),
+      onError: () => setCodeError(t('auth.errors.defaultError'))
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -106,17 +121,7 @@ export const useLoginForm = () => {
         setEmailError(t(validation.error.issues[0].message));
         return;
       }
-
-      setIsLoading(true);
-      try {
-        await authApi.requestLoginCode(email);
-        setStep(2);
-        setTimeLeft(120);
-      } catch (error) {
-        setEmailError(t('auth.errors.serverError'));
-      } finally {
-        setIsLoading(false);
-      }
+      requestCodeMutation.mutate(email);
     } else {
       const validation = verifySchema.safeParse({ email, code });
       if (!validation.success) {
@@ -124,16 +129,7 @@ export const useLoginForm = () => {
         if (codeIssue) setCodeError(t(codeIssue.message));
         return;
       }
-
-      setIsLoading(true);
-      try {
-        await authApi.verifyLoginCode(email, code);
-        router.push('/dashboard');
-      } catch (error) {
-        setCodeError(t('auth.errors.verifyFailed'));
-      } finally {
-        setIsLoading(false);
-      }
+      verifyCodeMutation.mutate({ email, code });
     }
   };
 
@@ -143,7 +139,7 @@ export const useLoginForm = () => {
     code,
     setCode,
     step,
-    isLoading,
+    isLoading: requestCodeMutation.isPending || verifyCodeMutation.isPending,
     emailError,
     codeError,
     isEmailSyntacticallyValid,

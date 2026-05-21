@@ -1,26 +1,23 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { Card, Button, Input, Switch } from '@/shared/ui';
 import { ArrowRightLeft, CheckCircle2, AlertCircle, Save } from 'lucide-react';
 import { useAccessStore } from '@/shared/store/useAccessStore';
 import { useTranslation } from '@/shared/hooks/useTranslation';
+import { useUserStore } from '@/shared/store/useUserStore';
+import { apiClient } from '@/shared/api/client';
+import toast from 'react-hot-toast';
 
 export default function PosIntegrationPage() {
   const { t } = useTranslation();
   const { hasModule } = useAccessStore();
+  const user = useUserStore((state) => state.user);
+  const restaurantId = Number(user?.restaurants?.[0]?.id || 1);
+
   const [apiKey, setApiKey] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
 
   if (!hasModule('pos-sync')) {
     return (
@@ -37,12 +34,17 @@ export default function PosIntegrationPage() {
     );
   }
 
-  const handleConnect = () => {
+  const handleConnect = async () => {
     setIsSyncing(true);
-    timeoutRef.current = setTimeout(() => {
-      setIsSyncing(false);
+    try {
+      await apiClient.post(`/restaurants/${restaurantId}/pos/connect`, { apiKey });
       setIsConnected(true);
-    }, 1500);
+      toast.success(t('pos.successTitle'));
+    } catch (error) {
+      toast.error(t('auth.errors.defaultError'));
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   return (
@@ -63,29 +65,17 @@ export default function PosIntegrationPage() {
         <div className="lg:col-span-2 flex flex-col gap-6">
           <Card className="p-6!">
             <h3 className="text-lg font-bold text-brand-espresso mb-4">{t('pos.posterTitle')}</h3>
-            
             {!isConnected ? (
               <div className="flex flex-col gap-4">
                 <div className="bg-blue-50 text-blue-800 p-4 rounded-lg flex gap-3 text-sm">
                   <AlertCircle className="h-5 w-5 shrink-0" />
                   <p>{t('pos.alertText')}</p>
                 </div>
-                
                 <div className="flex items-end gap-4">
                   <div className="flex-1">
-                    <Input 
-                      id="posterToken" 
-                      label={t('pos.apiTokenLabel')} 
-                      placeholder={t('pos.apiTokenPlaceholder')}
-                      value={apiKey}
-                      onChange={(e) => setApiKey(e.target.value)}
-                    />
+                    <Input id="posterToken" label={t('pos.apiTokenLabel')} placeholder={t('pos.apiTokenPlaceholder')} value={apiKey} onChange={(e) => setApiKey(e.target.value)} />
                   </div>
-                  <Button 
-                    variant="brand" 
-                    onClick={handleConnect} 
-                    disabled={!apiKey || isSyncing}
-                  >
+                  <Button variant="brand" onClick={handleConnect} disabled={!apiKey || isSyncing} >
                     {isSyncing ? t('pos.connectChecking') : t('pos.connectBtn')}
                   </Button>
                 </div>
@@ -102,10 +92,8 @@ export default function PosIntegrationPage() {
                     {t('pos.disconnectBtn')}
                   </Button>
                 </div>
-
                 <div className="border-t border-brand-gray/10 pt-6 flex flex-col gap-4">
                   <h4 className="font-semibold text-brand-espresso">{t('pos.syncSettings')}</h4>
-                  
                   <div className="flex items-center justify-between p-3 border border-brand-gray/10 rounded-lg">
                     <div>
                       <span className="block font-medium text-brand-espresso">{t('pos.importMenu')}</span>
@@ -113,7 +101,6 @@ export default function PosIntegrationPage() {
                     </div>
                     <Switch checked={true} onChange={() => {}} />
                   </div>
-
                   <div className="flex items-center justify-between p-3 border border-brand-gray/10 rounded-lg">
                     <div>
                       <span className="block font-medium text-brand-espresso">{t('pos.syncStops')}</span>
@@ -122,7 +109,6 @@ export default function PosIntegrationPage() {
                     <Switch checked={true} onChange={() => {}} />
                   </div>
                 </div>
-                
                 <div className="flex justify-end pt-4">
                   <Button variant="brand" icon={<Save className="h-4 w-4" />}>
                     {t('pos.saveBtn')}
@@ -132,7 +118,6 @@ export default function PosIntegrationPage() {
             )}
           </Card>
         </div>
-
         <div className="lg:col-span-1">
           <Card className="p-6! bg-brand-espresso text-brand-cream border-none">
             <h3 className="font-bold text-lg mb-4 text-white">{t('pos.instructionsTitle')}</h3>

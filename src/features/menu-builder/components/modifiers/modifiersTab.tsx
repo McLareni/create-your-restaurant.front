@@ -7,7 +7,7 @@ import { Plus, Pencil, Trash2, Layers, ChevronDown, ChevronRight } from 'lucide-
 import { useModifiers } from '../../hooks/useModifiers';
 import { ModifierGroupModal } from './modifierGroupModal';
 import { ModifierOptionModal } from './modifierOptionModal';
-import { modifierOptionSchema } from '../../schemas/modifiers.schema';
+import { modifierOptionSchema, modifierGroupSchema } from '../../schemas/modifiers.schema';
 import toast from 'react-hot-toast';
 
 const INITIAL_GROUP_FORM = { name: '', isRequired: false, minSelections: '', maxSelections: '' };
@@ -21,6 +21,7 @@ export const ModifiersTab = () => {
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState<any>(null);
   const [groupForm, setGroupForm] = useState<any>(INITIAL_GROUP_FORM);
+  const [groupErrors, setGroupErrors] = useState<Record<string, string>>({});
 
   const [isOptionModalOpen, setIsOptionModalOpen] = useState(false);
   const [editingOption, setEditingOption] = useState<any>(null);
@@ -41,6 +42,7 @@ export const ModifiersTab = () => {
   }
 
   const handleOpenGroupModal = (group?: any) => {
+    setGroupErrors({});
     if (group) {
       setEditingGroup(group);
       setGroupForm({ name: group.name, isRequired: group.isRequired, minSelections: group.minSelections || '', maxSelections: group.maxSelections || '' });
@@ -52,12 +54,31 @@ export const ModifiersTab = () => {
   };
 
   const handleSaveGroup = () => {
-    const formattedData = {
-      ...groupForm,
+    const validationPayload = {
+      name: groupForm.name,
+      isRequired: groupForm.isRequired,
       minSelections: groupForm.minSelections ? parseInt(groupForm.minSelections, 10) : 0,
       maxSelections: groupForm.maxSelections ? parseInt(groupForm.maxSelections, 10) : null,
-      options: editingGroup ? undefined : [],
+      options: editingGroup ? editingGroup.options : []
     };
+
+    const result = modifierGroupSchema.safeParse(validationPayload);
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.issues.forEach((issue) => {
+        if (issue.path[0]) fieldErrors[issue.path[0] as string] = t(issue.message);
+      });
+      setGroupErrors(fieldErrors);
+      toast.error(t('errors.formValidation'));
+      return;
+    }
+
+    setGroupErrors({});
+    const formattedData = {
+      ...result.data,
+      options: editingGroup ? undefined : []
+    };
+
     if (editingGroup) updateGroup({ id: editingGroup.id, data: formattedData });
     else createGroup(formattedData);
     setIsGroupModalOpen(false);
@@ -245,7 +266,7 @@ export const ModifiersTab = () => {
         </div>
       )}
 
-      <ModifierGroupModal isOpen={isGroupModalOpen} onClose={() => setIsGroupModalOpen(false)} isEditing={!!editingGroup} form={groupForm} setForm={setGroupForm} onSave={handleSaveGroup} />
+      <ModifierGroupModal isOpen={isGroupModalOpen} onClose={() => setIsGroupModalOpen(false)} isEditing={!!editingGroup} form={groupForm} setForm={setGroupForm} onSave={handleSaveGroup} errors={groupErrors} />
       <ModifierOptionModal isOpen={isOptionModalOpen} onClose={() => setIsOptionModalOpen(false)} isEditing={!!editingOption} form={optionForm} setForm={setOptionForm} onSave={handleSaveOption} />
       <ConfirmModal isOpen={!!deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={handleConfirmDelete} description={deleteTarget?.type === 'group' ? t('menu.constructor.modifiers.deleteConfirm') : t('menu.constructor.modifiers.deleteOptionConfirm')} />
     </div>

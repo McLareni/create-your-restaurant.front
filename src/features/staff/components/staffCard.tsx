@@ -36,9 +36,17 @@ export const StaffCard = ({ member, onEdit, onDelete, onStatusChange }: StaffCar
       </div>
 
       <div className="flex items-center gap-4 mb-5 relative z-0">
-        <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-white font-bold text-lg shadow-inner ${member.avatarColor}`}>
-          {initials}
-        </div>
+        {member.photo ? (
+          <img 
+            src={member.photo} 
+            alt={member.firstName} 
+            className="h-14 w-14 shrink-0 rounded-full object-cover border border-brand-gray/20 shadow-inner bg-brand-cream/20"
+          />
+        ) : (
+          <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-full text-white font-bold text-lg shadow-inner ${member.avatarColor}`}>
+            {initials}
+          </div>
+        )}
         <div className="flex flex-col pr-12">
           <h3 className="text-lg font-bold text-brand-espresso dark:text-brand-cream line-clamp-1">
             {member.firstName} {member.lastName}

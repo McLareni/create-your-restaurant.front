@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
 interface MinimalRestaurant {
-  id: number | string;
+  id: number;
   name: string;
   slug?: string;
 }

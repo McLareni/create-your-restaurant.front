@@ -26,7 +26,7 @@ export const CategoryModal = ({ isOpen, onClose, isEditing, catName, setCatName,
   const handleValidateAndSave = () => {
     const result = categorySchema.safeParse({ name: catName });
     if (!result.success) {
-      setError(result.error.issues[0].message);
+      setError(t(result.error.issues[0].message));
       return;
     }
     setError(null);

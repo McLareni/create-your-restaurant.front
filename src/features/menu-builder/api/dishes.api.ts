@@ -15,6 +15,14 @@ export const dishesApi = {
     return apiClient.get<string[]>('/menu/owner/dishes/lookups/allergens');
   },
 
+  deleteTagLookup: async (tagName: string): Promise<void> => {
+    await apiClient.delete(`/menu/owner/dishes/lookups/tags/${encodeURIComponent(tagName)}`);
+  },
+
+  deleteAllergenLookup: async (allergenName: string): Promise<void> => {
+    await apiClient.delete(`/menu/owner/dishes/lookups/allergens/${encodeURIComponent(allergenName)}`);
+  },
+
   create: async (categoryId: string, data: CreateDishDTO): Promise<Dish> => {
     const response = await apiClient.post<any>(`/menu/owner/categories/${categoryId}/dishes`, data);
     return response.dish || response;
