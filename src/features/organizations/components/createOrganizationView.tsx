@@ -8,7 +8,17 @@ export const CreateOrganizationView = () => {
   const organizationState = useCreateOrganization();
 
   if (organizationState.animationStep > 0) {
-    return <CreateOrgAnimation state={organizationState} />;
+    return (
+      <CreateOrgAnimation 
+        state={{
+          ...organizationState,
+          formData: {
+            name: organizationState.formData.name ?? '',
+            slug: organizationState.formData.slug ?? '',
+          }
+        }} 
+      />
+    );
   }
 
   return <CreateOrgForm state={organizationState} />;

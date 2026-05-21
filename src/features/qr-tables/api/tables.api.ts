@@ -1,37 +1,23 @@
+import { apiClient } from '@/shared/api/client';
 import { Table, CreateTableDTO, UpdateTableDTO } from '../types/tables.types';
-import { nanoid } from 'nanoid';
-
-let mockTables: Table[] = [
-  { id: '1', tableNumber: '1', type: 'Основний зал', isActive: true, qrUrl: 'https://mock.gastro.com/table/1' },
-  { id: '2', tableNumber: '2', type: 'Основний зал', isActive: true, qrUrl: 'https://mock.gastro.com/table/2' },
-  { id: '3', tableNumber: 'Бар 1', type: 'Бар', isActive: false, qrUrl: 'https://mock.gastro.com/table/3' },
-];
 
 export const tablesApi = {
-  getAll: async (): Promise<Table[]> => {
-    return [...mockTables];
+  getAll: async (restaurantId: number): Promise<Table[]> => {
+    return await apiClient.get<Table[]>(`/restaurants/${restaurantId}/tables`);
   },
 
-  create: async (data: CreateTableDTO, restaurantSlug: string): Promise<Table> => {
-    const id = nanoid(10);
-    const newTable: Table = {
-      id,
+  create: async (restaurantId: number, data: CreateTableDTO, restaurantSlug: string): Promise<Table> => {
+    return await apiClient.post<Table>(`/restaurants/${restaurantId}/tables`, {
       ...data,
-      qrUrl: `https://${restaurantSlug}.gastro.com/table/${id}`,
-    };
-    mockTables.push(newTable);
-    return newTable;
+      slug: restaurantSlug // Передаємо slug на бекенд для формування QR
+    });
   },
 
-  update: async (id: string, data: UpdateTableDTO): Promise<Table> => {
-    const index = mockTables.findIndex(t => t.id === id);
-    if (index !== -1) {
-      mockTables[index] = { ...mockTables[index], ...data };
-    }
-    return mockTables[index];
+  update: async (restaurantId: number, id: string, data: UpdateTableDTO): Promise<Table> => {
+    return await apiClient.patch<Table>(`/restaurants/${restaurantId}/tables/${id}`, data);
   },
 
-  delete: async (id: string): Promise<void> => {
-    mockTables = mockTables.filter(t => t.id !== id);
+  delete: async (restaurantId: number, id: string): Promise<void> => {
+    await apiClient.delete(`/restaurants/${restaurantId}/tables/${id}`);
   }
 };

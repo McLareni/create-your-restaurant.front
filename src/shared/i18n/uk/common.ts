@@ -13,8 +13,10 @@ export const common = {
     roleLabel: "Роль"
   },
   confirmModal: {
-    title: "Підтвердження видалення",
+    title: "Підтвердження дії",
     defaultDesc: "Ви впевнені, що хочете видалити цей елемент? Цю дію неможливо скасувати.",
+    deleteConfirm: "Ви впевнені, що бажаєте безповоротно видалити заклади?",
+    actionIrreversible: "Цю дію не можна буде скасувати.",
     cancel: "Скасувати",
     confirm: "Видалити"
   },
@@ -29,5 +31,15 @@ export const common = {
     STAFF: "Співробітник",
     CUSTOMER: "Гість"
   },
-  loading: "Завантаження Gustio..."
+  actions: {
+    delete: "Видалити",
+    save: "Зберегти",
+    cancel: "Скасувати",
+    loading: "Завантаження..."
+  },
+  errors: {
+    formValidation: "Будь ласка, перевірте коректність заповнення форми",
+    unknown: "Щось пішло не так. Спробуйте ще раз."
+  },
+  loading: "Завантаження Gustio...",
 };

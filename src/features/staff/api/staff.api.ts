@@ -1,45 +1,19 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+import { apiClient } from '@/shared/api/client';
 
 export const staffApi = {
   async getStaff(restaurantId: number) {
-    const response = await fetch(`${BASE_URL}/restaurants/${restaurantId}/staff`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-    });
-    if (!response.ok) throw new Error('Failed to fetch staff');
-    return response.json();
+    return await apiClient.get<any>(`/restaurants/${restaurantId}/staff`);
   },
 
   async createStaff(restaurantId: number, data: any) {
-    const response = await fetch(`${BASE_URL}/restaurants/${restaurantId}/staff`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-      credentials: 'include',
-    });
-    if (!response.ok) throw new Error('Failed to create staff');
-    return response.json();
+    return await apiClient.post<any>(`/restaurants/${restaurantId}/staff`, data);
   },
 
   async updateStaff(restaurantId: number, staffId: string, data: any) {
-    const response = await fetch(`${BASE_URL}/restaurants/${restaurantId}/staff/${staffId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-      credentials: 'include',
-    });
-    if (!response.ok) throw new Error('Failed to update staff');
-    return response.json();
+    return await apiClient.patch<any>(`/restaurants/${restaurantId}/staff/${staffId}`, data);
   },
 
   async deleteStaff(restaurantId: number, staffId: string) {
-    const response = await fetch(`${BASE_URL}/restaurants/${restaurantId}/staff/${staffId}`, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-    });
-    if (!response.ok) throw new Error('Failed to delete staff');
-    return response.json();
+    return await apiClient.delete<any>(`/restaurants/${restaurantId}/staff/${staffId}`);
   }
 };

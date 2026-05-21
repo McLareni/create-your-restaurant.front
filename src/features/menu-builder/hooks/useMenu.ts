@@ -1,16 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { menuApi } from '../api/menu.api';
-import { categoriesApi } from '../api/categories.api';
-import { useUserStore } from '@/shared/store/useUserStore';
+import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 
 export const useMenu = () => {
   const queryClient = useQueryClient();
-  const user = useUserStore((state) => state.user);
-  const restaurantId = user?.restaurants?.[0]?.id || 1;
+  const activeRestaurant = useRestaurantStore((state) => state.activeRestaurant);
+  const restaurantId = Number(activeRestaurant?.id || 1);
 
   const { data: menuData, isLoading } = useQuery({
     queryKey: ['fullMenu', restaurantId],
-    queryFn: () => menuApi.getFullMenu(Number(restaurantId)),
+    queryFn: () => menuApi.getFullMenu(restaurantId),
     enabled: !!restaurantId,
   });
 
@@ -19,7 +18,7 @@ export const useMenu = () => {
   const createCategoryMutation = useMutation({
     mutationFn: (name: string) =>
       menuApi.createCategory({
-        restaurantId: Number(restaurantId),
+        restaurantId: restaurantId,
         name,
         sortOrder: categories.length,
       }),
@@ -38,21 +37,33 @@ export const useMenu = () => {
 
   const createDishMutation = useMutation({
     mutationFn: ({ categoryId, data }: { categoryId: string; data: any }) => menuApi.createDish(categoryId, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['fullMenu', restaurantId] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fullMenu', restaurantId] });
+      queryClient.invalidateQueries({ queryKey: ['dishes', restaurantId] });
+      queryClient.invalidateQueries({ queryKey: ['dishes-lookup', restaurantId] });
+    },
   });
 
   const updateDishMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) => menuApi.updateDish(id, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['fullMenu', restaurantId] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fullMenu', restaurantId] });
+      queryClient.invalidateQueries({ queryKey: ['dishes', restaurantId] });
+      queryClient.invalidateQueries({ queryKey: ['dishes-lookup', restaurantId] });
+    },
   });
 
   const deleteDishMutation = useMutation({
     mutationFn: (id: string) => menuApi.deleteDish(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['fullMenu', restaurantId] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['fullMenu', restaurantId] });
+      queryClient.invalidateQueries({ queryKey: ['dishes', restaurantId] });
+      queryClient.invalidateQueries({ queryKey: ['dishes-lookup', restaurantId] });
+    },
   });
 
   const reorderCategoriesMutation = useMutation({
-    mutationFn: (items: any[]) => categoriesApi.reorder(items),
+    mutationFn: (items: any[]) => menuApi.reorderCategories(items),
     onMutate: async (newItems) => {
       await queryClient.cancelQueries({ queryKey: ['fullMenu', restaurantId] });
       const previousMenu = queryClient.getQueryData(['fullMenu', restaurantId]);
@@ -78,24 +89,26 @@ export const useMenu = () => {
   });
 
   const reorderDishesMutation = useMutation({
-    mutationFn: async ({ categoryId, items }: { categoryId: string; items: any[] }) => {
-      return items; 
-    },
-    onMutate: async ({ categoryId, items }) => {
+    mutationFn: (items: { id: string; sortOrder: number }[]) => menuApi.reorderDishes(items),
+    onMutate: async (newItems) => {
       await queryClient.cancelQueries({ queryKey: ['fullMenu', restaurantId] });
       const previousMenu = queryClient.getQueryData(['fullMenu', restaurantId]);
 
       queryClient.setQueryData(['fullMenu', restaurantId], (old: any) => {
         if (!old) return old;
-        const updatedCategories = old.categories.map((c: any) => {
-          if (c.id === categoryId) {
-            const updatedDishes = [...c.dishes].sort((a: any, b: any) => {
-              return items.findIndex(i => i.id === a.id) - items.findIndex(i => i.id === b.id);
-            });
-            return { ...c, dishes: updatedDishes };
-          }
-          return c;
+        
+        const updatedCategories = old.categories.map((category: any) => {
+          const updatedDishes = category.dishes.map((dish: any) => {
+            const item = newItems.find((i) => i.id === dish.id);
+            return item ? { ...dish, sortOrder: item.sortOrder } : dish;
+          });
+          
+          return {
+            ...category,
+            dishes: updatedDishes.sort((a: any, b: any) => (a.sortOrder || 0) - (b.sortOrder || 0)),
+          };
         });
+        
         return { ...old, categories: updatedCategories };
       });
 

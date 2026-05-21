@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { createOrganizationSchema, CreateOrganizationValues } from '../schemas/organization.schema';
 import { organizationApi } from '../api/organizations.api';
+import { useUserStore } from '@/shared/store/useUserStore';
+import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 
 export const useCreateOrganization = () => {
   const { t } = useTranslation();
@@ -24,9 +26,11 @@ export const useCreateOrganization = () => {
   const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
   const [isCheckingSlug, setIsCheckingSlug] = useState(false);
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   
   const [animationStep, setAnimationStep] = useState<number>(0);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const timersRef = useRef<NodeJS.Timeout[]>([]);
 
   useEffect(() => {
     if (!isSlugManuallyEdited && formData.name) {
@@ -54,7 +58,6 @@ export const useCreateOrganization = () => {
     debounceTimerRef.current = setTimeout(async () => {
       try {
         const res = await organizationApi.checkSlug(formData.slug!);
-        
         setSlugAvailable(res.isAvailable);
         if (!res.isAvailable) {
           setErrors(prev => ({ ...prev, slug: t('organization.errors.slugTaken') }));
@@ -72,8 +75,46 @@ export const useCreateOrganization = () => {
     return () => {
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData.slug]);
+  }, [formData.slug, t]);
+
+  useEffect(() => {
+    return () => {
+      timersRef.current.forEach(clearTimeout);
+    };
+  }, []);
+
+  const playSuccessAnimation = () => {
+    setAnimationStep(1);
+
+    const schedule = (step: number, delay: number) => {
+      const timer = setTimeout(async () => {
+        setAnimationStep(step);
+        if (step === 4) {
+          const redirectTimer = setTimeout(async () => {
+            await useUserStore.getState().fetchUser(true); 
+            
+            const updatedUser = useUserStore.getState().user;
+            const newRes = updatedUser?.restaurants?.find(r => r.name === formData.name);
+            if (newRes) {
+              useRestaurantStore.getState().setActiveRestaurant({
+                id: Number(newRes.id),
+                name: newRes.name,
+                slug: (newRes as any).slug
+              });
+            }
+            
+            router.push('/dashboard/menu-builder');
+          }, 1500);
+          timersRef.current.push(redirectTimer);
+        }
+      }, delay);
+      timersRef.current.push(timer);
+    };
+
+    schedule(2, 2000);
+    schedule(3, 4000);
+    schedule(4, 6000);
+  };
 
   const handleChange = (field: keyof CreateOrganizationValues, value: string) => {
     if (field === 'slug') setIsSlugManuallyEdited(true);
@@ -87,18 +128,9 @@ export const useCreateOrganization = () => {
     if (errors[field]) setErrors(prev => ({ ...prev, [field]: undefined }));
   };
 
-  const playSuccessAnimation = () => {
-    setAnimationStep(1);
-    setTimeout(() => setAnimationStep(2), 2000);
-    setTimeout(() => setAnimationStep(3), 4000);
-    setTimeout(() => {
-      setAnimationStep(4);
-      setTimeout(() => router.push('/dashboard'), 1500);
-    }, 6000);
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return;
     setErrors({});
 
     const validation = createOrganizationSchema.safeParse(formData);
@@ -113,11 +145,14 @@ export const useCreateOrganization = () => {
 
     if (slugAvailable === false) return;
 
+    setIsLoading(true);
     try {
       await organizationApi.create(validation.data);
       playSuccessAnimation();
     } catch (error) {
       setErrors({ name: t('organization.errors.serverError') });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -127,6 +162,7 @@ export const useCreateOrganization = () => {
     isCheckingSlug,
     slugAvailable,
     animationStep,
+    isLoading,
     handleChange,
     handleSubmit
   };

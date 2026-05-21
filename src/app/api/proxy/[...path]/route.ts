@@ -13,17 +13,26 @@ async function handleProxy(
   const token = sessionCookie?.value;
 
   const headers = new Headers();
-  headers.set('Content-Type', 'application/json');
+  const incomingContentType = request.headers.get('content-type');
+  
+  // Якщо це файл — НЕ встановлюємо Content-Type вручну, fetch згенерує його разом із правильним boundary автоматично
+  if (incomingContentType && !incomingContentType.includes('multipart/form-data')) {
+    headers.set('Content-Type', incomingContentType);
+  }
 
   if (token) {
-    // ВАЖЛИВО: Передаємо токен саме як Cookie, бо так прописано в NestMiddleware бекенду
     headers.set('Cookie', `gustio_session=${token}`);
   }
 
   try {
-    const body = request.method !== 'GET' && request.method !== 'HEAD'
-      ? await request.text()
-      : undefined;
+    let body: any = undefined;
+    if (request.method !== 'GET' && request.method !== 'HEAD') {
+      if (incomingContentType?.includes('multipart/form-data')) {
+        body = await request.arrayBuffer();
+      } else {
+        body = await request.text();
+      }
+    }
 
     const response = await fetch(`${API_URL}/${path}${url.search}`, {
       method: request.method,

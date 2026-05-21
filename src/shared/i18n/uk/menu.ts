@@ -17,6 +17,10 @@ export const menu = {
       editBtn: "Редагувати",
       deleteBtn: "Видалити",
       deleteConfirm: "Ви впевнені, що хочете видалити цю категорію? Страви, які до неї прив'язані, залишаться без категорії.",
+      errors: {
+        nameMin: "Назва категорії має містити мінімум 2 символи",
+        nameMax: "Назва занадто довга (макс. 50 символів)"
+      },
       modal: {
         createTitle: "Нова категорія",
         editTitle: "Редагування категорії",
@@ -32,67 +36,128 @@ export const menu = {
       emptyDesc: "Додайте першу страву до вашого меню, щоб гості могли її замовити.",
       addBtn: "Додати страву",
       editBtn: "Редагувати",
-      deleteBtn: "Видалити",
+      deleteBtn: "Вилучити",
+      descTitle: "Опис страви",
+      moreBtn: "Детальніше...",
       deleteConfirm: "Ви впевнені, що хочете видалити цю страву? Вона зникне з меню для всіх гостей.",
+      notifications: {
+        imageUploading: "Завантаження зображення...",
+        imageUploadSuccess: "Зображення завантажено успішно!",
+        imageUploadError: "Помилка завантаження файлу"
+      },
       modal: {
-        createTitle: "Нова страва",
+        createTitle: "Нова XML страва",
         editTitle: "Редагування страви",
         basicInfo: "Основна інформація",
         nameLabel: "Назва страви",
         namePlaceholder: "Наприклад: Паста Карбонара",
+        categoryLabel: "Категорія страви",
+        categoryPlaceholder: "Оберіть категорію для страви...",
         descLabel: "Опис страви",
-        descPlaceholder: "Склад та смакові особливості...",
-        priceLabel: "Ціна",
-        weightLabel: "Вага/Об'єм",
+        descPlaceholder: "Склад, секрети приготування та смакові особливості...",
+        priceLabel: "Базова ціна (₴)",
+        taxRateLabel: "Ставка ПДВ (%)",
+        taxText: "ПДВ",
+        hasModifiers: "Має активні модифікатори",
+        variantsTitle: "Розміри порцій / Варіанти",
+        addVariantBtn: "Додати варіант",
+        variantName: "Назва варіанту",
+        variantPrice: "Ціна",
+        variantSku: "Артикул (SKU)",
+        tabs: {
+          pricing: "Ціноутворення",
+          characteristics: "Характеристики"
+        },
+        weightLabel: "Вага / Об'єм одиниці",
         weightPlaceholder: "350 г",
+        unitLabel: "Одиниця виміру",
+        unitPlaceholder: "г, мл, шт, порція",
         timeLabel: "Час приготування (хв)",
         timePlaceholder: "15",
         caloriesLabel: "Калорійність",
         caloriesPlaceholder: "450 ккал",
         media: "Галерея медіа",
-        mediaHint: "Перетягніть фото сюди або клікніть для завантаження. Перше фото буде головним.",
-        properties: "Характеристики та Алергени",
-        tags: {
-          vegan: "Веган",
-          spicy: "Гостре",
-          lactoseFree: "Без лактози"
+        mediaHint: "Перетягніть фото сюди або клікніть для завантаження. Перше фото буде головним в гостьовому меню.",
+        changeImage: "Змінити фото",
+        availabilityLabel: "Активна позиція (показувати в QR-меню)",
+        stockLabel: "Кількість за замовчуванням (для стоп-листів)",
+        properties: {
+          allergensTitle: "Харчові алергени",
+          addAllergenPlaceholder: "Додати новий алерген",
+          tagsTitle: "Особливості та Теги",
+          addTagPlaceholder: "Додати новий тег"
         },
         allergensLabel: "Алергени",
-        allergensPlaceholder: "Оберіть алергени...",
-        allergens: {
-          gluten: "Глютен",
-          lactose: "Лактоза",
-          nuts: "Горіхи",
-          seafood: "Морепродукти"
+        noModifiers: "У вас ще немає створених груп модифікаторів для вибору.",
+        badgeLabel: "Маркетинговий бейдж (Стікер)",
+        ingredients: {
+          title: "Складники страви",
+          empty: "Складників не додано",
+          nameLabel: "Назва інгредієнта",
+          namePlaceholder: "Наприклад: Томати",
+          qtyLabel: "Кількість",
+          unitLabel: "Од. вим.",
+          units: {
+            g: "г",
+            ml: "мл",
+            pcs: "шт",
+            kg: "кг"
+          }
         },
-        badgeLabel: "Маркетинговий бейдж",
+        errors: {
+          nameRequired: "Назва страви обов'язана для заповнення",
+          priceNegative: "Ціна не може бути від'ємною",
+          variantNameRequired: "Назва порції/розміру обов'язана",
+          ingredientNameRequired: "Назва складника обов'язана",
+          ingredientQtyNegative: "Кількість складника не може бути менше 0"
+        },
         cancel: "Скасувати",
-        save: "Зберегти"
+        save: "Зберегти позицію"
       }
     },
     modifiers: {
-      title: "Модифікатори та Додатки",
-      emptyTitle: "Модифікатори відсутні",
-      emptyDesc: "Створіть опції, щоб гості могли налаштовувати страви під себе.",
-      addBtn: "Додати модифікатор",
+      title: "Групи модифікаторів",
+      emptyTitle: "Немає модифікаторів",
+      emptyDesc: "Створюйте додатки, які клієнти зможуть обирати до страв.",
+      emptyStateDesc: "Додайте першу групу модифікаторів (наприклад \"Ступінь просмаження\" або \"Додатки до піци\").",
+      addBtn: "Створити групу",
+      addFirstBtn: "Створити першу групу",
       editBtn: "Редагувати",
       deleteBtn: "Видалити",
-      deleteConfirm: "Ви впевнені, що хочете видалити цей модифікатор? Він буде відв'язаний від усіх страв.",
+      deleteConfirm: "Видалити цю групу модифікаторів?",
+      deleteOptionConfirm: "Видалити цю опцію?",
+      requiredBadge: "Обов'язково",
+      minSelect: "Мінімум:",
+      maxSelect: "Максимум:",
+      unlimited: "Безліміт",
+      optionsCount: "опцій",
+      emptyOptions: "У цій групі ще немає опцій.",
+      free: "Безкоштовно",
+      addOptionBtn: "Додати опцію",
+      errors: {
+        nameMin: "Назва групи модифікаторів має містити мінімум 2 символи",
+        nameMax: "Назва групи занадто довга (макс. 50 символів)",
+        minSelectionsNegative: "Мінімум виборів не може бути менше 0",
+        maxSelectionsNegative: "Максимум виборів не може бути менше 0",
+        valueMin: "Значення додаткової вартості не може бути менше 0"
+      },
       modal: {
-        createTitle: "Створення модифікатора",
-        editTitle: "Редагування модифікатора",
-        nameLabel: "Внутрішня назва",
-        namePlaceholder: "Наприклад: Розмір піци",
-        typeLabel: "Тип",
-        typeSingle: "Одиночний (Так/Ні)",
-        typeGroup: "Груповий вибір",
-        limitsLabel: "Ліміти вибору",
-        minSelect: "Мінімум",
-        maxSelect: "Максимум",
-        optionsLabel: "Варіанти (Опції)",
-        addOptionBtn: "Додати варіант",
-        optionNamePlaceholder: "Назва",
-        optionPricePlaceholder: "Ціна",
+        group: {
+          createTitle: "Створити групу модифікаторів",
+          editTitle: "Редагувати групу",
+          nameLabel: "Назва групи (напр. Ступінь просмаження)",
+          minLabel: "Мінімум виборів",
+          maxLabel: "Максимум виборів",
+          unlimited: "Безліміт",
+          requiredLabel: "Обов'язковий вибір (Клієнт не зможе замовити без вибору)"
+        },
+        option: {
+          createTitle: "Додати опцію",
+          editTitle: "Редагувати опцію",
+          nameLabel: "Назва опції (напр. Екстра сир)",
+          priceLabel: "Додаткова вартість (₴)",
+          availableLabel: "В наявності"
+        },
         cancel: "Скасувати",
         save: "Зберегти"
       }
@@ -105,6 +170,23 @@ export const menu = {
       editBtn: "Редагувати",
       deleteBtn: "Видалити",
       deleteConfirm: "Ви впевнені, що хочете видалити цей набір? Він зникне з меню для всіх гостей.",
+      notifications: {
+        createSuccess: "Комбо успішно створено",
+        createError: "Помилка при створенні комбо",
+        updateSuccess: "Комбо оновлено",
+        updateError: "Помилка при оновленні комбо",
+        deleteSuccess: "Комбо видалено",
+        deleteError: "Помилка при видаленні комбо"
+      },
+      errors: {
+        dishIdRequired: "ID страви обовʼязковий",
+        dishNameRequired: "Назва страви обовʼязкова",
+        dishPriceNegative: "Ціна не може бути відʼємною",
+        nameMin: "Назва комбо має містити мінімум 2 символи",
+        valueMin: "Значення ціни або знижки не може бути менше 0",
+        dishesMin: "Оберіть принаймні одну страву для комбо",
+        discountMax: "Знижка не може перевищувати 100%"
+      },
       modal: {
         createTitle: "Створення комбо",
         editTitle: "Редагування комбо",
@@ -121,7 +203,8 @@ export const menu = {
         notFound: "Страви не знайдено",
         originalPrice: "Вартість без комбо:",
         cancel: "Скасувати",
-        save: "Зберегти"
+        save: "Зберегти",
+        upsellTitle: "Рекомендовані товари для крос-продажів"
       }
     },
     badges: {
@@ -131,7 +214,6 @@ export const menu = {
       CHEF_CHOICE: "Вибір шефа",
       TOP_RATED: "Топ рейтинг"
     },
-
     inventory: {
       title: "Інвентаризація та Стоп-листи",
       subtitle: "Контроль залишків у реальному часі. Зміни миттєво відображаються у гостей.",
@@ -153,28 +235,6 @@ export const menu = {
       stockUnlimited: "∞",
       statusAvailable: "В меню",
       statusStopped: "У стоп-листі"
-    },
-
-    prices: {
-      title: "Управління цінами",
-      subtitle: "Масове редагування цін. Змінюйте вартість окремих страв або застосовуйте знижки/націнки до обраних позицій.",
-      searchPlaceholder: "Пошук страв...",
-      bulkActions: "Масові дії для обраних",
-      apply: "Застосувати",
-      increase: "Підняти ціну на",
-      decrease: "Знизити ціну на",
-      typePercent: "%",
-      typeFixed: "₴",
-      saveChanges: "Зберегти всі зміни",
-      discard: "Відхилити",
-      unsavedAlert: "У вас є незбережені зміни",
-      changedItemsCount: "Змінено позицій: {{count}}",
-      columns: {
-        dish: "Страва",
-        currentPrice: "Поточна ціна",
-        newPrice: "Нова ціна",
-        difference: "Різниця"
-      }
-    },
+    }
   }
 };

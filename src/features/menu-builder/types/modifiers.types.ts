@@ -1,15 +1,16 @@
 export interface ModifierOption {
-  id: string;
+  id?: string;
   name: string;
   price: number;
+  isAvailable: boolean;
 }
 
 export interface ModifierGroup {
   id: string;
   name: string;
-  type: 'SINGLE' | 'GROUP';
-  minSelect: number;
-  maxSelect: number;
+  isRequired: boolean;
+  minSelections: number;
+  maxSelections: number | null;
   options: ModifierOption[];
 }
 

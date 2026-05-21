@@ -21,7 +21,7 @@ export type MenuItem = {
   moduleKey?: string;
   highlight?: boolean;
   subItems?: SubMenuItem[];
-  onClick?: () => void; // Додаємо можливість вішати функції на кнопки
+  onClick?: () => void;
 };
 
 export const useNavigation = () => {
@@ -45,8 +45,7 @@ export const useNavigation = () => {
         moduleKey: 'menu-engine',
         subItems: [
           { id: 'menu-constructor', href: '/dashboard/menu-builder', label: t('sidebar.nav.menuConstructor') },
-          { id: 'menu-inventory', href: '/dashboard/menu-inventory', label: t('sidebar.nav.menuInventory') },
-          { id: 'menu-prices', href: '/dashboard/menu-prices', label: t('sidebar.nav.menuPrices') },
+          { id: 'menu-inventory', href: '/dashboard/menu-inventory', label: t('sidebar.nav.menuInventory') }
         ]
       },
       { id: 'qr', href: '/dashboard/qr', icon: QrCode, label: t('sidebar.nav.qrTables'), moduleKey: 'qr-tables' },
@@ -62,11 +61,11 @@ export const useNavigation = () => {
     ],
     [
       { 
-    id: 'theme', 
-    icon: isDark ? Sun : Moon, 
-    label: isDark ? t('sidebar.nav.themeLight') : t('sidebar.nav.themeDark'), 
-    onClick: toggleTheme 
-    },
+        id: 'theme', 
+        icon: isDark ? Sun : Moon, 
+        label: isDark ? t('sidebar.nav.themeLight') : t('sidebar.nav.themeDark'), 
+        onClick: toggleTheme 
+      },
       { id: 'support', href: '/dashboard/support', icon: HelpCircle, label: t('sidebar.nav.support') },
       { id: 'legal', href: '/dashboard/legal', icon: ShieldAlert, label: t('sidebar.nav.legal') },
     ]

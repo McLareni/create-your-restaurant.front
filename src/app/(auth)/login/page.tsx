@@ -14,6 +14,7 @@ export default function LoginPage() {
             src="https://images.unsplash.com/photo-1550966871-3ed3cdb5ed0c?q=80&w=2070&auto=format&fit=crop"
             alt={t('hero.imageAlt')}
             fill
+            sizes="(max-width: 1024px) 100vw, 50vw"
             priority
             className="object-cover opacity-40 grayscale-20" 
           />

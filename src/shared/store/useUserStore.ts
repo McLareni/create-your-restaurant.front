@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import { apiClient } from '@/shared/api/client';
 import { authApi } from '@/features/auth/api/auth.api';
 
-// ДОДАНО id СЮДИ:
 export interface RestaurantSummary {
   id: number | string; 
   name: string;
@@ -22,7 +21,7 @@ interface UserState {
   user: User | null;
   isLoading: boolean;
   setUser: (user: User | null) => void;
-  fetchUser: () => Promise<void>;
+  fetchUser: (force?: boolean) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -34,13 +33,13 @@ export const useUserStore = create<UserState>((set, get) => ({
   
   setUser: (user) => set({ user }),
   
-  fetchUser: async () => {
-    if (get().user) {
+  fetchUser: async (force = false) => {
+    if (get().user && !force) {
       set({ isLoading: false });
       return;
     }
 
-    if (fetchPromise) {
+    if (fetchPromise && !force) {
       await fetchPromise;
       return;
     }
@@ -66,6 +65,8 @@ export const useUserStore = create<UserState>((set, get) => ({
   logout: async () => {
     try {
       await authApi.logout();
+    } catch (error) {
+      console.error('Silent fail for network logout error:', error);
     } finally {
       set({ user: null });
       window.location.href = '/login';

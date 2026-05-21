@@ -13,19 +13,24 @@ export const useModifiers = () => {
     enabled: !!restaurantId,
   });
 
+  const invalidateAll = () => {
+    queryClient.invalidateQueries({ queryKey: ['modifierGroups', restaurantId] });
+    queryClient.invalidateQueries({ queryKey: ['fullMenu', Number(restaurantId)] });
+  };
+
   const createGroupMutation = useMutation({
     mutationFn: (data: any) => modifiersApi.createGroup(Number(restaurantId), data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['modifierGroups', restaurantId] }),
+    onSuccess: invalidateAll,
   });
 
   const updateGroupMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: any }) => modifiersApi.updateGroup(Number(restaurantId), id, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['modifierGroups', restaurantId] }),
+    onSuccess: invalidateAll,
   });
 
   const deleteGroupMutation = useMutation({
     mutationFn: (id: string) => modifiersApi.deleteGroup(Number(restaurantId), id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['modifierGroups', restaurantId] }),
+    onSuccess: invalidateAll,
   });
 
   return {

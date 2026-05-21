@@ -1,24 +1,26 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import { Button, Input, Modal, ConfirmModal, Checkbox, Switch, EmptyState } from '@/shared/ui';
+import { Button, Input, ConfirmModal, Checkbox, Switch, EmptyState, FloatingPanel } from '@/shared/ui';
 import { Plus, Printer, QrCode } from 'lucide-react';
 import { useTables } from '../hooks/useTables';
 import { Table, CreateTableDTO } from '../types/tables.types';
 import { TableCard } from './tableCard';
 import { useCrudModal } from '@/shared/hooks/useCrudModal';
+import { tableSchema } from '../schemas/tables.schema';
 import QRCode from 'qrcode';
 
 const INITIAL_FORM_DATA: CreateTableDTO = { tableNumber: '', type: '', isActive: true };
 
 export const QrTablesTab = () => {
   const { t } = useTranslation();
-  const { tables, uniqueTypes, createTable, updateTable, deleteTable, isTableNumberUnique } = useTables();
+  const { tables, uniqueTypes, createTable, updateTable, deleteTable, isTableNumberUnique, isLoading } = useTables();
   
   const [errorMsg, setErrorMsg] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [printingDataUrls, setPrintingDataUrls] = useState<Record<string, string>>({});
+  const printTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const {
     isModalOpen,
@@ -39,6 +41,12 @@ export const QrTablesTab = () => {
     deleteItem: deleteTable,
   });
 
+  useEffect(() => {
+    return () => {
+      if (printTimeoutRef.current) clearTimeout(printTimeoutRef.current);
+    };
+  }, []);
+
   const onOpenCreate = () => {
     setErrorMsg('');
     openCreateModal();
@@ -50,9 +58,20 @@ export const QrTablesTab = () => {
   };
 
   const onSave = () => {
-    if (!formData.tableNumber.trim()) { setErrorMsg(t('qr.errors.numberRequired')); return; }
-    if (!formData.type.trim()) { setErrorMsg(t('qr.errors.typeRequired')); return; }
-    if (!isTableNumberUnique(formData.tableNumber, editingTable?.id)) { setErrorMsg(t('qr.errors.numberUnique')); return; }
+    setErrorMsg('');
+    
+    const validationResult = tableSchema.safeParse(formData);
+    if (!validationResult.success) {
+      const firstError = validationResult.error.issues[0]?.message;
+      setErrorMsg(t(firstError || 'common.errors.formValidation'));
+      return;
+    }
+
+    if (!isTableNumberUnique(formData.tableNumber, editingTable?.id)) {
+      setErrorMsg(t('qr.errors.numberUnique'));
+      return;
+    }
+    
     handleSave();
   };
 
@@ -75,15 +94,20 @@ export const QrTablesTab = () => {
     const urls: Record<string, string> = {};
     const tablesToPrint = tables.filter(t => selectedIds.includes(t.id));
     for (const table of tablesToPrint) {
-      urls[table.id] = await QRCode.toDataURL(table.qrUrl, { margin: 0, width: 300 });
+      if (!table.qrUrl) continue;
+      try {
+        urls[table.id] = await QRCode.toDataURL(table.qrUrl, { margin: 0, width: 300 });
+      } catch (err) {
+        console.error(err);
+      }
     }
     setPrintingDataUrls(urls);
-    setTimeout(() => {
+    
+    if (printTimeoutRef.current) clearTimeout(printTimeoutRef.current);
+    printTimeoutRef.current = setTimeout(() => {
       window.print();
     }, 500);
   };
-
-  const selectBaseClasses = "h-12 w-full rounded-md border bg-white dark:bg-brand-mocha px-3 py-2 text-sm text-brand-espresso dark:text-brand-cream outline-none transition-colors border-brand-gray/30 dark:border-brand-gray/50 focus:border-brand-copper focus:ring-1 focus:ring-brand-copper";
 
   return (
     <div className="flex h-full flex-col">
@@ -94,11 +118,11 @@ export const QrTablesTab = () => {
         </div>
         <div className="flex gap-3">
           {selectedIds.length > 0 && (
-            <Button variant="outline" icon={<Printer className="h-4 w-4" />} onClick={handlePrint}>
+            <Button variant="outline" icon={<Printer className="h-4 w-4" />} onClick={handlePrint} disabled={isLoading}>
               {t('qr.printBtn')} ({selectedIds.length})
             </Button>
           )}
-          <Button variant="brand" icon={<Plus className="h-4 w-4" />} onClick={onOpenCreate}>
+          <Button variant="brand" icon={<Plus className="h-4 w-4" />} onClick={onOpenCreate} disabled={isLoading}>
             {t('qr.addBtn')}
           </Button>
         </div>
@@ -110,7 +134,7 @@ export const QrTablesTab = () => {
         ) : (
           <div className="flex flex-col h-full">
             <div className="mb-4 flex items-center gap-2 px-1 shrink-0">
-              <Checkbox id="selectAll" label="" checked={selectedIds.length === tables.length && tables.length > 0} onChange={(e) => handleSelectAll(e.target.checked)} />
+              <Checkbox id="selectAll" label="" checked={selectedIds.length === tables.length && tables.length > 0} onChange={(e) => handleSelectAll(e.target.checked)} disabled={isLoading} />
               <span className="text-sm font-medium text-brand-espresso dark:text-brand-cream">{t('qr.selectAll')}</span>
             </div>
             
@@ -124,7 +148,7 @@ export const QrTablesTab = () => {
                     onToggleSelect={handleToggleSelect}
                     onEdit={onOpenEdit} 
                     onDelete={setDeleteId}
-                    onStatusChange={(id, isActive) => updateTable({ id, data: { isActive } })}
+                    onStatusChange={(id: string, isActive: boolean) => updateTable({ id, data: { isActive } })}
                   />
                 ))}
               </div>
@@ -136,19 +160,32 @@ export const QrTablesTab = () => {
       <div className="hidden print:flex flex-wrap gap-8 justify-center items-center w-full bg-white text-black">
         {tables.filter(t => selectedIds.includes(t.id)).map(table => (
           <div key={`print-${table.id}`} className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-gray-300 w-[60mm] h-[60mm]">
-            <img src={printingDataUrls[table.id]} alt="QR" className="w-full h-full object-contain mb-2" />
+            {printingDataUrls[table.id] && <img src={printingDataUrls[table.id]} alt="QR" className="w-full h-full object-contain mb-2" />}
             <span className="text-xl font-bold text-black">{table.tableNumber}</span>
           </div>
         ))}
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingTable ? t('qr.modal.editTitle') : t('qr.modal.createTitle')}>
-        <div className="flex flex-col gap-5">
-          <Input id="tableNumber" label={t('qr.modal.numberLabel')} placeholder={t('qr.modal.numberPlaceholder')} value={formData.tableNumber} onChange={(e) => { setFormData(prev => ({ ...prev, tableNumber: e.target.value })); setErrorMsg(''); }} />
+      <FloatingPanel 
+        panelId="qr-table-floating-panel"
+        isOpen={isModalOpen} 
+        onClose={() => !isLoading && setIsModalOpen(false)} 
+        title={editingTable ? t('qr.modal.editTitle') : t('qr.modal.createTitle')}
+        className="w-132 border-brand-copper/20 shadow-2xl"
+      >
+        <div className="flex flex-col gap-5 text-brand-espresso dark:text-brand-cream">
+          <Input id="tableNumber" label={t('qr.modal.numberLabel')} placeholder={t('qr.modal.numberPlaceholder')} value={formData.tableNumber} onChange={(e) => { setFormData(prev => ({ ...prev, tableNumber: e.target.value })); setErrorMsg(''); }} disabled={isLoading} />
           
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="type" className="text-sm font-medium text-brand-espresso dark:text-brand-cream">{t('qr.modal.typeLabel')}</label>
-            <input id="type" list="uniqueTypesList" placeholder={t('qr.modal.typePlaceholder')} value={formData.type} onChange={(e) => { setFormData(prev => ({ ...prev, type: e.target.value })); setErrorMsg(''); }} className={selectBaseClasses} />
+            <Input 
+              id="type" 
+              list="uniqueTypesList" 
+              label={t('qr.modal.typeLabel')}
+              placeholder={t('qr.modal.typePlaceholder')} 
+              value={formData.type} 
+              onChange={(e) => { setFormData(prev => ({ ...prev, type: e.target.value })); setErrorMsg(''); }} 
+              disabled={isLoading} 
+            />
             <datalist id="uniqueTypesList">
               {uniqueTypes.map(type => <option key={type} value={type} />)}
             </datalist>
@@ -157,16 +194,17 @@ export const QrTablesTab = () => {
 
           <div className="flex items-center justify-between border-t border-brand-gray/10 dark:border-brand-gray/20 pt-4">
             <span className="text-sm font-medium text-brand-espresso dark:text-brand-cream">{t('qr.modal.statusLabel')}</span>
-            <Switch checked={formData.isActive} onChange={(val) => setFormData(prev => ({ ...prev, isActive: val }))} />
+            <Switch checked={formData.isActive} onChange={(val) => setFormData(prev => ({ ...prev, isActive: val }))} disabled={isLoading} />
           </div>
 
           {errorMsg && <div className="text-sm text-red-500 font-medium">{errorMsg}</div>}
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-brand-gray/10 dark:border-brand-gray/20">
+            <Button variant="ghost" className="h-9 text-xs font-semibold" onClick={() => setIsModalOpen(false)} disabled={isLoading}>{t('qr.modal.cancel')}</Button>
+            <Button variant="brand" className="px-5 h-9 text-xs font-bold shadow-md" onClick={onSave} isLoading={isLoading} disabled={isLoading}>{t('qr.modal.save')}</Button>
+          </div>
         </div>
-        <div className="flex justify-end gap-3 pt-6 mt-2 border-t border-brand-gray/10 dark:border-brand-gray/20">
-          <Button variant="ghost" onClick={() => setIsModalOpen(false)}>{t('qr.modal.cancel')}</Button>
-          <Button variant="brand" onClick={onSave}>{t('qr.modal.save')}</Button>
-        </div>
-      </Modal>
+      </FloatingPanel>
 
       <ConfirmModal isOpen={!!deleteId} onClose={() => setDeleteId(null)} onConfirm={onDeleteConfirm} description={t('qr.deleteConfirm')} />
     </div>

@@ -2,6 +2,7 @@ export type StaffRole = 'MANAGER' | 'WAITER' | 'CHEF' | 'BARTENDER';
 
 export interface StaffMember {
   id: string;
+  photo?: string;
   firstName: string;
   lastName: string;
   email: string;
