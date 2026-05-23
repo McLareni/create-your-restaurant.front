@@ -12,6 +12,7 @@ interface StaffModalProps {
   isEditing: boolean;
   formData: CreateStaffDTO;
   setFormData: React.Dispatch<React.SetStateAction<CreateStaffDTO>>;
+  onPhotoFileChange: (file: File) => void;
   onSave: () => void;
   errors?: Record<string, string>;
   validationError: string | null;
@@ -24,6 +25,7 @@ export const StaffModal = ({
   isEditing,
   formData,
   setFormData,
+  onPhotoFileChange,
   onSave,
   errors = {},
   validationError,
@@ -36,14 +38,11 @@ export const StaffModal = ({
     if (!file) return;
 
     toast.loading(t('menu.constructor.dishes.notifications.imageUploading'), { id: 'staff-img' });
-    
-    // Емуляція завантаження на сервер / переведення в Base64 для збереження в String поле
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setFormData(prev => ({ ...prev, photo: reader.result as string }));
-      toast.success(t('menu.constructor.dishes.notifications.imageUploadSuccess'), { id: 'staff-img' });
-    };
-    reader.readAsDataURL(file);
+
+    const previewUrl = URL.createObjectURL(file);
+    setFormData(prev => ({ ...prev, photo: previewUrl }));
+    onPhotoFileChange(file);
+    toast.success(t('menu.constructor.dishes.notifications.imageUploadSuccess'), { id: 'staff-img' });
   };
 
   return (
@@ -52,7 +51,7 @@ export const StaffModal = ({
       isOpen={isOpen} 
       onClose={onClose} 
       title={isEditing ? t('staff.modal.editTitle') : t('staff.modal.createTitle')}
-      className="w-144 border-brand-copper/20 shadow-2xl"
+      className="w-xl border-brand-copper/20 shadow-2xl"
     >
       <div className="flex flex-col gap-5 text-brand-espresso dark:text-brand-cream">
         

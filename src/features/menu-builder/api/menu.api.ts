@@ -25,6 +25,12 @@ export const menuApi = {
     return await apiClient.patch<any>(`/menu/owner/dishes/${id}`, data);
   },
 
+  uploadDishPhoto: async (id: string, photo: File): Promise<any> => {
+    const formData = new FormData();
+    formData.append('photo', photo);
+    return await apiClient.patch<any>(`/menu/owner/dishes/${id}`, formData);
+  },
+
   deleteDish: async (id: string): Promise<any> => {
     return await apiClient.delete<any>(`/menu/owner/dishes/${id}`);
   },

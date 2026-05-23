@@ -19,6 +19,7 @@ import { dishSchema, DishFormValues } from '../schemas/dishes.schema';
 import { Dish } from '../types/dishes.types';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import toast from 'react-hot-toast';
+import { menuApi } from '../api/menu.api';
 
 const INITIAL_DISH_FORM: DishFormValues = {
   name: '',
@@ -53,8 +54,9 @@ export const useMenuBoard = () => {
     createCategory,
     updateCategory,
     deleteCategory,
-    createDish,
+    createDishAsync,
     updateDish,
+    updateDishAsync,
     deleteDish,
     reorderCategories,
     reorderDishes
@@ -77,6 +79,7 @@ export const useMenuBoard = () => {
   const [activeCategoryId, setActiveCategoryId] = useState<string>('');
   const [dishForm, setDishForm] = useState<DishFormValues>(INITIAL_DISH_FORM);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [dishPhotoFile, setDishPhotoFile] = useState<File | null>(null);
 
   const [deleteTarget, setDeleteTarget] = useState<{ type: 'category' | 'dish'; id: string } | null>(null);
 
@@ -234,13 +237,8 @@ export const useMenuBoard = () => {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
-    try {
-      toast.loading(t('menu.constructor.dishes.notifications.imageUploading'), { id: 'img-upload' });
-      toast.success(t('menu.constructor.dishes.notifications.imageUploadSuccess'), { id: 'img-upload' });
-    } catch (err) {
-      toast.error(t('menu.constructor.dishes.notifications.imageUploadError'), { id: 'img-upload' });
-    }
+
+    setDishPhotoFile(file);
   };
 
   const handleOpenCategoryModal = (category?: any) => {
@@ -264,6 +262,7 @@ export const useMenuBoard = () => {
   const handleOpenDishModal = (categoryId: string, dish?: Dish) => {
     setActiveCategoryId(categoryId);
     setFormErrors({});
+    setDishPhotoFile(null);
     if (dish) {
       setEditingDish(dish);
       setDishForm({
@@ -293,7 +292,7 @@ export const useMenuBoard = () => {
     setIsDishModalOpen(true);
   };
 
-  const handleSaveDish = () => {
+  const handleSaveDish = async () => {
     const validation = dishSchema.safeParse(dishForm);
     if (!validation.success) {
       const errorsMap: Record<string, string> = {};
@@ -306,12 +305,30 @@ export const useMenuBoard = () => {
       return;
     }
 
-    if (editingDish) {
-      updateDish({ id: editingDish.id, data: validation.data });
-    } else {
-      createDish({ categoryId: activeCategoryId, data: validation.data });
+    try {
+      let savedDishId = editingDish?.id;
+
+      if (editingDish) {
+        await updateDishAsync({ id: editingDish.id, data: validation.data });
+      } else {
+        const createdDish = await createDishAsync({
+          categoryId: activeCategoryId,
+          data: validation.data,
+        });
+        savedDishId = createdDish?.id;
+      }
+
+      if (dishPhotoFile && savedDishId) {
+        await menuApi.uploadDishPhoto(savedDishId, dishPhotoFile);
+        await queryClient.invalidateQueries({ queryKey: ['fullMenu', restaurantId] });
+        await queryClient.invalidateQueries({ queryKey: ['dishes', restaurantId] });
+      }
+
+      setDishPhotoFile(null);
+      setIsDishModalOpen(false);
+    } catch {
+      toast.error(t('errors.unknown'));
     }
-    setIsDishModalOpen(false);
   };
 
   const handleConfirmDelete = () => {

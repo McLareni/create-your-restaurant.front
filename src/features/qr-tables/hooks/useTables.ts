@@ -7,7 +7,6 @@ export const useTables = () => {
   const queryClient = useQueryClient();
   const user = useUserStore((state) => state.user);
   const restaurantId = Number(user?.restaurants?.[0]?.id || 1);
-  const restaurantSlug = user?.restaurants?.[0]?.name?.toLowerCase().replace(/[\s_]+/g, '-') || 'my-cafe';
 
   const { data: tables = [], isLoading } = useQuery({
     queryKey: ['tables', restaurantId],
@@ -18,7 +17,7 @@ export const useTables = () => {
   const uniqueTypes = Array.from(new Set(tables.map(t => t.type)));
 
   const createMutation = useMutation({
-    mutationFn: (data: CreateTableDTO) => tablesApi.create(restaurantId, data, restaurantSlug),
+    mutationFn: (data: CreateTableDTO) => tablesApi.create(restaurantId, data),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tables', restaurantId] }),
   });
 

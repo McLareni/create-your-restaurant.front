@@ -21,7 +21,7 @@ const roleIcons: Record<StaffRole, React.ElementType> = {
 
 export const StaffCard = ({ member, onEdit, onDelete, onStatusChange }: StaffCardProps) => {
   const { t } = useTranslation();
-  const Icon = roleIcons[member.role];
+  const Icon = roleIcons[member.role as StaffRole] || ShieldCheck;
   const initials = `${member.firstName?.[0] || ''}${member.lastName?.[0] || ''}`.toUpperCase();
 
   return (

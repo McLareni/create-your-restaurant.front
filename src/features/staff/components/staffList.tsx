@@ -15,9 +15,18 @@ const INITIAL_FORM_DATA: CreateStaffDTO = { firstName: '', lastName: '', email: 
 
 export const StaffList = () => {
   const { t } = useTranslation();
-  const { staff, createStaff, updateStaff, deleteStaff, isLoading } = useStaff();
+  const {
+    staff,
+    createStaffAsync,
+    updateStaff,
+    updateStaffAsync,
+    deleteStaff,
+    uploadStaffPhotoAsync,
+    isLoading,
+  } = useStaff();
   const [searchQuery, setSearchQuery] = useState('');
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [selectedPhotoFile, setSelectedPhotoFile] = useState<File | null>(null);
 
   const {
     isModalOpen,
@@ -29,16 +38,17 @@ export const StaffList = () => {
     setDeleteId,
     openCreateModal,
     openEditModal,
-    handleSave,
     confirmDelete,
   } = useCrudModal<StaffMember, CreateStaffDTO>({
     initialFormData: INITIAL_FORM_DATA,
-    createItem: createStaff,
+    createItem: (data) => {
+      void createStaffAsync(data);
+    },
     updateItem: updateStaff,
     deleteItem: deleteStaff,
   });
 
-  const onSave = () => {
+  const onSave = async () => {
     setValidationError(null);
     const validation = staffSchema.safeParse(formData);
     
@@ -46,8 +56,25 @@ export const StaffList = () => {
       setValidationError(t(validation.error.issues[0].message));
       return;
     }
-    
-    handleSave();
+
+    try {
+      const { photo, ...payload } = validation.data;
+      void photo;
+
+      const savedStaff = editingMember
+        ? await updateStaffAsync({ id: editingMember.id, data: payload })
+        : await createStaffAsync(payload);
+
+      if (selectedPhotoFile && savedStaff?.id) {
+        await uploadStaffPhotoAsync({ staffId: savedStaff.id, file: selectedPhotoFile });
+      }
+
+      setSelectedPhotoFile(null);
+      setIsModalOpen(false);
+      setValidationError(null);
+    } catch {
+      // Toasts are already handled in mutations.
+    }
   };
 
   const filteredStaff = useMemo(() => {
@@ -76,7 +103,16 @@ export const StaffList = () => {
               className="h-11 w-full rounded-full border border-brand-gray/30 dark:border-brand-gray/50 bg-white dark:bg-brand-mocha pl-9 pr-4 text-sm text-brand-espresso dark:text-brand-cream outline-none transition-colors focus:border-brand-copper focus:ring-1 focus:ring-brand-copper" 
             />
           </div>
-          <Button variant="brand" icon={<Plus className="h-4 w-4" />} onClick={openCreateModal} className="shrink-0" disabled={isLoading}>
+          <Button
+            variant="brand"
+            icon={<Plus className="h-4 w-4" />}
+            onClick={() => {
+              setSelectedPhotoFile(null);
+              openCreateModal();
+            }}
+            className="shrink-0"
+            disabled={isLoading}
+          >
             {t('staff.addBtn')}
           </Button>
         </div>
@@ -89,7 +125,16 @@ export const StaffList = () => {
             <div className="h-24 w-full rounded-xl bg-brand-gray/10"></div>
           </div>
         ) : staff.length === 0 ? (
-          <EmptyState icon={<Users />} title={t('staff.emptyTitle')} description={t('staff.emptyDesc')} actionLabel={t('staff.addBtn')} onAction={openCreateModal} />
+          <EmptyState
+            icon={<Users />}
+            title={t('staff.emptyTitle')}
+            description={t('staff.emptyDesc')}
+            actionLabel={t('staff.addBtn')}
+            onAction={() => {
+              setSelectedPhotoFile(null);
+              openCreateModal();
+            }}
+          />
         ) : (
           <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar pb-6">
             <div className="grid gap-5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
@@ -97,7 +142,18 @@ export const StaffList = () => {
                 <StaffCard 
                   key={member.id} 
                   member={member} 
-                  onEdit={(item) => openEditModal(item, (i) => ({ ...i }))} 
+                  onEdit={(item) => {
+                    setSelectedPhotoFile(null);
+                    openEditModal(item, (i) => ({
+                      firstName: i.firstName,
+                      lastName: i.lastName,
+                      email: i.email,
+                      phone: i.phone,
+                      role: i.role,
+                      isActive: i.isActive,
+                      photo: i.photo || '',
+                    }));
+                  }} 
                   onDelete={setDeleteId}
                   onStatusChange={(id, isActive) => updateStaff({ id, data: { isActive } })}
                 />
@@ -109,10 +165,15 @@ export const StaffList = () => {
 
       <StaffModal 
         isOpen={isModalOpen} 
-        onClose={() => { setIsModalOpen(false); setValidationError(null); }} 
+        onClose={() => {
+          setIsModalOpen(false);
+          setValidationError(null);
+          setSelectedPhotoFile(null);
+        }} 
         isEditing={!!editingMember} 
         formData={formData} 
         setFormData={setFormData} 
+        onPhotoFileChange={setSelectedPhotoFile}
         onSave={onSave} 
         validationError={validationError} 
         isLoading={isLoading}

@@ -1,19 +1,71 @@
 import { apiClient } from '@/shared/api/client';
+import { CreateStaffDTO, StaffMember, UpdateStaffDTO } from '../types/staff.types';
+
+type BackendStaff = Omit<StaffMember, 'avatarColor'> & {
+  role: string;
+};
+
+type StaffEnvelope = {
+  staff: BackendStaff;
+};
+
+const AVATAR_COLOR_POOL = [
+  'bg-orange-500',
+  'bg-blue-500',
+  'bg-emerald-500',
+  'bg-rose-500',
+  'bg-indigo-500',
+  'bg-amber-600',
+];
+
+const getAvatarColor = (seed: string): string => {
+  const hash = seed.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+  return AVATAR_COLOR_POOL[hash % AVATAR_COLOR_POOL.length];
+};
+
+const toUiStaff = (staff: BackendStaff): StaffMember => ({
+  ...staff,
+  role: (staff.role || 'WAITER') as StaffMember['role'],
+  avatarColor: getAvatarColor(staff.id),
+});
+
+const unwrapStaff = (payload: BackendStaff | StaffEnvelope): BackendStaff =>
+  'staff' in payload ? payload.staff : payload;
 
 export const staffApi = {
   async getStaff(restaurantId: number) {
-    return await apiClient.get<any>(`/restaurants/${restaurantId}/staff`);
+    const response = await apiClient.get<BackendStaff[]>(`/restaurants/${restaurantId}/staff`);
+    return response.map(toUiStaff);
   },
 
-  async createStaff(restaurantId: number, data: any) {
-    return await apiClient.post<any>(`/restaurants/${restaurantId}/staff`, data);
+  async createStaff(restaurantId: number, data: CreateStaffDTO) {
+    const response = await apiClient.post<BackendStaff | StaffEnvelope>(
+      `/restaurants/${restaurantId}/staff`,
+      data,
+    );
+    return toUiStaff(unwrapStaff(response));
   },
 
-  async updateStaff(restaurantId: number, staffId: string, data: any) {
-    return await apiClient.patch<any>(`/restaurants/${restaurantId}/staff/${staffId}`, data);
+  async updateStaff(restaurantId: number, staffId: string, data: UpdateStaffDTO) {
+    const response = await apiClient.patch<BackendStaff | StaffEnvelope>(
+      `/restaurants/${restaurantId}/staff/${staffId}`,
+      data,
+    );
+    return toUiStaff(unwrapStaff(response));
+  },
+
+  async uploadStaffPhoto(restaurantId: number, staffId: string, photo: File) {
+    const formData = new FormData();
+    formData.append('photo', photo);
+
+    const response = await apiClient.patch<BackendStaff | StaffEnvelope>(
+      `/restaurants/${restaurantId}/staff/${staffId}/photo`,
+      formData,
+    );
+    return toUiStaff(unwrapStaff(response));
   },
 
   async deleteStaff(restaurantId: number, staffId: string) {
-    return await apiClient.delete<any>(`/restaurants/${restaurantId}/staff/${staffId}`);
+    return await apiClient.delete<{ message: string }>(`/restaurants/${restaurantId}/staff/${staffId}`);
   }
 };

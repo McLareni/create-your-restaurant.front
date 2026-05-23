@@ -49,11 +49,26 @@ export const useStaff = () => {
     }
   });
 
+  const uploadStaffPhotoMutation = useMutation({
+    mutationFn: ({ staffId, file }: { staffId: string; file: File }) =>
+      staffApi.uploadStaffPhoto(Number(restaurantId), staffId, file),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staffList', restaurantId] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || t('staff.notifications.updateError'));
+    }
+  });
+
   return {
     staff,
     isLoading,
     createStaff: createStaffMutation.mutate,
+    createStaffAsync: createStaffMutation.mutateAsync,
     updateStaff: updateStaffMutation.mutate,
+    updateStaffAsync: updateStaffMutation.mutateAsync,
     deleteStaff: deleteStaffMutation.mutate,
+    uploadStaffPhoto: uploadStaffPhotoMutation.mutate,
+    uploadStaffPhotoAsync: uploadStaffPhotoMutation.mutateAsync,
   };
 };
