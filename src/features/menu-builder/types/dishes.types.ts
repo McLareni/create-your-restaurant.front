@@ -17,6 +17,8 @@ export interface Dish {
   id: string;
   name: string;
   description: string;
+  imageUrl?: string | null;
+  images?: Array<{ id: string; url: string }>;
   sku?: string;
   price: number;
   variants: DishVariant[];

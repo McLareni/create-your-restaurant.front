@@ -57,7 +57,15 @@ export const DishCard = ({ dish, categoryId, onEdit, onDelete, isOverlay = false
         </div>
 
         <div className="relative aspect-video w-full bg-brand-cream/50 dark:bg-brand-gray/5 flex items-center justify-center overflow-hidden shrink-0 border-b border-brand-gray/5">
-          <ImageIcon className="h-5 w-5 text-brand-gray/20" />
+          {dish.imageUrl ? (
+            <img
+              src={dish.imageUrl}
+              alt={dish.name}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+          ) : (
+            <ImageIcon className="h-5 w-5 text-brand-gray/20" />
+          )}
           <div className="absolute inset-0 bg-linear-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
           <div 
             {...attributes} 

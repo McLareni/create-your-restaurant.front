@@ -25,10 +25,11 @@ async function handleProxy(
   }
 
   try {
-    let body: any = undefined;
+    let body: BodyInit | undefined;
     if (request.method !== 'GET' && request.method !== 'HEAD') {
       if (incomingContentType?.includes('multipart/form-data')) {
-        body = await request.arrayBuffer();
+        // Preserve multipart boundaries and file streams for backend interceptors.
+        body = await request.formData();
       } else {
         body = await request.text();
       }
