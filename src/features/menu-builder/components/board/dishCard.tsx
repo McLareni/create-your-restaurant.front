@@ -3,7 +3,17 @@
 import { useState } from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { Card } from '@/shared/ui';
-import { Pencil, Trash2, ImageIcon, GripHorizontal, AlertTriangle, X, ShieldAlert } from 'lucide-react';
+import {
+  Pencil,
+  Trash2,
+  ImageIcon,
+  GripHorizontal,
+  AlertTriangle,
+  X,
+  ShieldAlert,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
 import { Badge } from '../../../../shared/ui/badge';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -20,6 +30,26 @@ interface DishCardProps {
 export const DishCard = ({ dish, categoryId, onEdit, onDelete, isOverlay = false }: DishCardProps) => {
   const { t } = useTranslation();
   const [isDescExpanded, setIsDescExpanded] = useState(false);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  const imageUrls =
+    dish.images?.map((image) => image.url) || (dish.imageUrl ? [dish.imageUrl] : []);
+
+  const handlePrevImage = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    if (imageUrls.length <= 1) return;
+    setActiveImageIndex((prev) =>
+      prev === 0 ? imageUrls.length - 1 : prev - 1,
+    );
+  };
+
+  const handleNextImage = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    if (imageUrls.length <= 1) return;
+    setActiveImageIndex((prev) =>
+      prev === imageUrls.length - 1 ? 0 : prev + 1,
+    );
+  };
   
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: isOverlay ? `overlay-${dish.id}` : dish.id,
@@ -57,14 +87,33 @@ export const DishCard = ({ dish, categoryId, onEdit, onDelete, isOverlay = false
         </div>
 
         <div className="relative aspect-video w-full bg-brand-cream/50 dark:bg-brand-gray/5 flex items-center justify-center overflow-hidden shrink-0 border-b border-brand-gray/5">
-          {dish.imageUrl ? (
+          {imageUrls.length > 0 ? (
             <img
-              src={dish.imageUrl}
+              src={imageUrls[activeImageIndex]}
               alt={dish.name}
               className="absolute inset-0 h-full w-full object-cover"
             />
           ) : (
             <ImageIcon className="h-5 w-5 text-brand-gray/20" />
+          )}
+
+          {imageUrls.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={handlePrevImage}
+                className="absolute left-1.5 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/45 p-1 text-white"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={handleNextImage}
+                className="absolute right-1.5 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/45 p-1 text-white"
+              >
+                <ChevronRight className="h-3.5 w-3.5" />
+              </button>
+            </>
           )}
           <div className="absolute inset-0 bg-linear-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
           <div 

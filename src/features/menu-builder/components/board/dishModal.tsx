@@ -8,7 +8,7 @@ import { IngredientsTab } from './tabs/IngredientsTab';
 import { UpsellTab } from './tabs/UpsellTab';
 import { DishLivePreview } from './preview/DishLivePreview';
 import { CharacteristicsTab } from './tabs/CharacteristicsTab';
-import { Plus, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface DishModalProps {
@@ -19,6 +19,11 @@ interface DishModalProps {
   setDishForm: React.Dispatch<React.SetStateAction<any>>;
   onSave: () => void;
   handleImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  imageUrls: string[];
+  activeImageIndex: number;
+  onPrevImage: () => void;
+  onNextImage: () => void;
+  onSelectImage: (index: number) => void;
   modifierGroups: any[];
   currentDishId?: string;
   isLoading?: boolean;
@@ -33,6 +38,11 @@ export const DishModal = ({
   setDishForm,
   onSave,
   handleImageUpload,
+  imageUrls,
+  activeImageIndex,
+  onPrevImage,
+  onNextImage,
+  onSelectImage,
   modifierGroups,
   currentDishId,
   isLoading = false,
@@ -59,13 +69,13 @@ export const DishModal = ({
   };
 
   const onLocalImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
     try {
       toast.loading(t('menu.constructor.dishes.notifications.imageUploading'), { id: 'img-upload' });
       handleImageUpload(e);
       toast.success(t('menu.constructor.dishes.notifications.imageUploadSuccess'), { id: 'img-upload' });
-    } catch (err) {
+    } catch {
       toast.error(t('menu.constructor.dishes.notifications.imageUploadError'), { id: 'img-upload' });
     }
   };
@@ -231,11 +241,71 @@ export const DishModal = ({
             )}
 
             {activeTab === 'media' && (
-              <div className="relative w-full h-40 rounded-2xl border-2 border-dashed border-brand-gray/30 hover:border-brand-copper hover:bg-brand-copper/5 transition-all overflow-hidden group animate-in fade-in duration-100">
-                <input type="file" id="dish-image" accept="image/*" className="hidden" onChange={onLocalImageUpload} disabled={isLoading} />
-                <label htmlFor="dish-image" className={`absolute inset-0 flex flex-col items-center justify-center bg-brand-cream/10 ${isLoading ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
-                  <span className="text-span font-bold text-xs">{t('menu.constructor.dishes.modal.mediaHint')}</span>
-                </label>
+              <div className="animate-in fade-in duration-100 flex flex-col gap-3">
+                <div className="relative w-full h-52 rounded-2xl border border-brand-gray/20 overflow-hidden bg-brand-cream/20">
+                  {imageUrls.length > 0 ? (
+                    <img
+                      src={imageUrls[activeImageIndex]}
+                      alt={`Dish image ${activeImageIndex + 1}`}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-brand-gray">
+                      {t('menu.constructor.dishes.modal.mediaHint')}
+                    </div>
+                  )}
+
+                  {imageUrls.length > 1 && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={onPrevImage}
+                        className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/45 p-1.5 text-white"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={onNextImage}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/45 p-1.5 text-white"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </button>
+                    </>
+                  )}
+                </div>
+
+                {imageUrls.length > 1 && (
+                  <div className="flex gap-2 overflow-x-auto pb-1">
+                    {imageUrls.map((url, index) => (
+                      <button
+                        key={`${url}-${index}`}
+                        type="button"
+                        onClick={() => onSelectImage(index)}
+                        className={`h-14 w-14 shrink-0 rounded-lg overflow-hidden border-2 ${
+                          index === activeImageIndex ? 'border-brand-copper' : 'border-transparent'
+                        }`}
+                      >
+                        <img src={url} alt={`Thumb ${index + 1}`} className="h-full w-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                <div className="relative w-full h-18 rounded-2xl border-2 border-dashed border-brand-gray/30 hover:border-brand-copper hover:bg-brand-copper/5 transition-all overflow-hidden group">
+                  <input
+                    type="file"
+                    id="dish-image"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={onLocalImageUpload}
+                    disabled={isLoading}
+                  />
+                  <label htmlFor="dish-image" className={`absolute inset-0 flex flex-col items-center justify-center bg-brand-cream/10 ${isLoading ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+                    <span className="text-span font-bold text-xs">{t('menu.constructor.dishes.modal.mediaHint')}</span>
+                  </label>
+                </div>
               </div>
             )}
           </div>

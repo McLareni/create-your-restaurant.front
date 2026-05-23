@@ -78,7 +78,7 @@ export const MenuBoard = () => {
 
         <DragOverlay adjustScale={true}>
           {board.activeId && board.activeType === 'Dish' && board.activeDishData ? (
-            <div className="opacity-90 scale-[1.02] -rotate-1 cursor-grabbing shadow-2xl w-[230px] pointer-events-none block z-50">
+            <div className="opacity-90 scale-[1.02] -rotate-1 cursor-grabbing shadow-2xl w-57.5 pointer-events-none block z-50">
               <DishCard dish={board.activeDishData as Dish} categoryId="" onEdit={() => {}} onDelete={() => {}} isOverlay={true} />
             </div>
           ) : null}
@@ -94,6 +94,11 @@ export const MenuBoard = () => {
           setDishForm={board.setDishForm} 
           onSave={board.handleSaveDish} 
           handleImageUpload={board.handleImageUpload} 
+          imageUrls={board.dishImageUrls}
+          activeImageIndex={board.activeDishImageIndex}
+          onPrevImage={board.handlePrevDishImage}
+          onNextImage={board.handleNextDishImage}
+          onSelectImage={board.handleSelectDishImage}
           modifierGroups={board.modifierGroups} 
           currentDishId={board.editingDish?.id}
           errors={board.formErrors}

@@ -79,7 +79,9 @@ export const useMenuBoard = () => {
   const [activeCategoryId, setActiveCategoryId] = useState<string>('');
   const [dishForm, setDishForm] = useState<DishFormValues>(INITIAL_DISH_FORM);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  const [dishPhotoFile, setDishPhotoFile] = useState<File | null>(null);
+  const [dishPhotoFiles, setDishPhotoFiles] = useState<File[]>([]);
+  const [dishImageUrls, setDishImageUrls] = useState<string[]>([]);
+  const [activeDishImageIndex, setActiveDishImageIndex] = useState(0);
 
   const [deleteTarget, setDeleteTarget] = useState<{ type: 'category' | 'dish'; id: string } | null>(null);
 
@@ -235,10 +237,32 @@ export const useMenuBoard = () => {
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
-    setDishPhotoFile(file);
+    const previewUrls = files.map((file) => URL.createObjectURL(file));
+    setDishPhotoFiles((prev) => [...prev, ...files]);
+    setDishImageUrls((prev) => [...prev, ...previewUrls]);
+    setActiveDishImageIndex((prev) => prev + previewUrls.length);
+    e.target.value = '';
+  };
+
+  const handlePrevDishImage = () => {
+    if (dishImageUrls.length === 0) return;
+    setActiveDishImageIndex((prev) =>
+      prev === 0 ? dishImageUrls.length - 1 : prev - 1,
+    );
+  };
+
+  const handleNextDishImage = () => {
+    if (dishImageUrls.length === 0) return;
+    setActiveDishImageIndex((prev) =>
+      prev === dishImageUrls.length - 1 ? 0 : prev + 1,
+    );
+  };
+
+  const handleSelectDishImage = (index: number) => {
+    setActiveDishImageIndex(index);
   };
 
   const handleOpenCategoryModal = (category?: any) => {
@@ -262,9 +286,14 @@ export const useMenuBoard = () => {
   const handleOpenDishModal = (categoryId: string, dish?: Dish) => {
     setActiveCategoryId(categoryId);
     setFormErrors({});
-    setDishPhotoFile(null);
+    setDishPhotoFiles([]);
     if (dish) {
       setEditingDish(dish);
+      const existingImageUrls =
+        dish.images?.map((image) => image.url) ||
+        (dish.imageUrl ? [dish.imageUrl] : []);
+      setDishImageUrls(existingImageUrls);
+      setActiveDishImageIndex(0);
       setDishForm({
         name: dish.name,
         description: dish.description || '',
@@ -287,6 +316,8 @@ export const useMenuBoard = () => {
       });
     } else {
       setEditingDish(null);
+      setDishImageUrls([]);
+      setActiveDishImageIndex(0);
       setDishForm(INITIAL_DISH_FORM);
     }
     setIsDishModalOpen(true);
@@ -318,13 +349,17 @@ export const useMenuBoard = () => {
         savedDishId = createdDish?.id;
       }
 
-      if (dishPhotoFile && savedDishId) {
-        await menuApi.uploadDishPhoto(savedDishId, dishPhotoFile);
+      if (dishPhotoFiles.length > 0 && savedDishId) {
+        await Promise.all(
+          dishPhotoFiles.map((file) => menuApi.uploadDishPhoto(savedDishId, file)),
+        );
         await queryClient.invalidateQueries({ queryKey: ['fullMenu', restaurantId] });
         await queryClient.invalidateQueries({ queryKey: ['dishes', restaurantId] });
       }
 
-      setDishPhotoFile(null);
+      setDishPhotoFiles([]);
+      setDishImageUrls([]);
+      setActiveDishImageIndex(0);
       setIsDishModalOpen(false);
     } catch {
       toast.error(t('errors.unknown'));
@@ -357,6 +392,8 @@ export const useMenuBoard = () => {
     setDishForm,
     formErrors,
     editingDish,
+    dishImageUrls,
+    activeDishImageIndex,
     deleteTarget,
     setDeleteTarget,
     sensors,
@@ -364,6 +401,9 @@ export const useMenuBoard = () => {
     handleDragOver,
     handleDragEnd,
     handleImageUpload,
+    handlePrevDishImage,
+    handleNextDishImage,
+    handleSelectDishImage,
     handleOpenCategoryModal,
     handleSaveCategory,
     handleOpenDishModal,
