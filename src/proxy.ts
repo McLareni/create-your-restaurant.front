@@ -7,12 +7,13 @@ export default function proxy(request: NextRequest) {
 
   const isAuthPage = pathname.startsWith('/login');
   const isHomePage = pathname === '/';
+  const isPublicMenuPage = pathname.startsWith('/menu/');
 
   if (token && (isAuthPage || isHomePage)) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
-  if (!token && !isAuthPage && !isHomePage) {
+  if (!token && !isAuthPage && !isHomePage && !isPublicMenuPage) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 

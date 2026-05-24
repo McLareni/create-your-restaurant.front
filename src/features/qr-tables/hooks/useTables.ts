@@ -1,28 +1,34 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { tablesApi } from '../api/tables.api';
 import { CreateTableDTO, UpdateTableDTO } from '../types/tables.types';
+import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 import { useUserStore } from '@/shared/store/useUserStore';
 
 export const useTables = () => {
   const queryClient = useQueryClient();
-  const user = useUserStore((state) => state.user);
-  const restaurantId = Number(user?.restaurants?.[0]?.id || 1);
+  const activeRestaurant = useRestaurantStore((state) => state.activeRestaurant);
+  const userRestaurants = useUserStore((state) => state.user?.restaurants || []);
+  const restaurantId = Number(activeRestaurant?.id || 1);
+  const restaurantSlug =
+    activeRestaurant?.slug ||
+    userRestaurants.find((restaurant) => Number(restaurant.id) === restaurantId)?.slug;
 
   const { data: tables = [], isLoading } = useQuery({
     queryKey: ['tables', restaurantId],
-    queryFn: () => tablesApi.getAll(restaurantId),
+    queryFn: () => tablesApi.getAll(restaurantId, restaurantSlug),
     enabled: !!restaurantId,
   });
 
   const uniqueTypes = Array.from(new Set(tables.map(t => t.type)));
 
   const createMutation = useMutation({
-    mutationFn: (data: CreateTableDTO) => tablesApi.create(restaurantId, data),
+    mutationFn: (data: CreateTableDTO) => tablesApi.create(restaurantId, data, restaurantSlug),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tables', restaurantId] }),
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateTableDTO }) => tablesApi.update(restaurantId, id, data),
+    mutationFn: ({ id, data }: { id: string; data: UpdateTableDTO }) =>
+      tablesApi.update(restaurantId, id, data, restaurantSlug),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tables', restaurantId] }),
   });
 

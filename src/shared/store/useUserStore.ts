@@ -5,6 +5,7 @@ import { authApi } from '@/features/auth/api/auth.api';
 export interface RestaurantSummary {
   id: number | string; 
   name: string;
+  slug?: string;
 }
 
 export interface User {
