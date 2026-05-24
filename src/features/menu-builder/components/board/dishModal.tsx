@@ -296,7 +296,7 @@ export const DishModal = ({
                   <input
                     type="file"
                     id="dish-image"
-                    accept="image/*"
+                    accept=".jpg,.jpeg,.png,.webp,.avif"
                     multiple
                     className="hidden"
                     onChange={onLocalImageUpload}
@@ -312,7 +312,7 @@ export const DishModal = ({
 
           {/* Права частина: Прев'ю смартфона (h-auto self-start фіксує його від розтягування) */}
           <div className="h-auto self-start shrink-0">
-            <DishLivePreview form={dishForm} />
+            <DishLivePreview form={dishForm} imageUrl={imageUrls[0]} />
           </div>
         </div>
 

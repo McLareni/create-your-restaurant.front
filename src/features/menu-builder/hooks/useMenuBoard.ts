@@ -240,10 +240,32 @@ export const useMenuBoard = () => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
-    const previewUrls = files.map((file) => URL.createObjectURL(file));
-    setDishPhotoFiles((prev) => [...prev, ...files]);
+    const tiffFiles = files.filter((file) => {
+      const fileName = file.name.toLowerCase();
+      const mimeType = file.type.toLowerCase();
+      return (
+        fileName.endsWith('.tif') ||
+        fileName.endsWith('.tiff') ||
+        mimeType === 'image/tif' ||
+        mimeType === 'image/tiff'
+      );
+    });
+
+    const validFiles = files.filter((file) => !tiffFiles.includes(file));
+
+    if (tiffFiles.length > 0) {
+      toast.error('Формат TIFF не підтримується. Оберіть JPG, PNG або WebP.');
+    }
+
+    if (validFiles.length === 0) {
+      e.target.value = '';
+      return;
+    }
+
+    const previewUrls = validFiles.map((file) => URL.createObjectURL(file));
+    setDishPhotoFiles((prev) => [...prev, ...validFiles]);
     setDishImageUrls((prev) => [...prev, ...previewUrls]);
-    setActiveDishImageIndex((prev) => prev + previewUrls.length);
+    setActiveDishImageIndex(dishImageUrls.length);
     e.target.value = '';
   };
 

@@ -1,20 +1,33 @@
 'use client';
 
 import { useTranslation } from '@/shared/hooks/useTranslation';
+import Image from 'next/image';
 import { ImageIcon } from 'lucide-react';
 import { DishFormValues } from '../../../schemas/dishes.schema';
 
 interface DishLivePreviewProps {
   form: DishFormValues;
+  imageUrl?: string;
 }
 
-export const DishLivePreview = ({ form }: DishLivePreviewProps) => {
+export const DishLivePreview = ({ form, imageUrl }: DishLivePreviewProps) => {
   const { t } = useTranslation();
 
   return (
     <div className="w-44 shrink-0 border border-brand-gray/20 rounded-xl bg-white dark:bg-brand-mocha shadow-xs overflow-hidden flex flex-col h-full self-start">
       <div className="relative aspect-video w-full bg-brand-cream/40 flex items-center justify-center border-b border-brand-gray/5">
-        <ImageIcon className="h-4 w-4 text-brand-gray/20" />
+        {imageUrl ? (
+          <Image
+            src={imageUrl}
+            alt={form.name || t('menu.constructor.dishes.modal.namePlaceholder')}
+            fill
+            unoptimized
+            sizes="176px"
+            className="object-cover"
+          />
+        ) : (
+          <ImageIcon className="h-4 w-4 text-brand-gray/20" />
+        )}
         {form.badge && form.badge !== 'NONE' && (
           <div className="absolute top-1 right-1 bg-brand-copper/10 text-brand-copper border border-brand-copper/20 rounded px-1 text-[8px] font-bold uppercase tracking-wide">
             {t(`menu.constructor.badges.${form.badge}`)}
