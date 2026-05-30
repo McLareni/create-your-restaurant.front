@@ -16,9 +16,18 @@ export const Sidebar = () => {
   const { t } = useTranslation();
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout } = useUserStore();
-  const { activeRestaurant, setActiveRestaurant } = useRestaurantStore();
-  const { hasModule, isPurchased, toggleModule, fetchAccessData } = useAccessStore(); 
+
+  const user = useUserStore((state) => state.user);
+  const logout = useUserStore((state) => state.logout);
+
+  const activeRestaurant = useRestaurantStore((state) => state.activeRestaurant);
+  const setActiveRestaurant = useRestaurantStore((state) => state.setActiveRestaurant);
+
+  const hasModule = useAccessStore((state) => state.hasModule);
+  const isPurchased = useAccessStore((state) => state.isPurchased);
+  const toggleModule = useAccessStore((state) => state.toggleModule);
+  const fetchAccessData = useAccessStore((state) => state.fetchAccessData);
+
   const { menuGroups } = useNavigation();
   
   const [isOrgDropdownOpen, setIsOrgDropdownOpen] = useState(false);

@@ -81,10 +81,7 @@ export const DishModal = ({
   };
 
   const handleValidateAndSave = () => {
-    if (Object.keys(errors).length > 0) {
-      toast.error(t('errors.formValidation'));
-      return;
-    }
+    // Повністю прибрано дедлокап-блок early return, який не пускав мутацію на перевалідацію схеми
     onSave();
   };
 
@@ -96,7 +93,6 @@ export const DishModal = ({
       title={isEditing ? t('menu.constructor.dishes.modal.editTitle') : t('menu.constructor.dishes.modal.createTitle')}
       className="w-240 max-w-6xl border-brand-copper/20 max-h-[calc(100vh-40px)] flex flex-col animate-none"
     >
-      {/* h-162.5 фіксує модалку у висоту раз і назавжди, прибираючи стрибки розмірів */}
       <div className="flex flex-col text-brand-espresso dark:text-brand-cream w-full h-162.5 max-h-[calc(100vh-140px)] justify-start gap-5 overflow-hidden">
         
         <div className="flex border-b border-brand-gray/10 dark:border-brand-gray/20 pb-0.5 gap-1 overflow-x-auto no-scrollbar shrink-0">
@@ -129,7 +125,6 @@ export const DishModal = ({
         </div>
 
         <div className="flex gap-5 items-start flex-1 overflow-hidden h-full py-1">
-          {/* Ліва робоча частина форми */}
           <div className="flex-1 h-full overflow-y-auto custom-scrollbar pr-1">
             
             {activeTab === 'general' && (
@@ -141,7 +136,7 @@ export const DishModal = ({
                   value={dishForm.name}
                   onChange={(e) => setDishForm({ ...dishForm, name: e.target.value })}
                   disabled={isLoading}
-                  error={errors.name}
+                  error={errors.name ? t(errors.name) : undefined}
                 />
                 <div className="flex flex-col gap-1.5">
                   <label className="text-sm font-semibold text-brand-espresso dark:text-brand-cream">{t('menu.constructor.dishes.modal.descLabel')}</label>
@@ -152,7 +147,7 @@ export const DishModal = ({
                     onChange={(e) => setDishForm({ ...dishForm, description: e.target.value })}
                     disabled={isLoading}
                   />
-                  {errors.description && <span className="text-xs text-red-500">{errors.description}</span>}
+                  {errors.description && <span className="text-xs text-red-500">{t(errors.description)}</span>}
                 </div>
                 <div className="flex items-center justify-between p-3 rounded-xl border border-brand-gray/10 bg-brand-cream/5">
                   <span className="text-xs font-bold">{t('menu.constructor.dishes.modal.availabilityLabel')}</span>
@@ -172,7 +167,7 @@ export const DishModal = ({
                     onChange={(e) => setDishForm({ ...dishForm, price: Math.max(0, parseFloat(e.target.value) || 0) })} 
                     disabled={isLoading}
                     className="h-10 text-xs" 
-                    error={errors.price}
+                    error={errors.price ? t(errors.price) : undefined}
                   />
                   <Input 
                     id="dishTaxInput" 
@@ -183,7 +178,7 @@ export const DishModal = ({
                     onChange={(e) => setDishForm({ ...dishForm, taxRate: Math.max(0, parseFloat(e.target.value) || 0) })} 
                     disabled={isLoading}
                     className="h-10 text-xs" 
-                    error={errors.taxRate}
+                    error={errors.taxRate ? t(errors.taxRate) : undefined}
                   />
                 </div>
                 
@@ -192,7 +187,7 @@ export const DishModal = ({
                     <span className="text-xs font-bold">{t('menu.constructor.dishes.modal.variantsTitle')}</span>
                     <Button variant="outline" type="button" onClick={handleAddVariant} disabled={isLoading} className="h-6 text-[10px] px-2 border-brand-copper text-brand-copper rounded-lg" icon={<Plus className="h-3 w-3" />}>{t('menu.constructor.dishes.modal.addVariantBtn')}</Button>
                   </div>
-                  {errors.variants && <p className="text-xs text-red-500 mb-2">{errors.variants}</p>}
+                  {errors.variants && <p className="text-xs text-red-500 mb-2">{t(errors.variants)}</p>}
                   {dishForm.variants && dishForm.variants.length > 0 && (
                     <div className="flex flex-col gap-1.5 max-h-48 overflow-y-auto custom-scrollbar pr-1">
                       {dishForm.variants.map((variant, idx) => (
@@ -310,7 +305,6 @@ export const DishModal = ({
             )}
           </div>
 
-          {/* Права частина: Прев'ю смартфона (h-auto self-start фіксує його від розтягування) */}
           <div className="h-auto self-start shrink-0">
             <DishLivePreview form={dishForm} imageUrl={imageUrls[0]} />
           </div>

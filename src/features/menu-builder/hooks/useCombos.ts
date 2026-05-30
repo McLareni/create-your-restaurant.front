@@ -1,15 +1,15 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useUserStore } from '@/shared/store/useUserStore';
 import { combosApi } from '../api/combos.api';
 import { Combo, CreateComboDTO } from '../types/combos.types';
 import { useTranslation } from '@/shared/hooks/useTranslation';
+import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 import toast from 'react-hot-toast';
 
 export const useCombos = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const user = useUserStore((state) => state.user);
-  const restaurantId = Number(user?.restaurants?.[0]?.id || 1);
+  const activeRestaurant = useRestaurantStore((state) => state.activeRestaurant);
+  const restaurantId = Number(activeRestaurant?.id || 1);
 
   const { data: combos = [], isLoading } = useQuery<Combo[]>({
     queryKey: ['combos', restaurantId],

@@ -21,26 +21,36 @@ export const CharacteristicsTab = ({ dishForm, setDishForm }: CharacteristicsTab
   const [newAllergen, setNewAllergen] = useState('');
   const [newTag, setNewTag] = useState('');
 
-  const handleAddAllergen = () => {
+  const handleAddAllergen = async () => {
     const formatted = newAllergen.trim();
     if (!formatted) return;
-    createAllergen(formatted);
-    const currentAllergens = dishForm.allergens || [];
-    if (!currentAllergens.includes(formatted)) {
-      setDishForm({ ...dishForm, allergens: [...currentAllergens, formatted] });
+    
+    try {
+      await createAllergen(formatted);
+      const currentAllergens = dishForm.allergens || [];
+      if (!currentAllergens.includes(formatted)) {
+        setDishForm({ ...dishForm, allergens: [...currentAllergens, formatted] });
+      }
+      setNewAllergen('');
+    } catch {
+      // Помилка вже обробляється всередині хука
     }
-    setNewAllergen('');
   };
 
-  const handleAddTag = () => {
+  const handleAddTag = async () => {
     const formatted = newTag.trim();
     if (!formatted) return;
-    createTag(formatted);
-    const currentTags = dishForm.tags || [];
-    if (!currentTags.includes(formatted)) {
-      setDishForm({ ...dishForm, tags: [...currentTags, formatted] });
+    
+    try {
+      await createTag(formatted);
+      const currentTags = dishForm.tags || [];
+      if (!currentTags.includes(formatted)) {
+        setDishForm({ ...dishForm, tags: [...currentTags, formatted] });
+      }
+      setNewTag('');
+    } catch {
+      // Помилка вже обробляється всередині хука
     }
-    setNewTag('');
   };
 
   const handleToggleAllergen = (item: string, checked: boolean) => {
@@ -53,6 +63,26 @@ export const CharacteristicsTab = ({ dishForm, setDishForm }: CharacteristicsTab
     const current = dishForm.tags || [];
     const next = checked ? [...current, item] : current.filter((t: string) => t !== item);
     setDishForm({ ...dishForm, tags: next });
+  };
+
+  const handleRemoveAllergenFromDb = async (item: string) => {
+    try {
+      await deleteAllergen(item);
+      const current = dishForm.allergens || [];
+      setDishForm({ ...dishForm, allergens: current.filter((a: string) => a !== item) });
+    } catch {
+      // Помилка вже обробляється всередині хука
+    }
+  };
+
+  const handleRemoveTagFromDb = async (item: string) => {
+    try {
+      await deleteTag(item);
+      const current = dishForm.tags || [];
+      setDishForm({ ...dishForm, tags: current.filter((t: string) => t !== item) });
+    } catch {
+      // Помилка вже обробляється всередині хука
+    }
   };
 
   return (
@@ -80,12 +110,12 @@ export const CharacteristicsTab = ({ dishForm, setDishForm }: CharacteristicsTab
               <Checkbox
                 id={`allergen-${item}`}
                 label={<span className="text-xs font-medium">{item}</span>}
-                checked={dishForm.allergens?.includes(item)}
+                checked={dishForm.allergens?.includes(item) || false}
                 onChange={(e) => handleToggleAllergen(item, e.target.checked)}
               />
               <button
                 type="button"
-                onClick={() => deleteAllergen(item)}
+                onClick={() => handleRemoveAllergenFromDb(item)}
                 className="p-1 text-brand-gray hover:text-red-500 rounded transition-colors outline-none"
               >
                 <Trash2 className="h-3.5 w-3.5" />
@@ -118,12 +148,12 @@ export const CharacteristicsTab = ({ dishForm, setDishForm }: CharacteristicsTab
               <Checkbox
                 id={`tag-${item}`}
                 label={<span className="text-xs font-medium">{item}</span>}
-                checked={dishForm.tags?.includes(item)}
+                checked={dishForm.tags?.includes(item) || false}
                 onChange={(e) => handleToggleTag(item, e.target.checked)}
               />
               <button
                 type="button"
-                onClick={() => deleteTag(item)}
+                onClick={() => handleRemoveTagFromDb(item)}
                 className="p-1 text-brand-gray hover:text-red-500 rounded transition-colors outline-none"
               >
                 <Trash2 className="h-3.5 w-3.5" />

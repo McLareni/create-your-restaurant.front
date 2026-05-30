@@ -5,15 +5,15 @@ import { Card, Button, Input, Switch } from '@/shared/ui';
 import { ArrowRightLeft, CheckCircle2, AlertCircle, Save } from 'lucide-react';
 import { useAccessStore } from '@/shared/store/useAccessStore';
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import { useUserStore } from '@/shared/store/useUserStore';
+import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 import { apiClient } from '@/shared/api/client';
 import toast from 'react-hot-toast';
 
 export default function PosIntegrationPage() {
   const { t } = useTranslation();
-  const { hasModule } = useAccessStore();
-  const user = useUserStore((state) => state.user);
-  const restaurantId = Number(user?.restaurants?.[0]?.id || 1);
+  const hasModule = useAccessStore((state) => state.hasModule);
+  const activeRestaurant = useRestaurantStore((state) => state.activeRestaurant);
+  const restaurantId = Number(activeRestaurant?.id || 1);
 
   const [apiKey, setApiKey] = useState('');
   const [isSyncing, setIsSyncing] = useState(false);

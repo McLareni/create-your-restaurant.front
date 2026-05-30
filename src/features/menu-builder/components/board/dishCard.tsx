@@ -14,7 +14,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
-import { Badge } from '../../../../shared/ui/badge';
+import { Badge } from '@/shared/ui/badge';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Dish } from '../../types/dishes.types';
@@ -155,7 +155,7 @@ export const DishCard = ({ dish, categoryId, onEdit, onDelete, isOverlay = false
             <div>
               {hasVariants ? (
                 <p className="font-bold text-xs text-brand-copper">
-                  {t('menu.constructor.dishes.moreBtn')} {dish.variants[0].price} ₴
+                  {t('menu.constructor.dishes.moreBtn')} {dish.variants[0].price} {t('menu.currency')}
                 </p>
               ) : (
                 <p className="font-bold text-xs text-brand-copper">

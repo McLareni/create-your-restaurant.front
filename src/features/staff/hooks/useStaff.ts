@@ -1,23 +1,23 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { staffApi } from '../api/staff.api';
-import { useUserStore } from '@/shared/store/useUserStore';
+import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import toast from 'react-hot-toast';
 
 export const useStaff = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const user = useUserStore((state) => state.user);
-  const restaurantId = user?.restaurants?.[0]?.id || 1;
+  const activeRestaurant = useRestaurantStore((state) => state.activeRestaurant);
+  const restaurantId = Number(activeRestaurant?.id || 1);
 
   const { data: staff = [], isLoading } = useQuery({
     queryKey: ['staffList', restaurantId],
-    queryFn: () => staffApi.getStaff(Number(restaurantId)),
+    queryFn: () => staffApi.getStaff(restaurantId),
     enabled: !!restaurantId,
   });
 
   const createStaffMutation = useMutation({
-    mutationFn: (data: any) => staffApi.createStaff(Number(restaurantId), data),
+    mutationFn: (data: any) => staffApi.createStaff(restaurantId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staffList', restaurantId] });
       toast.success(t('staff.notifications.createSuccess'));
@@ -28,7 +28,7 @@ export const useStaff = () => {
   });
 
   const updateStaffMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => staffApi.updateStaff(Number(restaurantId), id, data),
+    mutationFn: ({ id, data }: { id: string; data: any }) => staffApi.updateStaff(restaurantId, id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staffList', restaurantId] });
       toast.success(t('staff.notifications.updateSuccess'));
@@ -39,7 +39,7 @@ export const useStaff = () => {
   });
 
   const deleteStaffMutation = useMutation({
-    mutationFn: (id: string) => staffApi.deleteStaff(Number(restaurantId), id),
+    mutationFn: (id: string) => staffApi.deleteStaff(restaurantId, id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staffList', restaurantId] });
       toast.success(t('staff.notifications.deleteSuccess'));
@@ -51,7 +51,7 @@ export const useStaff = () => {
 
   const uploadStaffPhotoMutation = useMutation({
     mutationFn: ({ staffId, file }: { staffId: string; file: File }) =>
-      staffApi.uploadStaffPhoto(Number(restaurantId), staffId, file),
+      staffApi.uploadStaffPhoto(restaurantId, staffId, file),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staffList', restaurantId] });
     },

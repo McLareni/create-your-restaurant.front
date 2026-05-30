@@ -7,16 +7,17 @@ import { Zap } from 'lucide-react';
 import { useMarketplace } from '../hooks/useMarketplace';
 import { ModuleCard } from './moduleCard';
 import { useAccessStore } from '@/shared/store/useAccessStore';
-import { useUserStore } from '@/shared/store/useUserStore';
 import toast from 'react-hot-toast';
 
 export const MarketplaceList = () => {
   const { t } = useTranslation();
   const { modules, connectModule } = useMarketplace();
-  const user = useUserStore((state) => state.user);
-  const restaurantId = Number(user?.restaurants?.[0]?.id || 1);
   
-  const { hasModule, isPurchased, toggleModule, purchaseModule } = useAccessStore();
+  const hasModule = useAccessStore((state) => state.hasModule);
+  const isPurchased = useAccessStore((state) => state.isPurchased);
+  const toggleModule = useAccessStore((state) => state.toggleModule);
+  const purchaseModule = useAccessStore((state) => state.purchaseModule);
+
   const [selectedModule, setSelectedModule] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -25,9 +26,7 @@ export const MarketplaceList = () => {
     
     setIsSubmitting(true);
     try {
-      // Спершу зберігаємо на бекенді через проксі-апі
       await connectModule(selectedModule);
-      // Оновлюємо локальний Zustand стор
       purchaseModule(selectedModule);
       toast.success(t('marketplace.status.active'));
     } catch (error) {

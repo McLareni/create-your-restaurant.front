@@ -1,8 +1,10 @@
 import { apiClient } from '@/shared/api/client';
 
-export interface PublicMenuImage {
+export interface PublicMenuDishVariant {
   id: string;
-  url: string;
+  name: string;
+  price: number;
+  sku?: string | null;
 }
 
 export interface PublicMenuDish {
@@ -10,9 +12,18 @@ export interface PublicMenuDish {
   name: string;
   description?: string | null;
   price: number;
-  images?: PublicMenuImage[];
   imageUrl?: string | null;
-  tags?: string[];
+  images?: Array<{ id: string; url: string }>;
+  weight?: number | null;
+  cookingTime?: number | null;
+  calories?: number | null;
+  isVegan: boolean;
+  isSpicy: boolean;
+  isLactoseFree: boolean;
+  badge: string;
+  allergens: string[];
+  tags: string[];
+  variants: PublicMenuDishVariant[];
 }
 
 export interface PublicMenuCategory {
@@ -24,37 +35,26 @@ export interface PublicMenuCategory {
 
 export interface PublicMenuResponse {
   restaurantId: number;
-  slug?: string;
   categories: PublicMenuCategory[];
 }
 
-export interface PublicOrderItem {
-  dishId: string;
-  quantity: number;
-}
-
-export interface CreatePublicOrderPayload {
+export interface CreateOrderInput {
   tableId: string;
-  type: 'DINE_IN';
-  items: PublicOrderItem[];
+  type: 'DINE_IN' | 'TAKEAWAY' | 'DELIVERY';
+  items: Array<{
+    dishId: string;
+    quantity: number;
+  }>;
 }
 
 export const publicMenuApi = {
-  getMenu: async (restaurantSlug: string) => {
-    return apiClient.get<PublicMenuResponse>(`/menu/slug/${restaurantSlug}`);
-  },
+  // Забираємо дубльовані префікси /api/proxy, оскільки apiClient додає їх автоматично
+  getMenu: (slug: string) => 
+    apiClient.get<PublicMenuResponse>(`/menu/slug/${slug}`),
 
-  checkTableExists: async (restaurantId: number, tableId: string) => {
-    const response = await apiClient.get<{ exists: boolean }>(
-      `/restaurants/${restaurantId}/tables/${tableId}/exists`,
-    );
-    return response.exists;
-  },
+  checkTableExists: (restaurantId: number, tableId: string) =>
+    apiClient.get<{ exists: boolean }>(`/restaurants/${restaurantId}/tables/${tableId}/exists`),
 
-  createOrder: async (restaurantId: number, payload: CreatePublicOrderPayload) => {
-    return apiClient.post<{ message: string }>(
-      `/restaurants/${restaurantId}/orders/public`,
-      payload,
-    );
-  },
+  createOrder: (restaurantId: number, data: CreateOrderInput) =>
+    apiClient.post(`/restaurants/${restaurantId}/orders/public`, data),
 };

@@ -1,41 +1,28 @@
-import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { marketplaceApi } from '../api/marketplace.api';
-import { MarketplaceModule } from '../types/marketplace.types';
-import { useAccessStore } from '@/shared/store/useAccessStore';
-import { useUserStore } from '@/shared/store/useUserStore';
+import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 
 export const useMarketplace = () => {
-  const { hasModule } = useAccessStore();
-  const user = useUserStore((state) => state.user);
-  const restaurantId = Number(user?.restaurants?.[0]?.id || 1);
-  
-  const [modules, setModules] = useState<MarketplaceModule[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const activeRestaurant = useRestaurantStore((state) => state.activeRestaurant);
+  const restaurantId = Number(activeRestaurant?.id || 1);
 
-  useEffect(() => {
-    const fetchModules = async () => {
-      if (!restaurantId) return;
-      setIsLoading(true);
-      try {
-        const data = await marketplaceApi.getModules(restaurantId);
-        setModules(data);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchModules();
-  }, [restaurantId]);
+  const { data: modules = [], isLoading } = useQuery({
+    queryKey: ['marketplace-modules', restaurantId],
+    queryFn: () => marketplaceApi.getModules(restaurantId),
+    enabled: Boolean(restaurantId),
+  });
 
-  const connectModule = async (moduleKey: string) => {
-    await marketplaceApi.connectModule(restaurantId, moduleKey);
-  };
+  const connectModuleMutation = useMutation({
+    mutationFn: (moduleKey: string) => marketplaceApi.connectModule(restaurantId, moduleKey),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['marketplace-modules', restaurantId] });
+    },
+  });
 
   return {
     modules,
     isLoading,
-    hasModule,
-    connectModule
+    connectModule: connectModuleMutation.mutateAsync,
   };
 };

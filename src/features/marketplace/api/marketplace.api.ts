@@ -1,15 +1,6 @@
 import { apiClient } from '@/shared/api/client';
 import { MarketplaceModule } from '../types/marketplace.types';
-import {
-  Utensils,
-  QrCode,
-  Users,
-  BarChart3,
-  BellRing,
-  ArrowRightLeft,
-  MessageSquareQuote,
-  Palette,
-} from 'lucide-react';
+import { Utensils, QrCode, Users, BarChart3, BellRing, ArrowRightLeft, MessageSquareQuote, Palette, } from 'lucide-react';
 
 type AccessResponse = {
   purchasedModules: string[];
@@ -35,19 +26,14 @@ export const marketplaceApi = {
       ...(access.purchasedModules || []),
       ...(access.activeModules || []),
     ]);
-
     const dynamicModules = [...knownFromAccess]
       .filter((key) => !MODULE_CATALOG.some((moduleItem) => moduleItem.key === key))
       .map((key) => ({ key, icon: Utensils, price: 0 }));
-
     return [...MODULE_CATALOG, ...dynamicModules];
   },
 
   connectModule: async (restaurantId: number, moduleKey: string): Promise<boolean> => {
-    void restaurantId;
-    void moduleKey;
-    // Backend currently has no connect endpoint for modules.
-    // Keep a successful contract for the UI; persistence is handled once backend exposes this route.
+    await apiClient.post(`/restaurants/${restaurantId}/modules/connect`, { moduleKey });
     return true;
   }
 };

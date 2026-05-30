@@ -8,18 +8,18 @@ import {
   useSensors,
   useSensor,
   PointerSensor,
-  KeyboardSensor
+  KeyboardSensor,
 } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { useQueryClient } from '@tanstack/react-query';
 import { useMenu } from './useMenu';
 import { useModifiers } from './useModifiers';
-import { useUserStore } from '@/shared/store/useUserStore';
-import { dishSchema, DishFormValues } from '../schemas/dishes.schema';
+import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
+import { DishFormValues } from '../schemas/dishes.schema';
 import { Dish } from '../types/dishes.types';
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import toast from 'react-hot-toast';
-import { menuApi } from '../api/menu.api';
+import { useCategoryModal } from './useCategoryModal';
+import { useDishModal } from './useDishModal';
 
 const INITIAL_DISH_FORM: DishFormValues = {
   name: '',
@@ -39,15 +39,16 @@ const INITIAL_DISH_FORM: DishFormValues = {
   modifierIds: [],
   isAvailable: true,
   ingredients: [],
-  upsellDishIds: []
+  upsellDishIds: [],
 };
 
 export const useMenuBoard = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const user = useUserStore((state) => state.user);
-  const restaurantId = Number(user?.restaurants?.[0]?.id || 1);
+  const activeRestaurant = useRestaurantStore((state) => state.activeRestaurant);
+  const restaurantId = Number(activeRestaurant?.id || 1);
 
+  // Викликаємо хуки з 0 аргументів відповідно до їх сигнатур
   const {
     categories,
     isLoading: isMenuLoading,
@@ -59,7 +60,7 @@ export const useMenuBoard = () => {
     updateDishAsync,
     deleteDish,
     reorderCategories,
-    reorderDishes
+    reorderDishes,
   } = useMenu();
 
   const { groups: modifierGroups, isLoading: isModifiersLoading } = useModifiers();
@@ -70,24 +71,21 @@ export const useMenuBoard = () => {
   const [dragSourceCategoryId, setDragSourceCategoryId] = useState<string | null>(null);
   const [dragTargetCategoryId, setDragTargetCategoryId] = useState<string | null>(null);
 
-  const [isCatModalOpen, setIsCatModalOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<any>(null);
-  const [catName, setCatName] = useState('');
-
-  const [isDishModalOpen, setIsDishModalOpen] = useState(false);
-  const [editingDish, setEditingDish] = useState<Dish | null>(null);
-  const [activeCategoryId, setActiveCategoryId] = useState<string>('');
-  const [dishForm, setDishForm] = useState<DishFormValues>(INITIAL_DISH_FORM);
-  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-  const [dishPhotoFiles, setDishPhotoFiles] = useState<File[]>([]);
-  const [dishImageUrls, setDishImageUrls] = useState<string[]>([]);
-  const [activeDishImageIndex, setActiveDishImageIndex] = useState(0);
-
   const [deleteTarget, setDeleteTarget] = useState<{ type: 'category' | 'dish'; id: string } | null>(null);
+
+  // Підключаємо лего-цеглинки нашої розділеної бізнес-логіки
+  const categoryModal = useCategoryModal(createCategory, updateCategory);
+  const dishModal = useDishModal(
+    createDishAsync,
+    updateDishAsync,
+    queryClient,
+    t,
+    INITIAL_DISH_FORM,
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(KeyboardSensor)
+    useSensor(KeyboardSensor),
   );
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -157,7 +155,7 @@ export const useMenuBoard = () => {
               return { ...cat, dishes: [...currentDishes, draggedDishObj as Dish] };
             }
             return cat;
-          })
+          }),
         };
       });
     }
@@ -184,7 +182,7 @@ export const useMenuBoard = () => {
         const oldIndex = categories.findIndex((c: any) => c.id === active.id);
         const newIndex = categories.findIndex((c: any) => c.id === over.id);
         const newArray = arrayMove(categories, oldIndex, newIndex).map(
-          (item: any, index: number) => ({ id: item.id, sortOrder: index })
+          (item: any, index: number) => ({ id: item.id, sortOrder: index }),
         );
         reorderCategories(newArray);
       }
@@ -206,13 +204,16 @@ export const useMenuBoard = () => {
             id: String(active.id),
             data: {
               categoryId: dragTargetCategoryId,
-              sortOrder: insertIndex
-            }
+              sortOrder: insertIndex,
+            },
           });
 
           if (activeDishData) {
             targetDishes.splice(insertIndex, 0, activeDishData);
-            const newArray = targetDishes.map((item: any, index: number) => ({ id: item.id, sortOrder: index }));
+            const newArray = targetDishes.map((item: any, index: number) => ({
+              id: item.id,
+              sortOrder: index,
+            }));
             setTimeout(() => reorderDishes(newArray), 50);
           }
         } else {
@@ -222,7 +223,7 @@ export const useMenuBoard = () => {
             const newIndex = category.dishes.findIndex((d: any) => d.id === over.id);
 
             const newArray = arrayMove(category.dishes, oldIndex, newIndex).map(
-              (item: any, index: number) => ({ id: item.id, sortOrder: index })
+              (item: any, index: number) => ({ id: item.id, sortOrder: index }),
             );
 
             reorderDishes(newArray);
@@ -234,158 +235,6 @@ export const useMenuBoard = () => {
     setDragSourceCategoryId(null);
     setDragTargetCategoryId(null);
     setActiveDishData(null);
-  };
-
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
-
-    const tiffFiles = files.filter((file) => {
-      const fileName = file.name.toLowerCase();
-      const mimeType = file.type.toLowerCase();
-      return (
-        fileName.endsWith('.tif') ||
-        fileName.endsWith('.tiff') ||
-        mimeType === 'image/tif' ||
-        mimeType === 'image/tiff'
-      );
-    });
-
-    const validFiles = files.filter((file) => !tiffFiles.includes(file));
-
-    if (tiffFiles.length > 0) {
-      toast.error('Формат TIFF не підтримується. Оберіть JPG, PNG або WebP.');
-    }
-
-    if (validFiles.length === 0) {
-      e.target.value = '';
-      return;
-    }
-
-    const previewUrls = validFiles.map((file) => URL.createObjectURL(file));
-    setDishPhotoFiles((prev) => [...prev, ...validFiles]);
-    setDishImageUrls((prev) => [...prev, ...previewUrls]);
-    setActiveDishImageIndex(dishImageUrls.length);
-    e.target.value = '';
-  };
-
-  const handlePrevDishImage = () => {
-    if (dishImageUrls.length === 0) return;
-    setActiveDishImageIndex((prev) =>
-      prev === 0 ? dishImageUrls.length - 1 : prev - 1,
-    );
-  };
-
-  const handleNextDishImage = () => {
-    if (dishImageUrls.length === 0) return;
-    setActiveDishImageIndex((prev) =>
-      prev === dishImageUrls.length - 1 ? 0 : prev + 1,
-    );
-  };
-
-  const handleSelectDishImage = (index: number) => {
-    setActiveDishImageIndex(index);
-  };
-
-  const handleOpenCategoryModal = (category?: any) => {
-    if (category) {
-      setEditingCategory(category);
-      setCatName(category.name);
-    } else {
-      setEditingCategory(null);
-      setCatName('');
-    }
-    setIsCatModalOpen(true);
-  };
-
-  const handleSaveCategory = () => {
-    if (!catName.trim()) return;
-    if (editingCategory) updateCategory({ id: editingCategory.id, name: catName });
-    else createCategory(catName);
-    setIsCatModalOpen(false);
-  };
-
-  const handleOpenDishModal = (categoryId: string, dish?: Dish) => {
-    setActiveCategoryId(categoryId);
-    setFormErrors({});
-    setDishPhotoFiles([]);
-    if (dish) {
-      setEditingDish(dish);
-      const existingImageUrls =
-        dish.images?.map((image) => image.url) ||
-        (dish.imageUrl ? [dish.imageUrl] : []);
-      setDishImageUrls(existingImageUrls);
-      setActiveDishImageIndex(0);
-      setDishForm({
-        name: dish.name,
-        description: dish.description || '',
-        price: dish.price,
-        variants: dish.variants || [],
-        taxRate: dish.taxRate || 20,
-        weight: dish.weight,
-        cookingTime: dish.cookingTime,
-        calories: dish.calories,
-        isVegan: dish.isVegan ?? false,
-        isSpicy: dish.isSpicy ?? false,
-        isLactoseFree: dish.isLactoseFree ?? false,
-        badge: dish.badge || 'NONE',
-        allergens: dish.allergens || [],
-        tags: dish.tags || [],
-        modifierIds: dish.modifierIds || [],
-        isAvailable: dish.isAvailable ?? true,
-        ingredients: dish.ingredients || [],
-        upsellDishIds: dish.upsellDishIds || []
-      });
-    } else {
-      setEditingDish(null);
-      setDishImageUrls([]);
-      setActiveDishImageIndex(0);
-      setDishForm(INITIAL_DISH_FORM);
-    }
-    setIsDishModalOpen(true);
-  };
-
-  const handleSaveDish = async () => {
-    const validation = dishSchema.safeParse(dishForm);
-    if (!validation.success) {
-      const errorsMap: Record<string, string> = {};
-      validation.error.issues.forEach(issue => {
-        const path = issue.path[0] as string;
-        errorsMap[path] = issue.message;
-      });
-      setFormErrors(errorsMap);
-      toast.error(t('errors.formValidation'));
-      return;
-    }
-
-    try {
-      let savedDishId = editingDish?.id;
-
-      if (editingDish) {
-        await updateDishAsync({ id: editingDish.id, data: validation.data });
-      } else {
-        const createdDish = await createDishAsync({
-          categoryId: activeCategoryId,
-          data: validation.data,
-        });
-        savedDishId = createdDish?.id;
-      }
-
-      if (dishPhotoFiles.length > 0 && savedDishId) {
-        await Promise.all(
-          dishPhotoFiles.map((file) => menuApi.uploadDishPhoto(savedDishId, file)),
-        );
-        await queryClient.invalidateQueries({ queryKey: ['fullMenu', restaurantId] });
-        await queryClient.invalidateQueries({ queryKey: ['dishes', restaurantId] });
-      }
-
-      setDishPhotoFiles([]);
-      setDishImageUrls([]);
-      setActiveDishImageIndex(0);
-      setIsDishModalOpen(false);
-    } catch {
-      toast.error(t('errors.unknown'));
-    }
   };
 
   const handleConfirmDelete = () => {
@@ -403,33 +252,14 @@ export const useMenuBoard = () => {
     activeId,
     activeType,
     activeDishData,
-    isCatModalOpen,
-    setIsCatModalOpen,
-    catName,
-    setCatName,
-    editingCategory,
-    isDishModalOpen,
-    setIsDishModalOpen,
-    dishForm,
-    setDishForm,
-    formErrors,
-    editingDish,
-    dishImageUrls,
-    activeDishImageIndex,
     deleteTarget,
     setDeleteTarget,
     sensors,
     handleDragStart,
     handleDragOver,
     handleDragEnd,
-    handleImageUpload,
-    handlePrevDishImage,
-    handleNextDishImage,
-    handleSelectDishImage,
-    handleOpenCategoryModal,
-    handleSaveCategory,
-    handleOpenDishModal,
-    handleSaveDish,
     handleConfirmDelete,
+    ...categoryModal,
+    ...dishModal,
   };
 };

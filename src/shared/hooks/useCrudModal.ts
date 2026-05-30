@@ -2,9 +2,9 @@ import { useState } from 'react';
 
 interface UseCrudModalProps<T, F> {
   initialFormData: F;
-  createItem: (data: F) => void;
-  updateItem: (params: { id: string; data: any }) => void;
-  deleteItem: (id: string) => void;
+  createItem: (data: F) => Promise<any> | void;
+  updateItem: (params: { id: string; data: any }) => Promise<any> | void;
+  deleteItem: (id: string) => Promise<any> | void;
 }
 
 export const useCrudModal = <T extends { id: string }, F>({
@@ -17,6 +17,7 @@ export const useCrudModal = <T extends { id: string }, F>({
   const [editingItem, setEditingItem] = useState<T | null>(null);
   const [formData, setFormData] = useState<F>(initialFormData);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const openCreateModal = () => {
     setEditingItem(null);
@@ -30,19 +31,31 @@ export const useCrudModal = <T extends { id: string }, F>({
     setIsModalOpen(true);
   };
 
-  const handleSave = () => {
-    if (editingItem) {
-      updateItem({ id: editingItem.id, data: formData });
-    } else {
-      createItem(formData);
+  const handleSave = async () => {
+    setIsSubmitting(true);
+    try {
+      if (editingItem) {
+        await updateItem({ id: editingItem.id, data: formData });
+      } else {
+        await createItem(formData);
+      }
+      setIsModalOpen(false);
+    } catch (error) {
+      // Помилка прокидається в компонент для локального відображення або обробляється в react-hot-toast всередині мутації
+      console.error('CRUD operation failed:', error);
+    } finally {
+      setIsSubmitting(false);
     }
-    setIsModalOpen(false);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (deleteId) {
-      deleteItem(deleteId);
-      setDeleteId(null);
+      try {
+        await deleteItem(deleteId);
+        setDeleteId(null);
+      } catch (error) {
+        console.error('Delete operation failed:', error);
+      }
     }
   };
 
@@ -54,6 +67,7 @@ export const useCrudModal = <T extends { id: string }, F>({
     setFormData,
     deleteId,
     setDeleteId,
+    isSubmitting,
     openCreateModal,
     openEditModal,
     handleSave,
