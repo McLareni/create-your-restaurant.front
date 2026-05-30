@@ -2,14 +2,8 @@
 
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { PackagePlus, Pencil, Trash2 } from 'lucide-react';
-import { Combo } from '../../types/combos.types';
+import { Combo, ComboCardProps } from '../../types/combos.types';
 import { Card } from '@/shared/ui';
-
-interface ComboCardProps {
-  combo: Combo;
-  onEdit: (combo: Combo) => void;
-  onDelete: (id: string) => void;
-}
 
 export const ComboCard = ({ combo, onEdit, onDelete }: ComboCardProps) => {
   const { t } = useTranslation();
@@ -29,8 +23,8 @@ export const ComboCard = ({ combo, onEdit, onDelete }: ComboCardProps) => {
           <h3 className="font-semibold text-brand-espresso dark:text-brand-cream text-lg line-clamp-1">{combo.name}</h3>
         </div>
         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button onClick={() => onEdit(combo)} className="p-1.5 text-brand-gray dark:text-brand-gray/80 hover:text-brand-copper outline-none bg-white dark:bg-brand-espresso rounded-md shadow-sm border border-transparent dark:border-brand-gray/20"><Pencil className="h-4 w-4" /></button>
-          <button onClick={() => onDelete(combo.id)} className="p-1.5 text-brand-gray dark:text-brand-gray/80 hover:text-red-500 outline-none bg-white dark:bg-brand-espresso rounded-md shadow-sm border border-transparent dark:border-brand-gray/20"><Trash2 className="h-4 w-4" /></button>
+          <button onClick={() => onEdit(combo)} className="p-1.5 text-brand-gray dark:text-brand-gray/80 hover:text-brand-copper outline-none bg-white dark:bg-brand-espresso rounded-md shadow-sm border border-transparent dark:border-brand-gray/20 cursor-pointer"><Pencil className="h-4 w-4" /></button>
+          <button onClick={() => onDelete(combo.id)} className="p-1.5 text-brand-gray dark:text-brand-gray/80 hover:text-red-500 outline-none bg-white dark:bg-brand-espresso rounded-md shadow-sm border border-transparent dark:border-brand-gray/20 cursor-pointer"><Trash2 className="h-4 w-4" /></button>
         </div>
       </div>
 

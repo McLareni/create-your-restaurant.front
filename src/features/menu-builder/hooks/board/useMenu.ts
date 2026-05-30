@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { menuApi } from '../api/menu.api';
+import { menuApi } from '../../api/menu.api';
 import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 
 export const useMenu = () => {

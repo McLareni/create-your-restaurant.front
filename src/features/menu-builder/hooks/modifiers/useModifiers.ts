@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { modifiersApi } from '../api/modifiers.api';
+import { modifiersApi } from '../../api/modifiers.api';
 import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 
 export const useModifiers = () => {

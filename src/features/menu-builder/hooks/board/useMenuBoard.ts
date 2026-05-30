@@ -1,46 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  DragStartEvent,
-  DragOverEvent,
-  DragEndEvent,
-  useSensors,
-  useSensor,
-  PointerSensor,
-  KeyboardSensor,
-} from '@dnd-kit/core';
+import { DragStartEvent, DragOverEvent, DragEndEvent, useSensors, useSensor, PointerSensor, KeyboardSensor } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { useQueryClient } from '@tanstack/react-query';
 import { useMenu } from './useMenu';
-import { useModifiers } from './useModifiers';
+import { useModifiers } from '../modifiers/useModifiers';
 import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
-import { DishFormValues } from '../schemas/dishes.schema';
-import { Dish } from '../types/dishes.types';
+import { Dish } from '../../types/dishes.types';
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import { useCategoryModal } from './useCategoryModal';
-import { useDishModal } from './useDishModal';
-
-const INITIAL_DISH_FORM: DishFormValues = {
-  name: '',
-  description: '',
-  price: 0,
-  variants: [],
-  taxRate: 20,
-  weight: null,
-  cookingTime: null,
-  calories: null,
-  isVegan: false,
-  isSpicy: false,
-  isLactoseFree: false,
-  badge: 'NONE',
-  allergens: [],
-  tags: [],
-  modifierIds: [],
-  isAvailable: true,
-  ingredients: [],
-  upsellDishIds: [],
-};
+import { useCategoryModal } from '../categories/useCategoryModal';
+import { useDishModal } from '../dishes/useDishModal';
 
 export const useMenuBoard = () => {
   const { t } = useTranslation();
@@ -48,7 +18,6 @@ export const useMenuBoard = () => {
   const activeRestaurant = useRestaurantStore((state) => state.activeRestaurant);
   const restaurantId = Number(activeRestaurant?.id || 1);
 
-  // Викликаємо хуки з 0 аргументів відповідно до їх сигнатур
   const {
     categories,
     isLoading: isMenuLoading,
@@ -70,18 +39,10 @@ export const useMenuBoard = () => {
   const [activeDishData, setActiveDishData] = useState<Dish | null>(null);
   const [dragSourceCategoryId, setDragSourceCategoryId] = useState<string | null>(null);
   const [dragTargetCategoryId, setDragTargetCategoryId] = useState<string | null>(null);
-
   const [deleteTarget, setDeleteTarget] = useState<{ type: 'category' | 'dish'; id: string } | null>(null);
 
-  // Підключаємо лего-цеглинки нашої розділеної бізнес-логіки
   const categoryModal = useCategoryModal(createCategory, updateCategory);
-  const dishModal = useDishModal(
-    createDishAsync,
-    updateDishAsync,
-    queryClient,
-    t,
-    INITIAL_DISH_FORM,
-  );
+  const dishModal = useDishModal(createDishAsync, updateDishAsync, queryClient, t);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -245,10 +206,10 @@ export const useMenuBoard = () => {
   };
 
   return {
+    t,
     categories,
-    isMenuLoading,
+    isLoading: isMenuLoading || isModifiersLoading,
     modifierGroups,
-    isModifiersLoading,
     activeId,
     activeType,
     activeDishData,
@@ -259,7 +220,7 @@ export const useMenuBoard = () => {
     handleDragOver,
     handleDragEnd,
     handleConfirmDelete,
-    ...categoryModal,
-    ...dishModal,
+    categoryModal,
+    dishModal,
   };
 };

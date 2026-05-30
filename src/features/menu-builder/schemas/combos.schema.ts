@@ -20,3 +20,12 @@ export const createComboSchema = z.object({
   message: 'menu.constructor.combos.errors.discountMax',
   path: ['priceValue'],
 });
+
+export type ComboFormValues = z.infer<typeof createComboSchema>;
+
+export const INITIAL_COMBO_FORM: ComboFormValues = {
+  name: '',
+  priceType: 'FIXED',
+  priceValue: 0,
+  dishes: []
+};

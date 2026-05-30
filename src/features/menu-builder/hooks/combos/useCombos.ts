@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { combosApi } from '../api/combos.api';
-import { Combo, CreateComboDTO } from '../types/combos.types';
+import { combosApi } from '../../api/combos.api';
+import { Combo, CreateComboDTO } from '../../types/combos.types';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 import toast from 'react-hot-toast';

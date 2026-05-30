@@ -1,37 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import { Button, FloatingPanel, Input } from '@/shared/ui';
-import { categorySchema } from '../../schemas/categories.schema';
+import { FloatingPanel, Input, Button } from '@/shared/ui';
+import { CategoryModalProps } from '../../types/categories.types';
 
-interface CategoryModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  isEditing: boolean;
-  catName: string;
-  setCatName: (name: string) => void;
-  onSave: () => void;
-  isLoading?: boolean;
-}
-
-export const CategoryModal = ({ isOpen, onClose, isEditing, catName, setCatName, onSave, isLoading = false }: CategoryModalProps) => {
+export const CategoryModal = ({ 
+  isOpen, 
+  onClose, 
+  isEditing, 
+  catName, 
+  setCatName, 
+  onSave, 
+  isLoading = false,
+  error 
+}: CategoryModalProps & { error?: string | null }) => {
   const { t } = useTranslation();
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (isOpen) setError(null);
-  }, [isOpen]);
-
-  const handleValidateAndSave = () => {
-    const result = categorySchema.safeParse({ name: catName });
-    if (!result.success) {
-      setError(t(result.error.issues[0].message));
-      return;
-    }
-    setError(null);
-    onSave();
-  };
 
   return (
     <FloatingPanel 
@@ -45,10 +28,7 @@ export const CategoryModal = ({ isOpen, onClose, isEditing, catName, setCatName,
           id="catName" 
           label={t('menu.constructor.categories.modal.nameLabel')} 
           value={catName} 
-          onChange={(e) => {
-            setCatName(e.target.value);
-            if (error) setError(null);
-          }} 
+          onChange={(e) => setCatName(e.target.value)} 
           disabled={isLoading}
           error={error || undefined}
         />
@@ -56,7 +36,7 @@ export const CategoryModal = ({ isOpen, onClose, isEditing, catName, setCatName,
           <Button variant="ghost" className="h-9 text-sm" onClick={onClose} disabled={isLoading}>
             {t('menu.constructor.categories.modal.cancel')}
           </Button>
-          <Button variant="brand" className="h-9 text-sm" onClick={handleValidateAndSave} disabled={isLoading} isLoading={isLoading}>
+          <Button variant="brand" className="h-9 text-sm" onClick={onSave} disabled={isLoading} isLoading={isLoading}>
             {t('menu.constructor.categories.modal.save')}
           </Button>
         </div>

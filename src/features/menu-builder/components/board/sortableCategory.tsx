@@ -8,19 +8,9 @@ import { Button } from '@/shared/ui';
 import { Plus, GripVertical, Pencil, Trash2, Star, ChevronDown, ChevronRight } from 'lucide-react';
 import { DishCard } from './dishCard';
 import { Dish } from '../../types/dishes.types';
+import { SortableCategoryProps } from '../../types/categories.types';
 
-interface SortableCategoryProps {
-  category: any;
-  categoryDishes: Dish[];
-  onEditCategory: (category: any) => void;
-  onDeleteCategory: (target: { type: 'category'; id: string }) => void;
-  onAddDish: (categoryId: string) => void;
-  onEditDish: (categoryId: string, dish: Dish) => void;
-  onDeleteDish: (target: { type: 'dish'; id: string }) => void;
-  t: (key: string) => string;
-}
-
-export const SortableCategory = ({ category, categoryDishes, onEditCategory, onDeleteCategory, onAddDish, onEditDish, onDeleteDish, t }: SortableCategoryProps) => {
+export const SortableCategory = ({ category, categoryDishes, onEditCategory, onDeleteCategory, onAddDish, onEditDish, onDeleteCategoryDish, t }: SortableCategoryProps) => {
   const [isExpanded, setIsExpanded] = useState(true);
   
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ 
@@ -40,12 +30,13 @@ export const SortableCategory = ({ category, categoryDishes, onEditCategory, onD
       <div className="flex items-center justify-between rounded-lg bg-white dark:bg-brand-mocha p-2 border border-brand-gray/10 shadow-xs hover:border-brand-copper/20 transition-colors z-10 w-full">
         
         <div className="flex items-center gap-1 flex-1">
-          <div 
-            className="cursor-pointer p-1.5 rounded-md text-brand-gray hover:bg-brand-cream dark:hover:bg-brand-gray/10 transition-colors shrink-0" 
+          <button 
+            type="button"
+            className="p-1.5 rounded-md text-brand-gray hover:bg-brand-cream dark:hover:bg-brand-gray/10 transition-colors shrink-0 outline-none cursor-pointer" 
             onClick={() => setIsExpanded(!isExpanded)}
           >
             {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-          </div>
+          </button>
 
           <div 
             {...attributes} 
@@ -71,10 +62,10 @@ export const SortableCategory = ({ category, categoryDishes, onEditCategory, onD
         </div>
 
         <div className="flex items-center gap-1">
-          <button onClick={() => onEditCategory(category)} className="p-1.5 rounded-md text-brand-gray hover:text-brand-copper hover:bg-brand-cream dark:hover:bg-brand-gray/10 transition-all outline-none">
+          <button type="button" onClick={() => onEditCategory(category)} className="p-1.5 rounded-md text-brand-gray hover:text-brand-copper hover:bg-brand-cream dark:hover:bg-brand-gray/10 transition-all outline-none cursor-pointer">
             <Pencil className="h-3.5 w-3.5" />
           </button>
-          <button onClick={() => onDeleteCategory({ type: 'category', id: category.id })} className="p-1.5 rounded-md text-brand-gray hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all outline-none mr-1">
+          <button type="button" onClick={() => onDeleteCategory({ type: 'category', id: category.id })} className="p-1.5 rounded-md text-brand-gray hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all outline-none mr-1 cursor-pointer">
             <Trash2 className="h-3.5 w-3.5" />
           </button>
           
@@ -89,7 +80,6 @@ export const SortableCategory = ({ category, categoryDishes, onEditCategory, onD
         </div>
       </div>
 
-      {/* Grid container stretches horizontally across the screen seamlessly */}
       <div className={`transition-all duration-300 ease-in-out origin-top w-full ${isExpanded ? 'max-h-500 opacity-100 mt-2 scale-y-100' : 'max-h-0 opacity-0 overflow-hidden scale-y-95'}`}>
         <SortableContext items={categoryDishes.map((d: Dish) => d.id)} strategy={rectSortingStrategy}>
           {categoryDishes.length > 0 ? (
@@ -100,7 +90,7 @@ export const SortableCategory = ({ category, categoryDishes, onEditCategory, onD
                   dish={dish} 
                   categoryId={category.id} 
                   onEdit={onEditDish} 
-                  onDelete={(id: string) => onDeleteDish({ type: 'dish', id })} 
+                  onDelete={(id: string) => onDeleteCategoryDish({ type: 'dish', id })} 
                 />
               ))}
             </div>

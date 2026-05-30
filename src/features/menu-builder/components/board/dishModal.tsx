@@ -1,34 +1,14 @@
 'use client';
 
-import { useState } from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { Button, FloatingPanel, Input, Switch, Checkbox } from '@/shared/ui';
-import { DishFormValues } from '../../schemas/dishes.schema';
 import { IngredientsTab } from './tabs/IngredientsTab';
 import { UpsellTab } from './tabs/UpsellTab';
 import { DishLivePreview } from './preview/DishLivePreview';
 import { CharacteristicsTab } from './tabs/CharacteristicsTab';
 import { ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react';
-import toast from 'react-hot-toast';
-
-interface DishModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  isEditing: boolean;
-  dishForm: DishFormValues;
-  setDishForm: React.Dispatch<React.SetStateAction<any>>;
-  onSave: () => void;
-  handleImageUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  imageUrls: string[];
-  activeImageIndex: number;
-  onPrevImage: () => void;
-  onNextImage: () => void;
-  onSelectImage: (index: number) => void;
-  modifierGroups: any[];
-  currentDishId?: string;
-  isLoading?: boolean;
-  errors: Record<string, string>;
-}
+import { DishModalProps } from '../../types/dishes.types';
+import Image from 'next/image';
 
 export const DishModal = ({
   isOpen,
@@ -37,53 +17,23 @@ export const DishModal = ({
   dishForm,
   setDishForm,
   onSave,
-  handleImageUpload,
+  handleLocalImageUploadWrapper,
   imageUrls,
   activeImageIndex,
   onPrevImage,
   onNextImage,
   onSelectImage,
+  handleAddVariant,
+  handleRemoveVariant,
+  handleVariantChange,
+  activeTab,
+  setActiveTab,
   modifierGroups,
   currentDishId,
   isLoading = false,
   errors
 }: DishModalProps) => {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<'general' | 'pricing' | 'characteristics' | 'ingredients' | 'modifiers' | 'upsell' | 'media'>('general');
-
-  const handleAddVariant = () => {
-    const currentVariants = dishForm.variants || [];
-    setDishForm({ ...dishForm, variants: [...currentVariants, { name: '', price: 0, sku: '' }] });
-  };
-
-  const handleRemoveVariant = (index: number) => {
-    const currentVariants = [...(dishForm.variants || [])];
-    currentVariants.splice(index, 1);
-    setDishForm({ ...dishForm, variants: currentVariants });
-  };
-
-  const handleVariantChange = (index: number, field: string, value: any) => {
-    const currentVariants = [...(dishForm.variants || [])];
-    currentVariants[index] = { ...currentVariants[index], [field]: value };
-    setDishForm({ ...dishForm, variants: currentVariants });
-  };
-
-  const onLocalImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    try {
-      toast.loading(t('menu.constructor.dishes.notifications.imageUploading'), { id: 'img-upload' });
-      handleImageUpload(e);
-      toast.success(t('menu.constructor.dishes.notifications.imageUploadSuccess'), { id: 'img-upload' });
-    } catch {
-      toast.error(t('menu.constructor.dishes.notifications.imageUploadError'), { id: 'img-upload' });
-    }
-  };
-
-  const handleValidateAndSave = () => {
-    // Повністю прибрано дедлокап-блок early return, який не пускав мутацію на перевалідацію схеми
-    onSave();
-  };
 
   return (
     <FloatingPanel 
@@ -239,13 +189,15 @@ export const DishModal = ({
               <div className="animate-in fade-in duration-100 flex flex-col gap-3">
                 <div className="relative w-full h-52 rounded-2xl border border-brand-gray/20 overflow-hidden bg-brand-cream/20">
                   {imageUrls.length > 0 ? (
-                    <img
+                    <Image
                       src={imageUrls[activeImageIndex]}
-                      alt={`Dish image ${activeImageIndex + 1}`}
-                      className="h-full w-full object-cover"
+                      alt={t('menu.constructor.dishes.modal.media')}
+                      fill
+                      unoptimized
+                      className="object-cover"
                     />
                   ) : (
-                    <div className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-brand-gray">
+                    <div className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-brand-gray px-4 text-center">
                       {t('menu.constructor.dishes.modal.mediaHint')}
                     </div>
                   )}
@@ -255,14 +207,14 @@ export const DishModal = ({
                       <button
                         type="button"
                         onClick={onPrevImage}
-                        className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/45 p-1.5 text-white"
+                        className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/45 p-1.5 text-white z-10"
                       >
                         <ChevronLeft className="h-4 w-4" />
                       </button>
                       <button
                         type="button"
                         onClick={onNextImage}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/45 p-1.5 text-white"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/45 p-1.5 text-white z-10"
                       >
                         <ChevronRight className="h-4 w-4" />
                       </button>
@@ -277,11 +229,17 @@ export const DishModal = ({
                         key={`${url}-${index}`}
                         type="button"
                         onClick={() => onSelectImage(index)}
-                        className={`h-14 w-14 shrink-0 rounded-lg overflow-hidden border-2 ${
+                        className={`h-14 w-14 shrink-0 rounded-lg overflow-hidden border-2 relative ${
                           index === activeImageIndex ? 'border-brand-copper' : 'border-transparent'
                         }`}
                       >
-                        <img src={url} alt={`Thumb ${index + 1}`} className="h-full w-full object-cover" />
+                        <Image 
+                          src={url} 
+                          alt={t('menu.constructor.dishes.modal.media')} 
+                          fill 
+                          unoptimized 
+                          className="object-cover" 
+                        />
                       </button>
                     ))}
                   </div>
@@ -294,11 +252,11 @@ export const DishModal = ({
                     accept=".jpg,.jpeg,.png,.webp,.avif"
                     multiple
                     className="hidden"
-                    onChange={onLocalImageUpload}
+                    onChange={handleLocalImageUploadWrapper}
                     disabled={isLoading}
                   />
                   <label htmlFor="dish-image" className={`absolute inset-0 flex flex-col items-center justify-center bg-brand-cream/10 ${isLoading ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
-                    <span className="text-span font-bold text-xs">{t('menu.constructor.dishes.modal.mediaHint')}</span>
+                    <span className="font-bold text-xs">{t('menu.constructor.dishes.modal.mediaHint')}</span>
                   </label>
                 </div>
               </div>
@@ -314,7 +272,7 @@ export const DishModal = ({
           <Button variant="ghost" onClick={onClose} disabled={isLoading} className="h-9 text-xs font-semibold">
             {t('menu.constructor.dishes.modal.cancel')}
           </Button>
-          <Button variant="brand" className="px-5 h-9 text-xs font-bold shadow-md shadow-brand-copper/10" onClick={handleValidateAndSave} isLoading={isLoading} disabled={isLoading}>
+          <Button variant="brand" className="px-5 h-9 text-xs font-bold shadow-md shadow-brand-copper/10" onClick={onSave} isLoading={isLoading} disabled={isLoading}>
             {t('menu.constructor.dishes.modal.save')}
           </Button>
         </div>

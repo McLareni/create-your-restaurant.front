@@ -108,19 +108,22 @@ export const menu = {
         noModifiers: "У вас ще немає створених груп модифікаторів для вибору.",
         badgeLabel: "Маркетинговий бейдж (Стікер)",
         ingredients: {
-          title: "Складники страви",
-          empty: "Складників не додано",
-          nameLabel: "Назва інгредієнта",
-          namePlaceholder: "Наприклад: Томати",
-          qtyLabel: "Кількість",
-          unitLabel: "Од. вим.",
-          units: {
-            g: "г",
-            ml: "мл",
-            pcs: "шт",
-            kg: "кг"
-          }
-        },
+  title: "Складники страви",
+  empty: "Складників не додано",
+  nameLabel: "Назва інгредієнта",
+  selectPlaceholder: "Оберіть продукт зі складу...",
+  qtyLabel: "Кількість",
+  unitLabel: "Од. вим.",
+  units: {
+    g: "г",
+    ml: "мл",
+    pcs: "шт",
+    kg: "кг"
+  },
+  errors: {
+    alreadyAdded: "Цей інгредієнт вже додано до страви"
+  }
+},
         errors: {
           nameRequired: "Назва страви обов'язана для заповнення",
           priceNegative: "Ціна не може бути від'ємною",

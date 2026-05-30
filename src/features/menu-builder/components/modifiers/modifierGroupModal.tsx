@@ -2,17 +2,7 @@
 
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { Button, FloatingPanel, Input, Switch } from '@/shared/ui';
-
-interface ModifierGroupModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  isEditing: boolean;
-  form: any;
-  setForm: (form: any) => void;
-  onSave: () => void;
-  errors?: Record<string, string>;
-  isLoading?: boolean;
-}
+import { ModifierGroupModalProps } from '../../types/modifiers.types';
 
 export const ModifierGroupModal = ({
   isOpen,
@@ -47,21 +37,23 @@ export const ModifierGroupModal = ({
         <div className="grid grid-cols-2 gap-4">
           <Input
             id="minSelections"
-            type="number"
+            type="text"
+            inputMode="numeric"
             label={t('menu.constructor.modifiers.modal.group.minLabel')}
             placeholder="0"
             value={form.minSelections}
-            onChange={(e) => setForm({ ...form, minSelections: e.target.value })}
+            onChange={(e) => setForm({ ...form, minSelections: e.target.value.replace(/\D/g, '') })}
             disabled={isLoading}
             error={errors.minSelections}
           />
           <Input
             id="maxSelections"
-            type="number"
+            type="text"
+            inputMode="numeric"
             label={t('menu.constructor.modifiers.modal.group.maxLabel')}
             placeholder={t('menu.constructor.modifiers.unlimited')}
             value={form.maxSelections}
-            onChange={(e) => setForm({ ...form, maxSelections: e.target.value })}
+            onChange={(e) => setForm({ ...form, maxSelections: e.target.value.replace(/\D/g, '') })}
             disabled={isLoading}
             error={errors.maxSelections}
           />
