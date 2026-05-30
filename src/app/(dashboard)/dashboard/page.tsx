@@ -6,7 +6,8 @@ import { Button } from '@/shared/ui';
 
 export default function DashboardPage() {
   const { t } = useTranslation();
-  const { user, logout } = useUserStore();
+  const user = useUserStore((state) => state.user);
+  const logout = useUserStore((state) => state.logout);
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-brand-cream text-brand-espresso p-6">

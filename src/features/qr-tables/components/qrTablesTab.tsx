@@ -30,6 +30,7 @@ export const QrTablesTab = () => {
     setFormData,
     deleteId,
     setDeleteId,
+    isSubmitting,
     openCreateModal,
     openEditModal,
     handleSave,
@@ -57,7 +58,7 @@ export const QrTablesTab = () => {
     openEditModal(table, (t) => ({ ...t }));
   };
 
-  const onSave = () => {
+  const onSave = async () => {
     setErrorMsg('');
     
     const validationResult = tableSchema.safeParse(formData);
@@ -72,18 +73,18 @@ export const QrTablesTab = () => {
       return;
     }
     
-    handleSave();
+    await handleSave();
   };
 
-  const onDeleteConfirm = () => {
+  const onDeleteConfirm = async () => {
     if (deleteId) {
       setSelectedIds(prev => prev.filter(id => id !== deleteId));
-      confirmDelete();
+      await confirmDelete();
     }
   };
 
   const handleToggleSelect = (id: string) => {
-    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => id !== i) : [...prev, id]);
   };
 
   const handleSelectAll = (checked: boolean) => {
@@ -91,6 +92,10 @@ export const QrTablesTab = () => {
   };
 
   const handlePrint = async () => {
+    if (printTimeoutRef.current) {
+      clearTimeout(printTimeoutRef.current);
+    }
+
     const urls: Record<string, string> = {};
     const tablesToPrint = tables.filter(t => selectedIds.includes(t.id));
     for (const table of tablesToPrint) {
@@ -103,7 +108,6 @@ export const QrTablesTab = () => {
     }
     setPrintingDataUrls(urls);
     
-    if (printTimeoutRef.current) clearTimeout(printTimeoutRef.current);
     printTimeoutRef.current = setTimeout(() => {
       window.print();
     }, 500);
@@ -118,11 +122,11 @@ export const QrTablesTab = () => {
         </div>
         <div className="flex gap-3">
           {selectedIds.length > 0 && (
-            <Button variant="outline" icon={<Printer className="h-4 w-4" />} onClick={handlePrint} disabled={isLoading}>
+            <Button variant="outline" icon={<Printer className="h-4 w-4" />} onClick={handlePrint} disabled={isLoading || isSubmitting}>
               {t('qr.printBtn')} ({selectedIds.length})
             </Button>
           )}
-          <Button variant="brand" icon={<Plus className="h-4 w-4" />} onClick={onOpenCreate} disabled={isLoading}>
+          <Button variant="brand" icon={<Plus className="h-4 w-4" />} onClick={onOpenCreate} disabled={isLoading || isSubmitting}>
             {t('qr.addBtn')}
           </Button>
         </div>
@@ -134,7 +138,7 @@ export const QrTablesTab = () => {
         ) : (
           <div className="flex flex-col h-full">
             <div className="mb-4 flex items-center gap-2 px-1 shrink-0">
-              <Checkbox id="selectAll" label="" checked={selectedIds.length === tables.length && tables.length > 0} onChange={(e) => handleSelectAll(e.target.checked)} disabled={isLoading} />
+              <Checkbox id="selectAll" label="" checked={selectedIds.length === tables.length && tables.length > 0} onChange={(e) => handleSelectAll(e.target.checked)} disabled={isLoading || isSubmitting} />
               <span className="text-sm font-medium text-brand-espresso dark:text-brand-cream">{t('qr.selectAll')}</span>
             </div>
             
@@ -169,12 +173,12 @@ export const QrTablesTab = () => {
       <FloatingPanel 
         panelId="qr-table-floating-panel"
         isOpen={isModalOpen} 
-        onClose={() => !isLoading && setIsModalOpen(false)} 
+        onClose={() => !isLoading && !isSubmitting && setIsModalOpen(false)} 
         title={editingTable ? t('qr.modal.editTitle') : t('qr.modal.createTitle')}
         className="w-132 border-brand-copper/20 shadow-2xl"
       >
         <div className="flex flex-col gap-5 text-brand-espresso dark:text-brand-cream">
-          <Input id="tableNumber" label={t('qr.modal.numberLabel')} placeholder={t('qr.modal.numberPlaceholder')} value={formData.tableNumber} onChange={(e) => { setFormData(prev => ({ ...prev, tableNumber: e.target.value })); setErrorMsg(''); }} disabled={isLoading} />
+          <Input id="tableNumber" label={t('qr.modal.numberLabel')} placeholder={t('qr.modal.numberPlaceholder')} value={formData.tableNumber} onChange={(e) => { setFormData(prev => ({ ...prev, tableNumber: e.target.value })); setErrorMsg(''); }} disabled={isLoading || isSubmitting} />
           
           <div className="flex flex-col gap-1.5">
             <Input 
@@ -184,7 +188,7 @@ export const QrTablesTab = () => {
               placeholder={t('qr.modal.typePlaceholder')} 
               value={formData.type} 
               onChange={(e) => { setFormData(prev => ({ ...prev, type: e.target.value })); setErrorMsg(''); }} 
-              disabled={isLoading} 
+              disabled={isLoading || isSubmitting} 
             />
             <datalist id="uniqueTypesList">
               {uniqueTypes.map(type => <option key={type} value={type} />)}
@@ -194,14 +198,14 @@ export const QrTablesTab = () => {
 
           <div className="flex items-center justify-between border-t border-brand-gray/10 dark:border-brand-gray/20 pt-4">
             <span className="text-sm font-medium text-brand-espresso dark:text-brand-cream">{t('qr.modal.statusLabel')}</span>
-            <Switch checked={formData.isActive} onChange={(val) => setFormData(prev => ({ ...prev, isActive: val }))} disabled={isLoading} />
+            <Switch checked={formData.isActive} onChange={(val) => setFormData(prev => ({ ...prev, isActive: val }))} disabled={isLoading || isSubmitting} />
           </div>
 
           {errorMsg && <div className="text-sm text-red-500 font-medium">{errorMsg}</div>}
 
           <div className="flex justify-end gap-3 pt-4 border-t border-brand-gray/10 dark:border-brand-gray/20">
-            <Button variant="ghost" className="h-9 text-xs font-semibold" onClick={() => setIsModalOpen(false)} disabled={isLoading}>{t('qr.modal.cancel')}</Button>
-            <Button variant="brand" className="px-5 h-9 text-xs font-bold shadow-md" onClick={onSave} isLoading={isLoading} disabled={isLoading}>{t('qr.modal.save')}</Button>
+            <Button variant="ghost" className="h-9 text-xs font-semibold" onClick={() => setIsModalOpen(false)} disabled={isLoading || isSubmitting}>{t('qr.modal.cancel')}</Button>
+            <Button variant="brand" className="px-5 h-9 text-xs font-bold shadow-md" onClick={onSave} isLoading={isLoading || isSubmitting} disabled={isLoading || isSubmitting}>{t('qr.modal.save')}</Button>
           </div>
         </div>
       </FloatingPanel>

@@ -7,20 +7,30 @@ export const dishesApi = {
     return response.categories.flatMap(cat => cat.dishes);
   },
 
-  getTagsLookup: async (): Promise<string[]> => {
-    return apiClient.get<string[]>('/menu/owner/dishes/lookups/tags');
+  getTagsLookup: async (restaurantId: number): Promise<string[]> => {
+    return apiClient.get<string[]>(`/menu/owner/${restaurantId}/dishes/lookups/tags`);
   },
 
-  getAllergensLookup: async (): Promise<string[]> => {
-    return apiClient.get<string[]>('/menu/owner/dishes/lookups/allergens');
+  getAllergensLookup: async (restaurantId: number): Promise<string[]> => {
+    return apiClient.get<string[]>(`/menu/owner/${restaurantId}/dishes/lookups/allergens`);
   },
 
-  deleteTagLookup: async (tagName: string): Promise<void> => {
-    await apiClient.delete(`/menu/owner/dishes/lookups/tags/${encodeURIComponent(tagName)}`);
+  createTagLookup: async (restaurantId: number, tagName: string): Promise<string> => {
+    const response = await apiClient.post<{ name: string }>(`/menu/owner/${restaurantId}/dishes/lookups/tags`, { name: tagName });
+    return response.name || tagName;
   },
 
-  deleteAllergenLookup: async (allergenName: string): Promise<void> => {
-    await apiClient.delete(`/menu/owner/dishes/lookups/allergens/${encodeURIComponent(allergenName)}`);
+  createAllergenLookup: async (restaurantId: number, allergenName: string): Promise<string> => {
+    const response = await apiClient.post<{ name: string }>(`/menu/owner/${restaurantId}/dishes/lookups/allergens`, { name: allergenName });
+    return response.name || allergenName;
+  },
+
+  deleteTagLookup: async (restaurantId: number, tagName: string): Promise<void> => {
+    await apiClient.delete(`/menu/owner/${restaurantId}/dishes/lookups/tags/${encodeURIComponent(tagName)}`);
+  },
+
+  deleteAllergenLookup: async (restaurantId: number, allergenName: string): Promise<void> => {
+    await apiClient.delete(`/menu/owner/${restaurantId}/dishes/lookups/allergens/${encodeURIComponent(allergenName)}`);
   },
 
   create: async (categoryId: string, data: CreateDishDTO): Promise<Dish> => {

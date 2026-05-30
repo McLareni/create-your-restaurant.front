@@ -1,38 +1,44 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dishesApi } from '../api/dishes.api';
+import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
+import { useTranslation } from '@/shared/hooks/useTranslation';
+import toast from 'react-hot-toast';
 
 export const useAllergens = () => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const activeRestaurant = useRestaurantStore((state) => state.activeRestaurant);
+  const restaurantId = Number(activeRestaurant?.id || 1);
 
   const { data: allergens = [] } = useQuery({
-    queryKey: ['allergens-lookup-list'],
-    queryFn: () => dishesApi.getAllergensLookup()
+    queryKey: ['allergens-lookup-list', restaurantId],
+    queryFn: () => dishesApi.getAllergensLookup(restaurantId),
+    enabled: !!restaurantId,
   });
 
-  const createAllergen = useMutation<string, Error, string>({
-    mutationFn: async (name: string) => {
-      return name;
+  const createAllergen = useMutation({
+    mutationFn: (name: string) => dishesApi.createAllergenLookup(restaurantId, name),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allergens-lookup-list', restaurantId] });
     },
-    onSuccess: (name) => {
-      queryClient.setQueryData<string[]>(['allergens-lookup-list'], (old = []) => {
-        if (old.includes(name)) return old;
-        return [...old, name];
-      });
+    onError: () => {
+      toast.error(t('menu.constructor.dishes.modal.errors.allergenSaveFailed'));
     }
   });
 
-  const deleteAllergen = useMutation<void, Error, string>({
-    mutationFn: (name: string) => dishesApi.deleteAllergenLookup(name),
-    onSuccess: (_, name) => {
-      queryClient.setQueryData<string[]>(['allergens-lookup-list'], (old = []) => {
-        return old.filter(a => a !== name);
-      });
+  const deleteAllergen = useMutation({
+    mutationFn: (name: string) => dishesApi.deleteAllergenLookup(restaurantId, name),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allergens-lookup-list', restaurantId] });
+    },
+    onError: () => {
+      toast.error(t('menu.constructor.dishes.modal.errors.allergenDeleteFailed'));
     }
   });
 
   return {
     allergens,
-    createAllergen: createAllergen.mutate,
-    deleteAllergen: deleteAllergen.mutate
+    createAllergen: createAllergen.mutateAsync,
+    deleteAllergen: deleteAllergen.mutateAsync
   };
 };

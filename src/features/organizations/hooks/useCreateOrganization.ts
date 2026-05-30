@@ -86,34 +86,29 @@ export const useCreateOrganization = () => {
   const playSuccessAnimation = () => {
     setAnimationStep(1);
 
-    const schedule = (step: number, delay: number) => {
-      const timer = setTimeout(async () => {
-        setAnimationStep(step);
-        if (step === 4) {
-          const redirectTimer = setTimeout(async () => {
-            await useUserStore.getState().fetchUser(true); 
-            
-            const updatedUser = useUserStore.getState().user;
-            const newRes = updatedUser?.restaurants?.find(r => r.name === formData.name);
-            if (newRes) {
-              useRestaurantStore.getState().setActiveRestaurant({
-                id: Number(newRes.id),
-                name: newRes.name,
-                slug: (newRes as any).slug
-              });
-            }
-            
-            router.push('/dashboard/menu-builder');
-          }, 1500);
-          timersRef.current.push(redirectTimer);
+    const t1 = setTimeout(() => setAnimationStep(2), 2000);
+    const t2 = setTimeout(() => setAnimationStep(3), 4000);
+    const t3 = setTimeout(() => setAnimationStep(4), 6000);
+    
+    const t4 = setTimeout(async () => {
+      try {
+        await useUserStore.getState().fetchUser(true); 
+        const updatedUser = useUserStore.getState().user;
+        const newRes = updatedUser?.restaurants?.find(r => r.name === formData.name);
+        if (newRes) {
+          useRestaurantStore.getState().setActiveRestaurant({
+            id: Number(newRes.id),
+            name: newRes.name,
+            slug: (newRes as any).slug
+          });
         }
-      }, delay);
-      timersRef.current.push(timer);
-    };
+        router.push('/dashboard/menu-builder');
+      } catch (err) {
+        console.error('Animation sync redirect failed', err);
+      }
+    }, 7500);
 
-    schedule(2, 2000);
-    schedule(3, 4000);
-    schedule(4, 6000);
+    timersRef.current.push(t1, t2, t3, t4);
   };
 
   const handleChange = (field: keyof CreateOrganizationValues, value: string) => {

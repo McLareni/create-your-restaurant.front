@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { Button, FloatingPanel, Input, Select, Switch } from '@/shared/ui';
 import { CreateStaffDTO, StaffRole } from '../types/staff.types';
@@ -39,23 +40,41 @@ export const StaffModal = ({
 
     toast.loading(t('menu.constructor.dishes.notifications.imageUploading'), { id: 'staff-img' });
 
+    if (formData.photo && formData.photo.startsWith('blob:')) {
+      URL.revokeObjectURL(formData.photo);
+    }
+
     const previewUrl = URL.createObjectURL(file);
     setFormData(prev => ({ ...prev, photo: previewUrl }));
     onPhotoFileChange(file);
     toast.success(t('menu.constructor.dishes.notifications.imageUploadSuccess'), { id: 'staff-img' });
   };
 
+  const handleCleanClose = () => {
+    if (formData.photo && formData.photo.startsWith('blob:')) {
+      URL.revokeObjectURL(formData.photo);
+    }
+    onClose();
+  };
+
+  useEffect(() => {
+    return () => {
+      if (formData.photo && formData.photo.startsWith('blob:')) {
+        URL.revokeObjectURL(formData.photo);
+      }
+    };
+  }, [formData.photo]);
+
   return (
     <FloatingPanel 
       panelId="staff-member-floating-panel"
       isOpen={isOpen} 
-      onClose={onClose} 
+      onClose={handleCleanClose} 
       title={isEditing ? t('staff.modal.editTitle') : t('staff.modal.createTitle')}
       className="w-xl border-brand-copper/20 shadow-2xl"
     >
       <div className="flex flex-col gap-5 text-brand-espresso dark:text-brand-cream">
         
-        {/* Компонент завантаження та прев'ю фото профілю */}
         <div className="flex flex-col items-center justify-center gap-2 pb-2 self-center relative group">
           <div className="h-20 w-20 rounded-full border border-brand-gray/30 bg-brand-cream/40 flex items-center justify-center overflow-hidden relative shadow-inner">
             {formData.photo ? (
@@ -116,7 +135,7 @@ export const StaffModal = ({
             id="role" 
             label={t('staff.modal.roleLabel')} 
             value={formData.role} 
-            onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value as StaffRole }))} 
+            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setFormData(prev => ({ ...prev, role: e.target.value as StaffRole }))} 
             disabled={isLoading}
             error={errors.role}
           >
@@ -137,7 +156,7 @@ export const StaffModal = ({
         )}
 
         <div className="flex justify-end gap-3 pt-4 mt-2 border-t border-brand-gray/10 dark:border-brand-gray/20">
-          <Button variant="ghost" className="h-9 text-xs font-semibold" onClick={onClose} disabled={isLoading}>{t('staff.modal.cancel')}</Button>
+          <Button variant="ghost" className="h-9 text-xs font-semibold" onClick={handleCleanClose} disabled={isLoading}>{t('staff.modal.cancel')}</Button>
           <Button variant="brand" className="px-5 h-9 text-xs font-bold shadow-md" onClick={onSave} isLoading={isLoading} disabled={isLoading}>{t('staff.modal.save')}</Button>
         </div>
       </div>

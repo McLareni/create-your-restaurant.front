@@ -1,38 +1,44 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dishesApi } from '../api/dishes.api';
+import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
+import { useTranslation } from '@/shared/hooks/useTranslation';
+import toast from 'react-hot-toast';
 
 export const useDishTags = () => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const activeRestaurant = useRestaurantStore((state) => state.activeRestaurant);
+  const restaurantId = Number(activeRestaurant?.id || 1);
 
   const { data: tags = [] } = useQuery({
-    queryKey: ['dish-tags-lookup-list'],
-    queryFn: () => dishesApi.getTagsLookup()
+    queryKey: ['dish-tags-lookup-list', restaurantId],
+    queryFn: () => dishesApi.getTagsLookup(restaurantId),
+    enabled: !!restaurantId,
   });
 
   const createTag = useMutation({
-    mutationFn: async (name: string) => {
-      return name;
+    mutationFn: (name: string) => dishesApi.createTagLookup(restaurantId, name),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dish-tags-lookup-list', restaurantId] });
     },
-    onSuccess: (name) => {
-      queryClient.setQueryData(['dish-tags-lookup-list'], (old: string[] = []) => {
-        if (old.includes(name)) return old;
-        return [...old, name];
-      });
+    onError: () => {
+      toast.error(t('menu.constructor.dishes.modal.errors.tagSaveFailed'));
     }
   });
 
   const deleteTag = useMutation({
-    mutationFn: (name: string) => dishesApi.deleteTagLookup(name),
-    onSuccess: (_, name) => {
-      queryClient.setQueryData(['dish-tags-lookup-list'], (old: string[] = []) => {
-        return old.filter(t => t !== name);
-      });
+    mutationFn: (name: string) => dishesApi.deleteTagLookup(restaurantId, name),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dish-tags-lookup-list', restaurantId] });
+    },
+    onError: () => {
+      toast.error(t('menu.constructor.dishes.modal.errors.tagDeleteFailed'));
     }
   });
 
   return {
     tags,
-    createTag: createTag.mutate,
-    deleteTag: deleteTag.mutate
+    createTag: createTag.mutateAsync,
+    deleteTag: deleteTag.mutateAsync
   };
 };

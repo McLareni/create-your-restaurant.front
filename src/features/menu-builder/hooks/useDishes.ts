@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { dishesApi } from '../api/dishes.api';
-import { useUserStore } from '@/shared/store/useUserStore';
+import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 
 export const useDishes = () => {
-  const user = useUserStore((state) => state.user);
-  const restaurantId = Number(user?.restaurants?.[0]?.id || 1);
+  const activeRestaurant = useRestaurantStore((state) => state.activeRestaurant);
+  const restaurantId = Number(activeRestaurant?.id || 1);
 
   const { data: dishes = [], isLoading } = useQuery({
     queryKey: ['dishes-list-all', restaurantId],

@@ -102,7 +102,7 @@ export const MenuBoard = () => {
           modifierGroups={board.modifierGroups} 
           currentDishId={board.editingDish?.id}
           errors={board.formErrors}
-          isLoading={board.isMenuLoading}
+          isLoading={board.isSaving} // Прив'язуємо стан кнопки до локального маппінгу збереження
         />
         <ConfirmModal isOpen={!!board.deleteTarget} onClose={() => board.setDeleteTarget(null)} onConfirm={board.handleConfirmDelete} description={board.deleteTarget?.type === 'category' ? t('menu.constructor.categories.deleteConfirm') : t('menu.constructor.dishes.deleteConfirm')} />
       </div>
