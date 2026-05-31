@@ -29,7 +29,7 @@ export const PublicMenuHeader = ({
       </header>
 
       {categories.length > 0 ? (
-        <div className="w-full border-brand-copper/20 px-4 md:px-6">
+        <div className="w-full border-brand-copper/20 px-4 md:px-6 pb-4">
           <div className="flex gap-0 overflow-x-auto md:justify-center">
             <button
               type="button"
