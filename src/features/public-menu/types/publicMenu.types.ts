@@ -33,6 +33,7 @@ export interface PublicMenuCategory {
 
 export interface PublicMenuResponse {
   restaurantId: number;
+  restaurantName?: string;
   categories: PublicMenuCategory[];
 }
 
