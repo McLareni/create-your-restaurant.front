@@ -6,6 +6,7 @@ import { useTranslation } from '@/shared/hooks/useTranslation';
 import { InventoryItem } from '../../types/inventory.types';
 import { inventoryItemSchema, InventoryFormValues, INITIAL_INVENTORY_FORM } from '../../schemas/inventory.schema';
 import { ZodError } from 'zod';
+import toast from 'react-hot-toast';
 
 export const useInventoryTab = () => {
   const { t } = useTranslation();
@@ -52,6 +53,9 @@ export const useInventoryTab = () => {
     if (deleteId) {
       try {
         await deleteItem(deleteId);
+        toast.success(t('common.success') || 'Успішно видалено');
+      } catch {
+        toast.error(t('auth.errors.defaultError'));
       } finally {
         setDeleteId(null);
       }
@@ -69,15 +73,24 @@ export const useInventoryTab = () => {
         unit: formData.unit,
       });
 
-      if (editingId) {
-        updateItem({ id: editingId, ...validatedData });
-      } else {
-        createItem(validatedData);
-      }
+      const mutationOptions = {
+        onSuccess: () => {
+          setIsModalOpen(false);
+          setEditingId(null);
+          setFormData(INITIAL_INVENTORY_FORM);
+          toast.success(t('common.success') || 'Збережено успішно');
+        },
+        onError: (err: any) => {
+          const apiError = err?.response?.data?.message || t('auth.errors.defaultError');
+          toast.error(apiError);
+        },
+      };
 
-      setIsModalOpen(false);
-      setEditingId(null);
-      setFormData(INITIAL_INVENTORY_FORM);
+      if (editingId) {
+        updateItem({ id: editingId, ...validatedData }, mutationOptions);
+      } else {
+        createItem(validatedData, mutationOptions);
+      }
     } catch (error) {
       if (error instanceof ZodError) {
         const errorsMap: Record<string, string> = {};

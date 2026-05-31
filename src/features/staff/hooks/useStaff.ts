@@ -16,6 +16,12 @@ export const useStaff = () => {
     enabled: !!restaurantId,
   });
 
+  const { data: roles = [] } = useQuery({
+    queryKey: ['staffRoles', restaurantId],
+    queryFn: () => staffApi.getRoles(restaurantId),
+    enabled: !!restaurantId,
+  });
+
   const createStaffMutation = useMutation({
     mutationFn: (data: any) => staffApi.createStaff(restaurantId, data),
     onSuccess: () => {
@@ -60,8 +66,31 @@ export const useStaff = () => {
     }
   });
 
+  const createRoleMutation = useMutation({
+    mutationFn: (name: string) => staffApi.createRole(restaurantId, name),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staffRoles', restaurantId] });
+      toast.success(t('staff.notifications.roleCreateSuccess'));
+    },
+    onError: (error: any) => {
+      toast.error(error.message || t('staff.notifications.roleCreateError'));
+    }
+  });
+
+  const deleteRoleMutation = useMutation({
+    mutationFn: (roleId: string) => staffApi.deleteRole(restaurantId, roleId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staffRoles', restaurantId] });
+      toast.success(t('staff.notifications.roleDeleteSuccess'));
+    },
+    onError: (error: any) => {
+      toast.error(error.message || t('staff.notifications.roleDeleteError'));
+    }
+  });
+
   return {
     staff,
+    roles,
     isLoading,
     createStaff: createStaffMutation.mutate,
     createStaffAsync: createStaffMutation.mutateAsync,
@@ -70,5 +99,7 @@ export const useStaff = () => {
     deleteStaff: deleteStaffMutation.mutate,
     uploadStaffPhoto: uploadStaffPhotoMutation.mutate,
     uploadStaffPhotoAsync: uploadStaffPhotoMutation.mutateAsync,
+    createRole: createRoleMutation.mutateAsync,
+    deleteRole: deleteRoleMutation.mutateAsync,
   };
 };

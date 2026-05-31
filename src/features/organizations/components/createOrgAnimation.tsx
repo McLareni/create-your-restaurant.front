@@ -2,16 +2,7 @@
 
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { Loader2 } from 'lucide-react';
-
-interface CreateOrgAnimationProps {
-  state: {
-    animationStep: number;
-    formData: {
-      name: string;
-      slug: string;
-    };
-  };
-}
+import { CreateOrgAnimationProps } from '../types/organization.types';
 
 export const CreateOrgAnimation = ({ state }: CreateOrgAnimationProps) => {
   const { t } = useTranslation();

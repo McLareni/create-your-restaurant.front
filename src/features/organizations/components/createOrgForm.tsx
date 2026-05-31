@@ -3,10 +3,7 @@
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { Input, Button, Select } from '@/shared/ui';
 import { Loader2, CheckCircle2, XCircle, Store } from 'lucide-react';
-
-interface CreateOrgFormProps {
-  state: any;
-}
+import { CreateOrgFormProps } from '../types/organization.types';
 
 export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
   const { t } = useTranslation();
@@ -39,7 +36,7 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
                 id="name"
                 label={t('organization.create.nameLabel')}
                 placeholder={t('organization.create.namePlaceholder')}
-                value={formData.name}
+                value={formData.name || ''}
                 onChange={(e) => handleChange('name', e.target.value)}
                 error={errors.name}
                 disabled={isLoading}
@@ -51,7 +48,7 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
                 id="slug"
                 label={t('organization.create.slugLabel')}
                 hint={t('organization.create.slugHint')}
-                value={formData.slug}
+                value={formData.slug || ''}
                 onChange={(e) => handleChange('slug', e.target.value)}
                 error={errors.slug}
                 disabled={isLoading}
@@ -134,7 +131,7 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
                 id="city"
                 label={t('organization.create.cityLabel')}
                 placeholder={t('organization.create.cityPlaceholder')}
-                value={formData.city}
+                value={formData.city || ''}
                 onChange={(e) => handleChange('city', e.target.value)}
                 error={errors.city}
                 disabled={isLoading}
@@ -146,7 +143,7 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
                 id="phone"
                 label={t('organization.create.phoneLabel')}
                 placeholder={t('organization.create.phonePlaceholder')}
-                value={formData.phone}
+                value={formData.phone || ''}
                 onChange={(e) => handleChange('phone', e.target.value)}
                 error={errors.phone}
                 disabled={isLoading}

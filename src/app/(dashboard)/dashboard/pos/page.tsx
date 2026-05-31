@@ -1,11 +1,14 @@
 'use client';
 
+import { useState } from 'react';
 import { Card, Button, Input, Switch } from '@/shared/ui';
 import { ArrowRightLeft, CheckCircle2, AlertCircle, Save } from 'lucide-react';
 import { usePosIntegration } from '@/features/pos/hooks/usePosIntegration';
 
 export default function PosIntegrationPage() {
   const state = usePosIntegration();
+  const [importMenu, setImportMenu] = useState(true);
+  const [syncStops, setSyncStops] = useState(true);
 
   if (!state.hasModule) {
     return (
@@ -74,14 +77,14 @@ export default function PosIntegrationPage() {
                       <span className="block font-medium text-brand-espresso dark:text-brand-cream">{state.t('pos.importMenu')}</span>
                       <span className="text-sm text-brand-gray dark:text-brand-gray/70">{state.t('pos.importMenuDesc')}</span>
                     </div>
-                    <Switch checked={true} onChange={() => {}} />
+                    <Switch checked={importMenu} onChange={(val) => setImportMenu(val)} />
                   </div>
                   <div className="flex items-center justify-between p-3 border border-brand-gray/10 rounded-lg bg-white dark:bg-brand-mocha">
                     <div>
                       <span className="block font-medium text-brand-espresso dark:text-brand-cream">{state.t('pos.syncStops')}</span>
                       <span className="text-sm text-brand-gray dark:text-brand-gray/70">{state.t('pos.syncStopsDesc')}</span>
                     </div>
-                    <Switch checked={true} onChange={() => {}} />
+                    <Switch checked={syncStops} onChange={(val) => setSyncStops(val)} />
                   </div>
                 </div>
                 <div className="flex justify-end pt-4">

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { categorySchema } from '../../schemas/categories.schema';
+import toast from 'react-hot-toast';
 
 export const useCategoryModal = (createCategory: any, updateCategory: any) => {
   const { t } = useTranslation();
@@ -36,12 +37,24 @@ export const useCategoryModal = (createCategory: any, updateCategory: any) => {
     }
 
     setError(null);
+
+    const mutationOptions = {
+      onSuccess: () => {
+        setIsCatModalOpen(false);
+        toast.success(t('common.success') || 'Категорію успішно збережено');
+      },
+      onError: (err: any) => {
+        const apiError = err?.response?.data?.message || t('auth.errors.defaultError');
+        setError(apiError);
+        toast.error(apiError);
+      }
+    };
+
     if (editingCategory) {
-      updateCategory({ id: editingCategory.id, name: catName });
+      updateCategory({ id: editingCategory.id, name: catName }, mutationOptions);
     } else {
-      createCategory(catName);
+      createCategory(catName, mutationOptions);
     }
-    setIsCatModalOpen(false);
   };
 
   return {

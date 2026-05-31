@@ -1,19 +1,6 @@
 import { apiClient } from '@/shared/api/client';
 import { CreateOrganizationValues } from '../schemas/organization.schema';
-
-interface CheckSlugResponse {
-  isAvailable: boolean;
-}
-
-interface CreateRestaurantPayload {
-  title: string;
-  slug: string;
-  type: string;
-  currency: string;
-  language: string;
-  city?: string;
-  phoneNumber?: string;
-}
+import { CheckSlugResponse, CreateRestaurantPayload } from '../types/organization.types';
 
 export const organizationApi = {
   checkSlug: (slug: string) => {

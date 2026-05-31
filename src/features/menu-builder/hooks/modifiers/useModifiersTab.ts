@@ -63,9 +63,19 @@ export const useModifiersTab = () => {
       options: editingGroup ? undefined : []
     };
 
-    if (editingGroup) updateGroup({ id: editingGroup.id, data: formattedData });
-    else createGroup(formattedData);
-    setIsGroupModalOpen(false);
+    const mutationOptions = {
+      onSuccess: () => {
+        setIsGroupModalOpen(false);
+        toast.success(t('common.success') || 'Групу модифікаторів збережено');
+      },
+      onError: (err: any) => {
+        const apiError = err?.response?.data?.message || t('auth.errors.defaultError');
+        toast.error(apiError);
+      }
+    };
+
+    if (editingGroup) updateGroup({ id: editingGroup.id, data: formattedData }, mutationOptions);
+    else createGroup(formattedData, mutationOptions);
   };
 
   const handleOpenOptionModal = (groupId: string, option?: any) => {
@@ -121,14 +131,33 @@ export const useModifiersTab = () => {
         maxSelections: group.maxSelections,
         options: newOptions 
       } 
+    }, {
+      onSuccess: () => {
+        setIsOptionModalOpen(false);
+        toast.success(t('common.success') || 'Опцію успішно збережено');
+      },
+      onError: (err: any) => {
+        const apiError = err?.response?.data?.message || t('auth.errors.defaultError');
+        toast.error(apiError);
+      }
     });
-    setIsOptionModalOpen(false);
   };
 
   const handleConfirmDelete = () => {
     if (!deleteTarget) return;
+
+    const mutationOptions = {
+      onSuccess: () => {
+        toast.success(t('common.success') || 'Успішно видалено');
+      },
+      onError: (err: any) => {
+        const apiError = err?.response?.data?.message || t('auth.errors.defaultError');
+        toast.error(apiError);
+      }
+    };
+
     if (deleteTarget.type === 'group') {
-      deleteGroup(deleteTarget.id);
+      deleteGroup(deleteTarget.id, mutationOptions);
     } else if (deleteTarget.type === 'option' && deleteTarget.groupId) {
       const group = groups.find((g: any) => g.id === deleteTarget.groupId);
       if (group) {
@@ -142,7 +171,7 @@ export const useModifiersTab = () => {
             maxSelections: group.maxSelections,
             options: newOptions 
           } 
-        });
+        }, mutationOptions);
       }
     }
     setDeleteTarget(null);

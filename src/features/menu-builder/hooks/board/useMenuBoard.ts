@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { DragStartEvent, DragOverEvent, DragEndEvent, useSensors, useSensor, PointerSensor, KeyboardSensor } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { useQueryClient } from '@tanstack/react-query';
@@ -41,6 +41,8 @@ export const useMenuBoard = () => {
   const [dragTargetCategoryId, setDragTargetCategoryId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ type: 'category' | 'dish'; id: string } | null>(null);
 
+  const reorderTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const categoryModal = useCategoryModal(createCategory, updateCategory);
   const dishModal = useDishModal(createDishAsync, updateDishAsync, queryClient, t);
 
@@ -48,6 +50,14 @@ export const useMenuBoard = () => {
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor),
   );
+
+  useEffect(() => {
+    return () => {
+      if (reorderTimeoutRef.current) {
+        clearTimeout(reorderTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
@@ -175,7 +185,14 @@ export const useMenuBoard = () => {
               id: item.id,
               sortOrder: index,
             }));
-            setTimeout(() => reorderDishes(newArray), 50);
+
+            if (reorderTimeoutRef.current) {
+              clearTimeout(reorderTimeoutRef.current);
+            }
+
+            reorderTimeoutRef.current = setTimeout(() => {
+              reorderDishes(newArray);
+            }, 50);
           }
         } else {
           const category = categories.find((c: any) => c.id === dragSourceCategoryId);

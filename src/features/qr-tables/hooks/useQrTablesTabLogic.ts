@@ -5,6 +5,7 @@ import { useCrudModal } from '@/shared/hooks/useCrudModal';
 import { tableSchema } from '../schemas/tables.schema';
 import { Table, CreateTableDTO } from '../types/tables.types';
 import QRCode from 'qrcode';
+import toast from 'react-hot-toast';
 
 const INITIAL_FORM_DATA: CreateTableDTO = { tableNumber: '', type: '', isActive: true, zoneId: null };
 
@@ -29,12 +30,11 @@ export const useQrTablesTabLogic = () => {
     isSubmitting,
     openCreateModal,
     openEditModal,
-    handleSave,
     confirmDelete,
   } = useCrudModal<Table, CreateTableDTO>({
     initialFormData: INITIAL_FORM_DATA,
-    createItem: createTable,
-    updateItem: updateTable,
+    createItem: () => {},
+    updateItem: () => {},
     deleteItem: deleteTable,
   });
 
@@ -70,8 +70,10 @@ export const useQrTablesTabLogic = () => {
         type: created.name
       });
       setNewZoneName('');
+      toast.success(t('qr.notifications.zoneCreateSuccess' as any) || 'Зону успішно створено');
     } catch (err) {
       console.error(err);
+      toast.error(t('auth.errors.defaultError'));
     }
   };
 
@@ -90,18 +92,34 @@ export const useQrTablesTabLogic = () => {
       return;
     }
 
-    try {
-      await handleSave();
-    } catch (err) {
-      console.error(err);
-      setErrorMsg(t('common.errors.unknown'));
+    const mutationOptions = {
+      onSuccess: () => {
+        setIsModalOpen(false);
+        toast.success(editingTable ? t('qr.notifications.updateSuccess') : t('qr.notifications.createSuccess'));
+      },
+      onError: (err: any) => {
+        const apiError = err?.response?.data?.message || t('auth.errors.defaultError');
+        setErrorMsg(apiError);
+        toast.error(apiError);
+      }
+    };
+
+    if (editingTable) {
+      updateTable({ id: editingTable.id, data: formData }, mutationOptions);
+    } else {
+      createTable(formData, mutationOptions);
     }
   };
 
   const onDeleteConfirm = async () => {
     if (deleteId) {
-      setSelectedIds(prev => prev.filter(id => id !== deleteId));
-      await confirmDelete();
+      try {
+        setSelectedIds(prev => prev.filter(id => id !== deleteId));
+        await confirmDelete();
+        toast.success(t('qr.notifications.deleteSuccess'));
+      } catch {
+        toast.error(t('auth.errors.defaultError'));
+      }
     }
   };
 

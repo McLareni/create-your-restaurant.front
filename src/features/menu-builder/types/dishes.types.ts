@@ -9,6 +9,29 @@ export interface DishVariant {
   sku?: string;
 }
 
+export interface LookupSectionProps {
+  title: string;
+  icon: React.ReactNode;
+  placeholder: string;
+  inputValue: string;
+  onInputChange: (val: string) => void;
+  onAdd: () => void;
+  items: string[];
+  checkedItems: string[];
+  onToggle: (item: string, checked: boolean) => void;
+  onRemoveFromDb: (item: string) => void;
+  emptyText: string;
+  hasBorder?: boolean;
+}
+
+export interface DishCardProps {
+  dish: Dish;
+  categoryId: string;
+  onEdit: (categoryId: string, dish: Dish) => void;
+  onDelete: (dishId: string) => void;
+  isOverlay?: boolean;
+}
+
 export interface IngredientItem {
   name: string;
   quantity: number;

@@ -18,15 +18,7 @@ import {
 import { Badge } from '@/shared/ui/badge';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Dish } from '../../types/dishes.types';
-
-interface DishCardProps {
-  dish: Dish;
-  categoryId: string;
-  onEdit: (categoryId: string, dish: Dish) => void;
-  onDelete: (dishId: string) => void;
-  isOverlay?: boolean;
-}
+import { Dish, DishCardProps } from '../../types/dishes.types';
 
 export const DishCard = ({ dish, categoryId, onEdit, onDelete, isOverlay = false }: DishCardProps) => {
   const { t } = useTranslation();

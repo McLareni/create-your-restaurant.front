@@ -1,5 +1,5 @@
 import { apiClient } from '@/shared/api/client';
-import { CreateStaffDTO, StaffMember, UpdateStaffDTO } from '../types/staff.types';
+import { CreateStaffDTO, StaffMember, UpdateStaffDTO, CustomStaffRole } from '../types/staff.types';
 
 type BackendStaff = Omit<StaffMember, 'avatarColor'> & {
   role: string;
@@ -25,7 +25,6 @@ const getAvatarColor = (seed: string): string => {
 
 const toUiStaff = (staff: BackendStaff): StaffMember => ({
   ...staff,
-  role: (staff.role || 'WAITER') as StaffMember['role'],
   avatarColor: getAvatarColor(staff.id),
 });
 
@@ -67,5 +66,17 @@ export const staffApi = {
 
   async deleteStaff(restaurantId: number, staffId: string) {
     return await apiClient.delete<{ message: string }>(`/restaurants/${restaurantId}/staff/${staffId}`);
+  },
+
+  async getRoles(restaurantId: number) {
+    return await apiClient.get<CustomStaffRole[]>(`/restaurants/${restaurantId}/staff/roles`);
+  },
+
+  async createRole(restaurantId: number, name: string) {
+    return await apiClient.post<CustomStaffRole>(`/restaurants/${restaurantId}/staff/roles`, { name });
+  },
+
+  async deleteRole(restaurantId: number, roleId: string) {
+    return await apiClient.delete<{ message: string }>(`/restaurants/${restaurantId}/staff/roles/${roleId}`);
   }
 };

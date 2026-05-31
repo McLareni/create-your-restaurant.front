@@ -3,22 +3,7 @@
 import { useCharacteristicsTab } from '../../../hooks/useCharacteristicsTab';
 import { Input, Checkbox, Button } from '@/shared/ui';
 import { Plus, Tag, AlertTriangle, Trash2 } from 'lucide-react';
-import { CharacteristicsTabProps } from '../../../types/dishes.types';
-
-interface LookupSectionProps {
-  title: string;
-  icon: React.ReactNode;
-  placeholder: string;
-  inputValue: string;
-  onInputChange: (val: string) => void;
-  onAdd: () => void;
-  items: string[];
-  checkedItems: string[];
-  onToggle: (item: string, checked: boolean) => void;
-  onRemoveFromDb: (item: string) => void;
-  emptyText: string;
-  hasBorder?: boolean;
-}
+import { CharacteristicsTabProps, LookupSectionProps } from '../../../types/dishes.types';
 
 const LookupSection = ({
   title,

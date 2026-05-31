@@ -118,7 +118,7 @@ export const QrTablesTab = () => {
               }}
               disabled={isLoading || isSubmitting}
             >
-              <option value="">Оберіть наявну зону закладу</option>
+              <option value="">{t('qr.modal.selectZonePlaceholder' as any) || 'Оберіть наявну зону закладу'}</option>
               {zones.map((zone: { id: string; name: string }) => (
                 <option key={zone.id} value={zone.id}>
                   {zone.name}
@@ -128,13 +128,13 @@ export const QrTablesTab = () => {
 
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium text-brand-espresso dark:text-brand-cream">
-                Або створіть нову зону, якщо її немає у списку
+                {t('qr.modal.createZoneLabel' as any) || 'Або створіть нову зону, якщо її немає у списку'}
               </label>
               <div className="flex gap-2 items-end">
                 <div className="flex-1">
                   <Input
                     id="newZoneInput"
-                    placeholder="Назва нової зони (напр. VIP, Тераса)"
+                    placeholder={t('qr.modal.newZonePlaceholder' as any) || 'Назва нової зони (напр. VIP, Тераса)'}
                     value={newZoneName}
                     onChange={(e) => setNewZoneName(e.target.value)}
                     disabled={isLoading || isSubmitting}

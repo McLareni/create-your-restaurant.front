@@ -5,12 +5,6 @@ export const staff = {
   emptyDesc: "Додайте першого працівника, щоб надати йому доступ до системи.",
   addBtn: "Додати працівника",
   searchPlaceholder: "Пошук за ім'ям або email...",
-  roles: {
-    MANAGER: "Адміністратор",
-    WAITER: "Офіціант",
-    CHEF: "Кухар",
-    BARTENDER: "Бармен"
-  },
   statusActive: "Доступ відкрито",
   statusInactive: "Доступ закрито",
   notifications: {
@@ -19,7 +13,11 @@ export const staff = {
     updateSuccess: "Дані працівника оновлено!",
     updateError: "Помилка при оновленні даних",
     deleteSuccess: "Працівника видалено",
-    deleteError: "Помилка при видаленні"
+    deleteError: "Помилка при видаленні",
+    roleCreateSuccess: "Посаду успішно створено!",
+    roleCreateError: "Помилка при створенні посади",
+    roleDeleteSuccess: "Посаду видалено",
+    roleDeleteError: "Не вдалося видалити посаду"
   },
   modal: {
     createTitle: "Новий співробітник",
@@ -34,7 +32,15 @@ export const staff = {
     phonePlaceholder: "+380...",
     roleLabel: "Посада (Роль)",
     rolePlaceholder: "Оберіть посаду...",
+    passwordSet: "Пароль встановлено",
+    passwordNotSet: "Пароль не задано",
+    addRoleLabel: "Створити нову посаду",
+    addRolePlaceholder: "напр., Старший офіціант",
+    addRoleBtn: "Додати",
     statusLabel: "Активний акаунт",
+    passwordLabel: "Пароль / Пін-код для входу",
+    passwordPlaceholderCreate: "Придумайте пароль (мін. 4 символи)",
+    passwordPlaceholderEdit: "Залиште порожнім, якщо не хочете змінювати",
     cancel: "Скасувати",
     save: "Зберегти"
   },
@@ -42,7 +48,8 @@ export const staff = {
     firstNameRequired: "Ім'я обов'язкове",
     emailRequired: "Email обов'язковий",
     emailInvalid: "Некоректний формат email",
-    roleRequired: "Оберіть посаду"
+    roleRequired: "Оберіть або створіть посаду",
+    passwordLength: "Пароль має містити щонайменше 4 символи"
   },
   deleteConfirm: "Ви впевнені, що хочете видалити цього працівника? Він втратить доступ до системи назавжди."
 };
