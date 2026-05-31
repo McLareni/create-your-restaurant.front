@@ -3,12 +3,7 @@
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import Image from 'next/image';
 import { ImageIcon } from 'lucide-react';
-import { DishFormValues } from '../../../schemas/dishes.schema';
-
-interface DishLivePreviewProps {
-  form: DishFormValues;
-  imageUrl?: string;
-}
+import { DishLivePreviewProps } from '../../../types/dishes.types';
 
 export const DishLivePreview = ({ form, imageUrl }: DishLivePreviewProps) => {
   const { t } = useTranslation();
@@ -51,7 +46,7 @@ export const DishLivePreview = ({ form, imageUrl }: DishLivePreviewProps) => {
         <div className="mt-auto pt-1 border-t border-brand-gray/5 flex justify-between items-center">
           <span className="font-bold text-xs text-brand-copper">
             {form.variants && form.variants.length > 0 
-              ? `${t('menu.constructor.dishes.moreBtn' as any) || 'від'} ${form.variants[0].price}` 
+              ? `${t('menu.constructor.inventory.fromStatus') || 'від'} ${form.variants[0].price}` 
               : form.price || 0} {t('menu.currency')}
           </span>
           {!form.isAvailable && (

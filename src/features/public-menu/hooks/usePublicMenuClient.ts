@@ -1,10 +1,13 @@
+'use client';
+
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import toast from 'react-hot-toast';
-import { publicMenuApi, PublicMenuDish } from '../api/publicMenu.api';
+import { publicMenuApi } from '../api/publicMenu.api';
+import { PublicMenuDish, UsePublicMenuClientReturn } from '../types/publicMenu.types';
 
-export const usePublicMenuClient = (restaurantSlug: string, tableId?: string) => {
+export const usePublicMenuClient = (restaurantSlug: string, tableId?: string): UsePublicMenuClientReturn => {
   const { t } = useTranslation();
   const [cart, setCart] = useState<Record<string, number>>({});
   const hasTableId = Boolean(tableId);
@@ -23,7 +26,6 @@ export const usePublicMenuClient = (restaurantSlug: string, tableId?: string) =>
     enabled: hasTableId && Boolean(resolvedRestaurantId),
   });
 
-  // Безпечно приводимо до чистого boolean типу, враховуючи можливі варіанти структури відповіді бекенду
   const tableExists = useMemo(() => {
     if (!tableExistsData) return false;
     if (typeof tableExistsData === 'boolean') return tableExistsData;
@@ -45,7 +47,8 @@ export const usePublicMenuClient = (restaurantSlug: string, tableId?: string) =>
       toast.success(t('menu.public.orderSuccessNotification' as any) || 'Замовлення надіслано!');
     },
     onError: (error: any) => {
-      toast.error(error?.message || t('errors.unknown'));
+      const apiErrorMessage = error?.response?.data?.message || error?.message || t('errors.unknown');
+      toast.error(apiErrorMessage);
     },
   });
 
@@ -107,7 +110,7 @@ export const usePublicMenuClient = (restaurantSlug: string, tableId?: string) =>
     dishesById,
     addDish,
     removeDish,
-    placeOrder: createOrderMutation.mutate,
+    placeOrder: () => createOrderMutation.mutate(),
     isPlacingOrder: createOrderMutation.isPending,
   };
 };

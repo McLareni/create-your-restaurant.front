@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { Card } from '@/shared/ui';
+import Image from 'next/image';
 import {
   Pencil,
   Trash2,
@@ -17,38 +18,25 @@ import {
 import { Badge } from '@/shared/ui/badge';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Dish } from '../../types/dishes.types';
-
-interface DishCardProps {
-  dish: Dish;
-  categoryId: string;
-  onEdit: (categoryId: string, dish: Dish) => void;
-  onDelete: (dishId: string) => void;
-  isOverlay?: boolean;
-}
+import { Dish, DishCardProps } from '../../types/dishes.types';
 
 export const DishCard = ({ dish, categoryId, onEdit, onDelete, isOverlay = false }: DishCardProps) => {
   const { t } = useTranslation();
   const [isDescExpanded, setIsDescExpanded] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
-  const imageUrls =
-    dish.images?.map((image) => image.url) || (dish.imageUrl ? [dish.imageUrl] : []);
+  const imageUrls = dish.images?.map((image) => image.url) || (dish.imageUrl ? [dish.imageUrl] : []);
 
   const handlePrevImage = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     if (imageUrls.length <= 1) return;
-    setActiveImageIndex((prev) =>
-      prev === 0 ? imageUrls.length - 1 : prev - 1,
-    );
+    setActiveImageIndex((prev) => (prev === 0 ? imageUrls.length - 1 : prev - 1));
   };
 
   const handleNextImage = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     if (imageUrls.length <= 1) return;
-    setActiveImageIndex((prev) =>
-      prev === imageUrls.length - 1 ? 0 : prev + 1,
-    );
+    setActiveImageIndex((prev) => (prev === imageUrls.length - 1 ? 0 : prev + 1));
   };
   
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -81,17 +69,20 @@ export const DishCard = ({ dish, categoryId, onEdit, onDelete, isOverlay = false
           </div>
           <div className="text-[11px] text-brand-gray leading-relaxed overflow-y-auto custom-scrollbar pr-1 flex-1 pb-2">
             <p className="mb-2">{dish.description}</p>
-            {dish.sku && <p className="text-[10px] font-mono mt-1 text-brand-copper">SKU: {dish.sku}</p>}
+            {dish.sku && <p className="text-[10px] font-mono mt-1 text-brand-copper">{t('menu.constructor.dishes.modal.variantSku')}: {dish.sku}</p>}
             {dish.taxRate !== undefined && <p className="text-[10px] text-brand-gray/80 mt-0.5">{t('menu.constructor.dishes.modal.taxText')}: {dish.taxRate}%</p>}
           </div>
         </div>
 
         <div className="relative aspect-video w-full bg-brand-cream/50 dark:bg-brand-gray/5 flex items-center justify-center overflow-hidden shrink-0 border-b border-brand-gray/5">
           {imageUrls.length > 0 ? (
-            <img
-              src={imageUrls[activeImageIndex]}
-              alt={dish.name}
+            <Image 
+              src={imageUrls[activeImageIndex]} 
+              alt={dish.name} 
+              fill
+              sizes="(max-width: 768px) 100vw, 280px"
               className="absolute inset-0 h-full w-full object-cover"
+              loading="lazy"
             />
           ) : (
             <ImageIcon className="h-5 w-5 text-brand-gray/20" />
@@ -99,18 +90,10 @@ export const DishCard = ({ dish, categoryId, onEdit, onDelete, isOverlay = false
 
           {imageUrls.length > 1 && (
             <>
-              <button
-                type="button"
-                onClick={handlePrevImage}
-                className="absolute left-1.5 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/45 p-1 text-white"
-              >
+              <button type="button" onClick={handlePrevImage} className="absolute left-1.5 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/45 p-1 text-white">
                 <ChevronLeft className="h-3.5 w-3.5" />
               </button>
-              <button
-                type="button"
-                onClick={handleNextImage}
-                className="absolute right-1.5 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/45 p-1 text-white"
-              >
+              <button type="button" onClick={handleNextImage} className="absolute right-1.5 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/45 p-1 text-white">
                 <ChevronRight className="h-3.5 w-3.5" />
               </button>
             </>

@@ -3,12 +3,7 @@
 import Image from 'next/image';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { usePublicMenuClient } from '../hooks/usePublicMenuClient';
-import { PublicMenuDish } from '../api/publicMenu.api';
-
-type PublicMenuClientProps = {
-  restaurantSlug: string;
-  tableId?: string;
-};
+import { PublicMenuDish, PublicMenuClientProps } from '../types/publicMenu.types';
 
 const getDishPreview = (dish: PublicMenuDish) => {
   if (dish.images && dish.images.length > 0) {
@@ -184,7 +179,7 @@ export const PublicMenuClient = ({ restaurantSlug, tableId }: PublicMenuClientPr
                 </div>
                 <button
                   type="button"
-                  onClick={() => placeOrder()}
+                  onClick={placeOrder}
                   disabled={totalItems === 0 || isPlacingOrder}
                   className="mt-3 w-full rounded-xl bg-brand-copper px-3 py-2 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
                 >

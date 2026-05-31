@@ -2,35 +2,26 @@
 
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { Switch, Card } from '@/shared/ui';
-import { Pencil, Trash2, Mail, Phone, ChefHat, ClipboardSignature, Wine, ShieldCheck } from 'lucide-react';
-import { StaffMember, StaffRole } from '../types/staff.types';
-
-interface StaffCardProps {
-  member: StaffMember;
-  onEdit: (member: StaffMember) => void;
-  onDelete: (id: string) => void;
-  onStatusChange: (id: string, isActive: boolean) => void;
-}
-
-const roleIcons: Record<StaffRole, React.ElementType> = {
-  MANAGER: ShieldCheck,
-  CHEF: ChefHat,
-  WAITER: ClipboardSignature,
-  BARTENDER: Wine
-};
+import { Pencil, Trash2, Mail, Phone, User } from 'lucide-react';
+import { StaffCardProps } from '../types/staff.types';
 
 export const StaffCard = ({ member, onEdit, onDelete, onStatusChange }: StaffCardProps) => {
   const { t } = useTranslation();
-  const Icon = roleIcons[member.role as StaffRole] || ShieldCheck;
   const initials = `${member.firstName?.[0] || ''}${member.lastName?.[0] || ''}`.toUpperCase();
 
   return (
     <Card className={`p-5! ${!member.isActive ? 'border-brand-gray/20 opacity-80 grayscale-20' : ''}`}>
       <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity absolute top-4 right-4 z-10">
-        <button onClick={(e) => { e.stopPropagation(); onEdit(member); }} className="rounded-md bg-white dark:bg-brand-espresso border border-transparent dark:border-brand-gray/20 p-1.5 text-brand-gray dark:text-brand-gray/80 shadow-sm hover:text-brand-copper outline-none">
+        <button 
+          onClick={(e) => { e.stopPropagation(); onEdit(member); }} 
+          className="rounded-md bg-white dark:bg-brand-espresso border border-transparent dark:border-brand-gray/20 p-1.5 text-brand-gray dark:text-brand-gray/80 shadow-sm hover:text-brand-copper outline-none cursor-pointer"
+        >
           <Pencil className="h-4 w-4" />
         </button>
-        <button onClick={(e) => { e.stopPropagation(); onDelete(member.id); }} className="rounded-md bg-white dark:bg-brand-espresso border border-transparent dark:border-brand-gray/20 p-1.5 text-brand-gray dark:text-brand-gray/80 shadow-sm hover:text-red-500 outline-none">
+        <button 
+          onClick={(e) => { e.stopPropagation(); onDelete(member.id); }} 
+          className="rounded-md bg-white dark:bg-brand-espresso border border-transparent dark:border-brand-gray/20 p-1.5 text-brand-gray dark:text-brand-gray/80 shadow-sm hover:text-red-500 outline-none cursor-pointer"
+        >
           <Trash2 className="h-4 w-4" />
         </button>
       </div>
@@ -52,8 +43,8 @@ export const StaffCard = ({ member, onEdit, onDelete, onStatusChange }: StaffCar
             {member.firstName} {member.lastName}
           </h3>
           <div className="flex items-center gap-1.5 text-brand-copper mt-0.5">
-            <Icon className="h-3.5 w-3.5" />
-            <span className="text-xs font-semibold uppercase tracking-wide">{t(`staff.roles.${member.role}`)}</span>
+            <User className="h-3.5 w-3.5" />
+            <span className="text-xs font-semibold uppercase tracking-wide">{member.role}</span>
           </div>
         </div>
       </div>

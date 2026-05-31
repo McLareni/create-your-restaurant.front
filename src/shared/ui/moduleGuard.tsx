@@ -10,12 +10,12 @@ interface ModuleGuardProps {
 }
 
 export const ModuleGuard = ({ moduleKey, children, fallback = null }: ModuleGuardProps) => {
-  const hasModule = useAccessStore((state) => state.hasModule);
+  const isModuleActive = useAccessStore((state) => state.activeModules.includes(moduleKey));
   const isLoadingAccess = useAccessStore((state) => state.isLoadingAccess);
 
   if (isLoadingAccess) return null;
 
-  if (hasModule(moduleKey)) {
+  if (isModuleActive) {
     return <>{children}</>;
   }
 

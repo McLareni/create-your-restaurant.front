@@ -1,145 +1,113 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { z } from 'zod';
-import { useMutation } from '@tanstack/react-query';
-import { emailSchema, verifySchema } from '@/features/auth/schemas/login.schema';
+import { useState, useEffect, FormEvent } from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import { authApi } from '@/features/auth/api/auth.api';
+import { authApi } from '../api/auth.api';
+import { useUserStore } from '@/shared/store/useUserStore';
 import { useRouter } from 'next/navigation';
+import { emailSchema, verifySchema } from '../schemas/login.schema';
+import toast from 'react-hot-toast';
 
 export const useLoginForm = () => {
   const { t } = useTranslation();
   const router = useRouter();
+  const fetchUser = useUserStore((state) => state.fetchUser);
 
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [step, setStep] = useState<1 | 2>(1);
-  
+  const [isLoading, setIsLoading] = useState(false);
   const [emailError, setEmailError] = useState('');
   const [codeError, setCodeError] = useState('');
-  
   const [isEmailDirty, setIsEmailDirty] = useState(false);
-  const [isEmailSyntacticallyValid, setIsEmailSyntacticallyValid] = useState(false);
-  
-  const [timeLeft, setTimeLeft] = useState(120);
+  const [timeLeft, setTimeLeft] = useState(0);
 
-  const requestCodeMutation = useMutation({
-    mutationFn: (targetEmail: string) => authApi.requestLoginCode(targetEmail),
-    onSuccess: () => {
-      setStep(2);
-      setTimeLeft(120);
-    },
-    onError: () => {
-      setEmailError(t('auth.errors.serverError'));
-    }
-  });
-
-  const verifyCodeMutation = useMutation({
-    mutationFn: (payload: { email: string; code: string }) => authApi.verifyLoginCode(payload.email, payload.code),
-    onSuccess: () => {
-      router.push('/dashboard');
-    },
-    onError: () => {
-      setCodeError(t('auth.errors.verifyFailed'));
-    }
-  });
+  const isEmailSyntacticallyValid = email.includes('@') && email.includes('.');
 
   useEffect(() => {
-    const result = emailSchema.safeParse({ email });
-    setIsEmailSyntacticallyValid(result.success);
-
-    if (email === '') {
-      if (isEmailDirty) {
-        setEmailError(t('auth.errors.emailRequired'));
-      } else {
-        setEmailError('');
-      }
-      return;
-    }
-
-    if (result.success) {
-      setEmailError('');
-    } else {
-      const hasCyrillicError = result.error.issues.some(
-        (issue: z.ZodIssue) => issue.message === 'auth.errors.emailCyrillic'
-      );
-      if (hasCyrillicError) {
-        setEmailError(t('auth.errors.emailCyrillic'));
-      } else {
-        setEmailError('');
-      }
-    }
-  }, [email, isEmailDirty, t]);
-
-  useEffect(() => {
-    if (step !== 2) return;
-    
-    const timerId = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timerId);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    
-    return () => clearInterval(timerId);
-  }, [step]);
+    if (timeLeft <= 0) return;
+    const timer = setTimeout(() => setTimeLeft((prev) => prev - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [timeLeft]);
 
   const formatTime = (seconds: number) => {
-    const m = Math.floor(seconds / 60);
-    const s = seconds % 60;
-    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
   const formatDisplayCode = (rawCode: string) => {
-    if (rawCode.length > 3) {
-      return `${rawCode.slice(0, 3)}-${rawCode.slice(3, 6)}`;
-    }
     return rawCode;
   };
 
   const handleResendCode = async () => {
-    if (timeLeft > 0 || requestCodeMutation.isPending) return;
-    setCodeError('');
-    requestCodeMutation.mutate(email, {
-      onSuccess: () => setTimeLeft(120),
-      onError: () => setCodeError(t('auth.errors.defaultError'))
-    });
+    setIsLoading(true);
+    try {
+      await authApi.requestLoginCode(email);
+      setTimeLeft(60);
+      toast.success(t('auth.login.resendCode'));
+    } catch (error: any) {
+      const errorKey = `auth.errors.${error.message}`;
+      const translated = t(errorKey);
+      toast.error(translated === errorKey ? t('auth.errors.defaultError') : translated);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     setEmailError('');
     setCodeError('');
 
-    if (step === 1) {
-      const validation = emailSchema.safeParse({ email });
-      if (!validation.success) {
-        setEmailError(t(validation.error.issues[0].message));
-        return;
+    try {
+      if (step === 1) {
+        const validation = emailSchema.safeParse({ email });
+        if (!validation.success) {
+          setEmailError(t(validation.error.issues[0].message));
+          setIsLoading(false);
+          return;
+        }
+        await authApi.requestLoginCode(email);
+        setStep(2);
+        setTimeLeft(60);
+      } else {
+        const validation = verifySchema.safeParse({ email, code });
+        if (!validation.success) {
+          setCodeError(t(validation.error.issues[0].message));
+          setIsLoading(false);
+          return;
+        }
+        await authApi.verifyLoginCode(email, code);
+        await fetchUser(true);
+        toast.success(t('dashboard.successMessage'));
+        router.push('/dashboard');
       }
-      requestCodeMutation.mutate(email);
-    } else {
-      const validation = verifySchema.safeParse({ email, code });
-      if (!validation.success) {
-        const codeIssue = validation.error.issues.find((i: z.ZodIssue) => i.path.includes('code'));
-        if (codeIssue) setCodeError(t(codeIssue.message));
-        return;
+    } catch (error: any) {
+      const errorKey = `auth.errors.${error.message}`;
+      const translated = t(errorKey);
+      const fallback = step === 1 ? t('auth.errors.defaultError') : t('auth.errors.verifyFailed');
+      const finalMessage = translated === errorKey ? fallback : translated;
+
+      if (step === 1) {
+        setEmailError(finalMessage);
+      } else {
+        setCodeError(finalMessage);
       }
-      verifyCodeMutation.mutate({ email, code });
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return {
+    t,
     email,
     setEmail,
     code,
     setCode,
     step,
-    isLoading: requestCodeMutation.isPending || verifyCodeMutation.isPending,
+    isLoading,
     emailError,
     codeError,
     isEmailSyntacticallyValid,
@@ -148,6 +116,6 @@ export const useLoginForm = () => {
     formatTime,
     formatDisplayCode,
     handleResendCode,
-    handleSubmit
+    handleSubmit,
   };
 };

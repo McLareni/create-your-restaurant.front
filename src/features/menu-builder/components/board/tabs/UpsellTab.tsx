@@ -2,15 +2,9 @@
 
 import { Checkbox } from '@/shared/ui';
 import { Sparkles } from 'lucide-react';
-import { DishFormValues } from '../../../schemas/dishes.schema';
-import { useAvailableDishesList } from '../../../hooks/useAvailableDishesList';
+import { useAvailableDishesList } from '../../../hooks/dishes/useAvailableDishesList';
 import { useTranslation } from '@/shared/hooks/useTranslation';
-
-interface UpsellTabProps {
-  dishForm: DishFormValues;
-  setDishForm: React.Dispatch<React.SetStateAction<any>>;
-  currentDishId?: string;
-}
+import { UpsellTabProps } from '../../../types/dishes.types';
 
 export const UpsellTab = ({ dishForm, setDishForm, currentDishId }: UpsellTabProps) => {
   const { t } = useTranslation();

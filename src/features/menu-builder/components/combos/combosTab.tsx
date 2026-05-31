@@ -1,105 +1,83 @@
 'use client';
 
-import { useState } from 'react';
-import { useTranslation } from '@/shared/hooks/useTranslation';
+import { useCombosTab } from '../../hooks/combos/useCombosTab';
 import { Button, ConfirmModal, EmptyState } from '@/shared/ui';
 import { PackagePlus, Plus } from 'lucide-react';
-import { useCombos } from '../../hooks/useCombos';
-import { Combo, CreateComboDTO } from '../../types/combos.types';
+import { Combo } from '../../types/combos.types';
 import { ComboCard } from './comboCard';
 import { ComboModal } from './comboModal';
 
-const INITIAL_FORM_DATA: CreateComboDTO = { name: '', priceType: 'FIXED', priceValue: 0, dishes: [] };
-
 export const CombosTab = () => {
-  const { t } = useTranslation();
-  const { combos, isLoading, createCombo, updateCombo, deleteCombo } = useCombos();
+  const state = useCombosTab();
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingCombo, setEditingCombo] = useState<Combo | null>(null);
-  const [formData, setFormData] = useState<CreateComboDTO>(INITIAL_FORM_DATA);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-
-  const openCreateModal = () => {
-    setEditingCombo(null);
-    setFormData(INITIAL_FORM_DATA);
-    setIsModalOpen(true);
-  };
-
-  const openEditModal = (combo: Combo) => {
-    setEditingCombo(combo);
-    setFormData({
-      name: combo.name,
-      priceType: combo.priceType,
-      priceValue: combo.priceValue,
-      dishes: combo.dishes,
-    });
-    setIsModalOpen(true);
-  };
-
-  const handleSave = async (data: CreateComboDTO) => {
-    if (editingCombo) {
-      await updateCombo({ id: editingCombo.id, data });
-    } else {
-      await createCombo(data);
-    }
-    setIsModalOpen(false);
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (deleteId) {
-      await deleteCombo(deleteId);
-      setDeleteId(null);
-    }
-  };
+  if (state.isLoading && state.combos.length === 0) {
+    return (
+      <div className="flex flex-col gap-4 py-2 w-full">
+        <div className="h-16 w-full rounded-xl bg-brand-gray/10 animate-pulse"></div>
+        <div className="grid gap-5 grid-cols-[repeat(auto-fill,minmax(300px,1fr))] mt-4">
+          <div className="h-44 rounded-xl bg-brand-gray/5 animate-pulse"></div>
+          <div className="h-44 rounded-xl bg-brand-gray/5 animate-pulse"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between mb-6 pb-4 border-b border-brand-gray/10 dark:border-brand-gray/20 shrink-0">
-        <h2 className="text-xl font-semibold text-brand-espresso dark:text-brand-cream">{t('menu.constructor.combos.title')}</h2>
-        <Button variant="brand" icon={<Plus className="h-4 w-4" />} onClick={openCreateModal} disabled={isLoading}>
-          {t('menu.constructor.combos.addBtn')}
+        <h2 className="text-xl font-semibold text-brand-espresso dark:text-brand-cream">
+          {state.t('menu.constructor.combos.title')}
+        </h2>
+        <Button 
+          variant="brand" 
+          icon={<Plus className="h-4 w-4" />} 
+          onClick={state.openCreateModal} 
+          disabled={state.isLoading}
+          className="h-10 text-xs font-bold"
+        >
+          {state.t('menu.constructor.combos.addBtn')}
         </Button>
       </div>
 
-      {combos.length === 0 ? (
+      {state.combos.length === 0 ? (
         <EmptyState 
           icon={<PackagePlus />} 
-          title={t('menu.constructor.combos.emptyTitle')} 
-          description={t('menu.constructor.combos.emptyDesc')} 
-          actionLabel={t('menu.constructor.combos.addBtn')} 
-          onAction={openCreateModal} 
+          title={state.t('menu.constructor.combos.emptyTitle')} 
+          description={state.t('menu.constructor.combos.emptyDesc')} 
+          actionLabel={state.t('menu.constructor.combos.addBtn')} 
+          onAction={state.openCreateModal} 
         />
       ) : (
         <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar pb-4">
           <div className="grid gap-5 grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
-            {combos.map((combo: Combo) => (
-              <ComboCard 
-                key={combo.id} 
-                combo={combo} 
-                onEdit={() => openEditModal(combo)} 
-                onDelete={(id) => setDeleteId(id)} 
-              />
+            {state.combos.map((combo: Combo) => (
+              <div key={combo.id} className="group relative">
+                <ComboCard 
+                  combo={combo} 
+                  onEdit={() => state.openEditModal(combo)} 
+                  onDelete={(id) => state.setDeleteId(id)} 
+                />
+              </div>
             ))}
           </div>
         </div>
       )}
 
-      {isModalOpen && (
+      {state.isModalOpen && (
         <ComboModal 
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          isLoading={isLoading}
-          onSave={handleSave}
-          initialData={formData}
+          isOpen={state.isModalOpen}
+          onClose={() => state.setIsModalOpen(false)}
+          isLoading={state.isLoading}
+          onSave={state.handleSave}
+          initialData={state.formData}
         />
       )}
 
       <ConfirmModal 
-        isOpen={!!deleteId} 
-        onClose={() => setDeleteId(null)} 
-        onConfirm={handleDeleteConfirm} 
-        description={t('menu.constructor.combos.deleteConfirm')} 
+        isOpen={!!state.deleteId} 
+        onClose={() => state.setDeleteId(null)} 
+        onConfirm={state.handleDeleteConfirm} 
+        description={state.t('menu.constructor.combos.deleteConfirm')} 
       />
     </div>
   );

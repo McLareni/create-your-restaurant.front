@@ -10,6 +10,7 @@ export const qr = {
   table: "Стіл",
   statusActive: "Активний",
   statusInactive: "Неактивний",
+  numberPlaceholder: "Наприклад: 1, 12 або 105",
   modal: {
     createTitle: "Новий стіл",
     editTitle: "Редагування столу",
@@ -26,6 +27,11 @@ export const qr = {
     numberRequired: "Номер столу обов'язковий",
     numberUnique: "Стіл з таким номером вже існує",
     typeRequired: "Вкажіть зону або локацію"
+  },
+  notifications: {
+    createSuccess: "Стіл успішно створено",
+    updateSuccess: "Параметри столу оновлено",
+    deleteSuccess: "Стіл успішно видалено"
   },
   deleteConfirm: "Ви впевнені, що хочете видалити цей стіл? Старий QR-код перестане працювати."
 };

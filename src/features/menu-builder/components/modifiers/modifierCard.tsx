@@ -3,17 +3,7 @@
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { Pencil, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
 import { Button } from '@/shared/ui';
-
-interface ModifierCardProps {
-  group: any;
-  isExpanded: boolean;
-  onToggle: () => void;
-  onEditGroup: () => void;
-  onDeleteGroup: () => void;
-  onOpenOptionModal: () => void;
-  onEditOption: (option: any) => void;
-  onDeleteOption: (optionId: string) => void;
-}
+import { ModifierCardProps } from '../../types/modifiers.types';
 
 export const ModifierCard = ({
   group,

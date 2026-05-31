@@ -41,8 +41,8 @@ export const useCrudModal = <T extends { id: string }, F>({
       }
       setIsModalOpen(false);
     } catch (error) {
-      // Помилка прокидається в компонент для локального відображення або обробляється в react-hot-toast всередині мутації
       console.error('CRUD operation failed:', error);
+      throw error;
     } finally {
       setIsSubmitting(false);
     }
@@ -55,6 +55,7 @@ export const useCrudModal = <T extends { id: string }, F>({
         setDeleteId(null);
       } catch (error) {
         console.error('Delete operation failed:', error);
+        throw error;
       }
     }
   };

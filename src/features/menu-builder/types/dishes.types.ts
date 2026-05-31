@@ -1,3 +1,5 @@
+import { DishFormValues } from '../schemas/dishes.schema';
+
 export type ProductionZone = 'HOT_KITCHEN' | 'COLD_KITCHEN' | 'BAR' | 'SUSHI' | 'HOOKAH';
 
 export interface DishVariant {
@@ -7,10 +9,34 @@ export interface DishVariant {
   sku?: string;
 }
 
+export interface LookupSectionProps {
+  title: string;
+  icon: React.ReactNode;
+  placeholder: string;
+  inputValue: string;
+  onInputChange: (val: string) => void;
+  onAdd: () => void;
+  items: string[];
+  checkedItems: string[];
+  onToggle: (item: string, checked: boolean) => void;
+  onRemoveFromDb: (item: string) => void;
+  emptyText: string;
+  hasBorder?: boolean;
+}
+
+export interface DishCardProps {
+  dish: Dish;
+  categoryId: string;
+  onEdit: (categoryId: string, dish: Dish) => void;
+  onDelete: (dishId: string) => void;
+  isOverlay?: boolean;
+}
+
 export interface IngredientItem {
   name: string;
   quantity: number;
-  unit: string;
+  unit: 'kg' | 'g' | 'l' | 'ml' | 'pcs';
+  inventoryItemId?: string | null;
 }
 
 export interface Dish {
@@ -42,3 +68,56 @@ export interface Dish {
 
 export type CreateDishDTO = Omit<Dish, 'id' | 'stockQuantity' | 'productionZone'>;
 export type UpdateDishDTO = Partial<CreateDishDTO>;
+
+export interface DishModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  isEditing: boolean;
+  dishForm: DishFormValues;
+  setDishForm: React.Dispatch<React.SetStateAction<any>>;
+  onSave: () => void;
+  handleLocalImageUploadWrapper: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  imageUrls: string[];
+  activeImageIndex: number;
+  onPrevImage: () => void;
+  onNextImage: () => void;
+  onSelectImage: (index: number) => void;
+  handleAddVariant: () => void;
+  handleRemoveVariant: (index: number) => void;
+  handleVariantChange: (index: number, field: string, value: any) => void;
+  activeTab: 'general' | 'pricing' | 'characteristics' | 'ingredients' | 'modifiers' | 'upsell' | 'media';
+  setActiveTab: (tab: 'general' | 'pricing' | 'characteristics' | 'ingredients' | 'modifiers' | 'upsell' | 'media') => void;
+  modifierGroups: any[];
+  currentDishId?: string;
+  isLoading?: boolean;
+  errors: Record<string, string>;
+}
+
+export interface DishCardProps {
+  dish: Dish;
+  categoryId: string;
+  onEdit: (categoryId: string, dish: Dish) => void;
+  onDelete: (dishId: string) => void;
+  isOverlay?: boolean;
+}
+
+export interface DishLivePreviewProps {
+  form: DishFormValues;
+  imageUrl?: string;
+}
+
+export interface CharacteristicsTabProps {
+  dishForm: DishFormValues;
+  setDishForm: React.Dispatch<React.SetStateAction<any>>;
+}
+
+export interface IngredientsTabProps {
+  dishForm: DishFormValues;
+  setDishForm: React.Dispatch<React.SetStateAction<any>>;
+}
+
+export interface UpsellTabProps {
+  dishForm: DishFormValues;
+  setDishForm: React.Dispatch<React.SetStateAction<any>>;
+  currentDishId?: string;
+}

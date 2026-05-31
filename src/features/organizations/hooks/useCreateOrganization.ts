@@ -7,8 +7,9 @@ import { createOrganizationSchema, CreateOrganizationValues } from '../schemas/o
 import { organizationApi } from '../api/organizations.api';
 import { useUserStore } from '@/shared/store/useUserStore';
 import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
+import { UseCreateOrganizationReturn } from '../types/organization.types';
 
-export const useCreateOrganization = () => {
+export const useCreateOrganization = (): UseCreateOrganizationReturn => {
   const { t } = useTranslation();
   const router = useRouter();
 

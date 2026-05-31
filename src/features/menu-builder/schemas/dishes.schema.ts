@@ -10,7 +10,8 @@ export const dishVariantSchema = z.object({
 export const ingredientItemSchema = z.object({
   name: z.string().min(1, 'menu.constructor.dishes.modal.errors.ingredientNameRequired'),
   quantity: z.number().min(0, 'menu.constructor.dishes.modal.errors.ingredientQtyNegative'),
-  unit: z.string().default('г')
+  unit: z.enum(['kg', 'g', 'l', 'ml', 'pcs']),
+  inventoryItemId: z.string().nullable().optional()
 });
 
 const safeNumberPreprocess = z.preprocess((val) => {
@@ -41,3 +42,24 @@ export const dishSchema = z.object({
 });
 
 export type DishFormValues = z.infer<typeof dishSchema>;
+
+export const INITIAL_DISH_FORM: DishFormValues = {
+  name: '',
+  description: '',
+  price: 0,
+  variants: [],
+  taxRate: 20,
+  weight: null,
+  cookingTime: null,
+  calories: null,
+  isVegan: false,
+  isSpicy: false,
+  isLactoseFree: false,
+  badge: 'NONE',
+  allergens: [],
+  tags: [],
+  modifierIds: [],
+  isAvailable: true,
+  ingredients: [],
+  upsellDishIds: [],
+};

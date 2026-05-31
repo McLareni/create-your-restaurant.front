@@ -7,6 +7,7 @@ import { qr } from './uk/qr';
 import { staff } from './uk/staff';
 import { marketplace } from './uk/marketplace';
 import { pos } from './uk/pos';
+import { inventory } from './uk/inventory';
 
 export const uk = {
   auth,
@@ -17,5 +18,6 @@ export const uk = {
   staff,
   marketplace,
   pos,
+  inventory,
   ...common
 };

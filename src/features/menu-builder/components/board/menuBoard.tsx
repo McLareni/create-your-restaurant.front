@@ -1,6 +1,5 @@
 'use client';
 
-import { useTranslation } from '@/shared/hooks/useTranslation';
 import { Button, ConfirmModal } from '@/shared/ui';
 import { Plus, LayoutList } from 'lucide-react';
 import { DndContext, pointerWithin, DragOverlay } from '@dnd-kit/core';
@@ -9,14 +8,13 @@ import { SortableCategory } from './sortableCategory';
 import { CategoryModal } from './categoryModal';
 import { DishModal } from './dishModal';
 import { DishCard } from './dishCard';
-import { useMenuBoard } from '../../hooks/useMenuBoard';
+import { useMenuBoard } from '../../hooks/board/useMenuBoard';
 import { Dish } from '../../types/dishes.types';
 
 export const MenuBoard = () => {
-  const { t } = useTranslation();
   const board = useMenuBoard();
 
-  if (board.isMenuLoading || board.isModifiersLoading) {
+  if (board.isLoading) {
     return (
       <div className="flex flex-col gap-3 py-1 w-full">
         <div className="h-12 w-full rounded-lg bg-brand-gray/10 animate-pulse"></div>
@@ -37,11 +35,11 @@ export const MenuBoard = () => {
         <div className="sticky top-0 z-30 flex items-center justify-between mb-4 bg-brand-cream/70 dark:bg-brand-mocha/70 backdrop-blur-md py-2.5 border-b border-brand-gray/10 -mx-6 px-6">
           <div>
             <h2 className="text-base font-bold text-brand-espresso dark:text-brand-cream tracking-tight flex items-center gap-2">
-              {t('menu.constructor.categories.title')}
+              {board.t('menu.constructor.categories.title')}
             </h2>
           </div>
-          <Button variant="brand" onClick={() => board.handleOpenCategoryModal()} className="h-9 px-4 rounded-md text-xs font-medium shadow-xs" icon={<Plus className="h-3.5 w-3.5" />}>
-            {t('menu.constructor.categories.addBtn')}
+          <Button variant="brand" onClick={() => board.categoryModal.handleOpenCategoryModal()} className="h-9 px-4 rounded-md text-xs font-medium shadow-xs" icon={<Plus className="h-3.5 w-3.5" />}>
+            {board.t('menu.constructor.categories.addBtn')}
           </Button>
         </div>
 
@@ -50,10 +48,10 @@ export const MenuBoard = () => {
             <div className="h-14 w-14 bg-brand-cream dark:bg-brand-gray/10 rounded-full flex items-center justify-center mb-4">
               <LayoutList className="h-6 w-6 text-brand-copper" />
             </div>
-            <h3 className="text-lg font-bold text-brand-espresso dark:text-brand-cream mb-1">{t('menu.constructor.categories.emptyTitle')}</h3>
-            <p className="text-xs text-brand-gray max-w-sm mb-5">{t('menu.constructor.categories.emptyDesc')}</p>
-            <Button variant="brand" onClick={() => board.handleOpenCategoryModal()} className="h-10 px-6 text-xs font-semibold shadow-md" icon={<Plus className="h-4 w-4" />}>
-              {t('menu.constructor.categories.addBtn')}
+            <h3 className="text-lg font-bold text-brand-espresso dark:text-brand-cream mb-1">{board.t('menu.constructor.categories.emptyTitle')}</h3>
+            <p className="text-xs text-brand-gray max-w-sm mb-5">{board.t('menu.constructor.categories.emptyDesc')}</p>
+            <Button variant="brand" onClick={() => board.categoryModal.handleOpenCategoryModal()} className="h-10 px-6 text-xs font-semibold shadow-md" icon={<Plus className="h-4 w-4" />}>
+              {board.t('menu.constructor.categories.addBtn')}
             </Button>
           </div>
         ) : (
@@ -64,12 +62,12 @@ export const MenuBoard = () => {
                   key={category.id} 
                   category={category} 
                   categoryDishes={category.dishes || []}
-                  onEditCategory={board.handleOpenCategoryModal} 
+                  onEditCategory={board.categoryModal.handleOpenCategoryModal} 
                   onDeleteCategory={board.setDeleteTarget}
-                  onAddDish={board.handleOpenDishModal} 
-                  onEditDish={board.handleOpenDishModal}
-                  onDeleteDish={board.setDeleteTarget} 
-                  t={t}
+                  onAddDish={board.dishModal.handleOpenDishModal} 
+                  onEditDish={board.dishModal.handleOpenDishModal}
+                  onDeleteCategoryDish={board.setDeleteTarget} 
+                  t={board.t}
                 />
               ))}
             </div>
@@ -84,27 +82,33 @@ export const MenuBoard = () => {
           ) : null}
         </DragOverlay>
 
-        <CategoryModal isOpen={board.isCatModalOpen} onClose={() => board.setIsCatModalOpen(false)} isEditing={!!board.editingCategory} catName={board.catName} setCatName={board.setCatName} onSave={board.handleSaveCategory} isLoading={board.isMenuLoading} />
+        <CategoryModal isOpen={board.categoryModal.isCatModalOpen} onClose={() => board.categoryModal.setIsCatModalOpen(false)} isEditing={!!board.categoryModal.editingCategory} catName={board.categoryModal.catName} setCatName={board.categoryModal.setCatName} onSave={board.categoryModal.handleSaveCategory} isLoading={board.isLoading} />
         
         <DishModal 
-          isOpen={board.isDishModalOpen} 
-          onClose={() => board.setIsDishModalOpen(false)} 
-          isEditing={!!board.editingDish} 
-          dishForm={board.dishForm} 
-          setDishForm={board.setDishForm} 
-          onSave={board.handleSaveDish} 
-          handleImageUpload={board.handleImageUpload} 
-          imageUrls={board.dishImageUrls}
-          activeImageIndex={board.activeDishImageIndex}
-          onPrevImage={board.handlePrevDishImage}
-          onNextImage={board.handleNextDishImage}
-          onSelectImage={board.handleSelectDishImage}
+          isOpen={board.dishModal.isDishModalOpen} 
+          onClose={() => board.dishModal.setIsDishModalOpen(false)} 
+          isEditing={!!board.dishModal.editingDish} 
+          dishForm={board.dishModal.dishForm}
+          setDishForm={board.dishModal.setDishForm}
+          onSave={board.dishModal.handleSaveDish}
+          handleLocalImageUploadWrapper={board.dishModal.handleLocalImageUploadWrapper}
+          imageUrls={board.dishModal.dishImageUrls}
+          activeImageIndex={board.dishModal.activeDishImageIndex}
+          onPrevImage={board.dishModal.handlePrevDishImage}
+          onNextImage={board.dishModal.handleNextDishImage}
+          onSelectImage={board.dishModal.handleSelectDishImage}
+          handleAddVariant={board.dishModal.handleAddVariant}
+          handleRemoveVariant={board.dishModal.handleRemoveVariant}
+          handleVariantChange={board.dishModal.handleVariantChange}
+          activeTab={board.dishModal.activeTab}
+          setActiveTab={board.dishModal.setActiveTab}
           modifierGroups={board.modifierGroups} 
-          currentDishId={board.editingDish?.id}
-          errors={board.formErrors}
-          isLoading={board.isSaving} // Прив'язуємо стан кнопки до локального маппінгу збереження
+          currentDishId={board.dishModal.editingDish?.id}
+          isLoading={board.isLoading}
+          errors={board.dishModal.formErrors}
         />
-        <ConfirmModal isOpen={!!board.deleteTarget} onClose={() => board.setDeleteTarget(null)} onConfirm={board.handleConfirmDelete} description={board.deleteTarget?.type === 'category' ? t('menu.constructor.categories.deleteConfirm') : t('menu.constructor.dishes.deleteConfirm')} />
+        
+        <ConfirmModal isOpen={!!board.deleteTarget} onClose={() => board.setDeleteTarget(null)} onConfirm={board.handleConfirmDelete} description={board.deleteTarget?.type === 'category' ? board.t('menu.constructor.categories.deleteConfirm') : board.t('menu.constructor.dishes.deleteConfirm')} />
       </div>
     </DndContext>
   );

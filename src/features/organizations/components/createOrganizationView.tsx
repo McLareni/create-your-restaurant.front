@@ -11,7 +11,7 @@ export const CreateOrganizationView = () => {
     return (
       <CreateOrgAnimation 
         state={{
-          ...organizationState,
+          animationStep: organizationState.animationStep,
           formData: {
             name: organizationState.formData.name ?? '',
             slug: organizationState.formData.slug ?? '',

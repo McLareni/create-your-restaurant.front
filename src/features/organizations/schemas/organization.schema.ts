@@ -9,7 +9,6 @@ export const createOrganizationSchema = z.object({
     .regex(/^[a-z0-9-]+$/, 'organization.errors.slugFormat')
     .refine((val) => !RESERVED_SLUGS.includes(val), 'organization.errors.slugReserved'),
   
-  // ОНОВЛЕНІ ENUM ЗГІДНО З БЕКЕНДОМ
   type: z.enum(['FAST_FOOD', 'CASUAL_DINING', 'FINE_DINING', 'CAFE', 'BUFFET', 'FOOD_TRUCK'], { message: 'organization.errors.required' }),
   currency: z.enum(['USD', 'EUR', 'GBP', 'JPY', 'CNY', 'RUB', 'PLN', 'UAH'], { message: 'organization.errors.required' }),
   language: z.enum(['EN', 'FR', 'ES', 'DE', 'IT', 'RU', 'CN', 'JP', 'PL', 'UA'], { message: 'organization.errors.required' }),

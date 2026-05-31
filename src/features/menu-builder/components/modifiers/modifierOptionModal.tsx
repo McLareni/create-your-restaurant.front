@@ -2,16 +2,7 @@
 
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { Button, FloatingPanel, Input, Switch } from '@/shared/ui';
-
-interface ModifierOptionModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  isEditing: boolean;
-  form: any;
-  setForm: (form: any) => void;
-  onSave: () => void;
-  isLoading?: boolean;
-}
+import { ModifierOptionModalProps } from '../../types/modifiers.types';
 
 export const ModifierOptionModal = ({
   isOpen,

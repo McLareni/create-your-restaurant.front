@@ -14,3 +14,17 @@ export interface Combo {
   dishes: ComboDish[];
   createdAt: string;
 }
+
+export interface ComboCardProps {
+  combo: Combo;
+  onEdit: (combo: Combo) => void;
+  onDelete: (id: string) => void;
+}
+
+export interface ComboModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  isLoading: boolean;
+  onSave: (data: CreateComboDTO) => Promise<void>;
+  initialData?: CreateComboDTO;
+}

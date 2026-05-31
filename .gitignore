@@ -41,3 +41,20 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Repomix exclusions (додайте це в кінець .gitignore)
+# src/features/marketplace/
+# # src/features/organizations/
+# src/features/public-menu/
+# src/features/pos
+# src/features/qr-tables/
+# # src/features/staff/
+# src/features/menu-builder/
+
+
+# src/app/(dashboard)/dashboard/marketplace/
+# src/app/(dashboard)/dashboard/menu-builder/
+# # src/app/(dashboard)/create-organization/
+# src/app/(dashboard)/dashboard/qr/
+# # src/app/(dashboard)/dashboard/staff/
+# src/app/(dashboard)/dashboard/pos/

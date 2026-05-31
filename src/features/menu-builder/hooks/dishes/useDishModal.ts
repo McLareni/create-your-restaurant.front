@@ -1,16 +1,17 @@
+'use client';
+
 import { useState } from 'react';
 import toast from 'react-hot-toast';
-import { dishSchema, DishFormValues } from '../schemas/dishes.schema';
-import { Dish } from '../types/dishes.types';
-import { menuApi } from '../api/menu.api';
+import { dishSchema, DishFormValues, INITIAL_DISH_FORM } from '../../schemas/dishes.schema';
+import { Dish } from '../../types/dishes.types';
+import { menuApi } from '../../api/menu.api';
 import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 
 export const useDishModal = (
   createDishAsync: any,
   updateDishAsync: any,
   queryClient: any,
-  t: any,
-  initialForm: DishFormValues,
+  t: any
 ) => {
   const activeRestaurant = useRestaurantStore((state) => state.activeRestaurant);
   const restaurantId = Number(activeRestaurant?.id || 1);
@@ -18,14 +19,13 @@ export const useDishModal = (
   const [isDishModalOpen, setIsDishModalOpen] = useState(false);
   const [editingDish, setEditingDish] = useState<Dish | null>(null);
   const [activeCategoryId, setActiveCategoryId] = useState<string>('');
-  const [dishForm, setDishForm] = useState<DishFormValues>(initialForm);
+  const [dishForm, setDishForm] = useState<DishFormValues>(INITIAL_DISH_FORM);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [dishPhotoFiles, setDishPhotoFiles] = useState<File[]>([]);
   const [dishImageUrls, setDishImageUrls] = useState<string[]>([]);
   const [activeDishImageIndex, setActiveDishImageIndex] = useState(0);
-  
-  // Атомарний стейт для блокування повторних кліків
   const [isSaving, setIsSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState<'general' | 'pricing' | 'characteristics' | 'ingredients' | 'modifiers' | 'upsell' | 'media'>('general');
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -45,7 +45,7 @@ export const useDishModal = (
     const validFiles = files.filter((file) => !tiffFiles.includes(file));
 
     if (tiffFiles.length > 0) {
-      toast.error('Формат TIFF не підтримується. Оберіть JPG, PNG або WebP.');
+      toast.error(t('menu.constructor.dishes.modal.errors.tiffNotSupported'));
     }
 
     if (validFiles.length === 0) {
@@ -58,6 +58,18 @@ export const useDishModal = (
     setDishImageUrls((prev) => [...prev, ...previewUrls]);
     setActiveDishImageIndex(dishImageUrls.length);
     e.target.value = '';
+  };
+
+  const handleLocalImageUploadWrapper = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    try {
+      toast.loading(t('menu.constructor.dishes.notifications.imageUploading'), { id: 'img-upload' });
+      await handleImageUpload(e);
+      toast.success(t('menu.constructor.dishes.notifications.imageUploadSuccess'), { id: 'img-upload' });
+    } catch {
+      toast.error(t('menu.constructor.dishes.notifications.imageUploadError'), { id: 'img-upload' });
+    }
   };
 
   const handlePrevDishImage = () => {
@@ -74,12 +86,30 @@ export const useDishModal = (
     setActiveDishImageIndex(index);
   };
 
+  const handleAddVariant = () => {
+    const currentVariants = dishForm.variants || [];
+    setDishForm({ ...dishForm, variants: [...currentVariants, { name: '', price: 0, sku: '' }] });
+  };
+
+  const handleRemoveVariant = (index: number) => {
+    const currentVariants = [...(dishForm.variants || [])];
+    currentVariants.splice(index, 1);
+    setDishForm({ ...dishForm, variants: currentVariants });
+  };
+
+  const handleVariantChange = (index: number, field: string, value: any) => {
+    const currentVariants = [...(dishForm.variants || [])];
+    currentVariants[index] = { ...currentVariants[index], [field]: value };
+    setDishForm({ ...dishForm, variants: currentVariants });
+  };
+
   const handleOpenDishModal = (categoryId: string, dish?: Dish) => {
     dishImageUrls.forEach(url => { if (url.startsWith('blob:')) URL.revokeObjectURL(url); });
     setActiveCategoryId(categoryId);
     setFormErrors({});
     setDishPhotoFiles([]);
     setIsSaving(false);
+    setActiveTab('general');
     
     if (dish) {
       setEditingDish(dish);
@@ -110,7 +140,7 @@ export const useDishModal = (
       setEditingDish(null);
       setDishImageUrls([]);
       setActiveDishImageIndex(0);
-      setDishForm(initialForm);
+      setDishForm(INITIAL_DISH_FORM);
     }
     setIsDishModalOpen(true);
   };
@@ -188,10 +218,15 @@ export const useDishModal = (
     dishImageUrls,
     activeDishImageIndex,
     isSaving,
-    handleImageUpload,
+    activeTab,
+    setActiveTab,
+    handleLocalImageUploadWrapper,
     handlePrevDishImage,
     handleNextDishImage,
     handleSelectDishImage,
+    handleAddVariant,
+    handleRemoveVariant,
+    handleVariantChange,
     handleOpenDishModal,
     handleSaveDish,
   };
