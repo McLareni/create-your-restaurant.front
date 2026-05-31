@@ -1,16 +1,14 @@
 'use client';
 
-import Image from 'next/image';
+import { useMemo, useState } from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { usePublicMenuClient } from '../hooks/usePublicMenuClient';
-import { PublicMenuDish, PublicMenuClientProps } from '../types/publicMenu.types';
+import { PublicMenuClientProps, PublicMenuDish } from '../types/publicMenu.types';
+import { PublicMenuHeader } from './PublicMenuHeader';
+import { PublicMenuDishSections } from './PublicMenuDishSections';
+import { PublicMenuDishDetailsModal } from './PublicMenuDishDetailsModal';
 
-const getDishPreview = (dish: PublicMenuDish) => {
-  if (dish.images && dish.images.length > 0) {
-    return dish.images[0]?.url;
-  }
-  return dish.imageUrl ?? null;
-};
+const ALL_DISHES_TAB_ID = 'all-dishes';
 
 export const PublicMenuClient = ({ restaurantSlug, tableId }: PublicMenuClientProps) => {
   const { t } = useTranslation();
@@ -33,20 +31,75 @@ export const PublicMenuClient = ({ restaurantSlug, tableId }: PublicMenuClientPr
     isPlacingOrder,
   } = usePublicMenuClient(restaurantSlug, tableId);
 
+  const categories = useMemo(
+    () => (menuData?.categories ?? []).filter((category) => category.dishes.length > 0),
+    [menuData?.categories],
+  );
+  const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
+  const [selectedDish, setSelectedDish] = useState<PublicMenuDish | null>(null);
+
+  const activeCategory = useMemo(() => {
+    if (!categories.length) return null;
+    if (activeCategoryId === ALL_DISHES_TAB_ID) return null;
+    if (activeCategoryId) {
+      const selectedCategory = categories.find((category) => category.id === activeCategoryId);
+      if (selectedCategory) return selectedCategory;
+    }
+    return null;
+  }, [categories, activeCategoryId]);
+
+  const isAllDishesTabActive = activeCategory === null;
+  const activeTabId = activeCategory?.id ?? ALL_DISHES_TAB_ID;
+  const restaurantName = (menuData?.restaurantName?.trim() || restaurantSlug)
+    .replace(/[-_]+/g, ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+
+  const openDishDetails = (dish: PublicMenuDish) => {
+    setSelectedDish(dish);
+  };
+
+  const closeDishDetails = () => {
+    setSelectedDish(null);
+  };
+
   if (isMenuLoading) {
     return (
-      <div className="mx-auto max-w-6xl bg-brand-cream px-4 py-6 md:px-6 md:py-8 space-y-6 animate-pulse">
-        <div className="h-32 bg-white rounded-2xl border border-brand-gray/10" />
-        <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-          <div className="space-y-6">
-            <div className="h-6 w-48 bg-brand-gray/20 rounded" />
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-72 bg-white rounded-2xl border border-brand-gray/10" />
+      <div className="min-h-screen animate-pulse bg-brand-cream text-brand-espresso">
+        <div className="sticky top-0 z-30 bg-brand-cream/95 backdrop-blur">
+          <header className="w-full bg-white/90 px-4 py-4 md:px-6 md:py-5">
+            <div className="h-10 w-64 rounded bg-brand-gray/20" />
+          </header>
+
+          <div className="w-full px-4 md:px-6">
+            <div className="flex gap-0 overflow-x-auto md:justify-center">
+              {[1, 2, 3, 4].map((tab) => (
+                <div
+                  key={tab}
+                  className="h-10 w-28 shrink-0 border border-brand-gray/20 bg-white"
+                />
               ))}
             </div>
           </div>
-          <div className="h-64 bg-white rounded-2xl border border-brand-gray/10" />
+        </div>
+
+        <div className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-8">
+          <div className={hasTableId ? 'grid gap-6 lg:grid-cols-[1fr_320px]' : 'grid gap-6'}>
+            <div className="space-y-6">
+              <div className="h-7 w-40 rounded bg-brand-gray/20" />
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {[1, 2, 3, 4, 5, 6].map((card) => (
+                  <div
+                    key={card}
+                    className="h-72 rounded-2xl border border-brand-gray/10 bg-white"
+                  />
+                ))}
+              </div>
+            </div>
+
+            {hasTableId ? (
+              <aside className="h-64 rounded-2xl border border-brand-gray/10 bg-white" />
+            ) : null}
+          </div>
         </div>
       </div>
     );
@@ -58,96 +111,45 @@ export const PublicMenuClient = ({ restaurantSlug, tableId }: PublicMenuClientPr
 
   return (
     <div className="min-h-screen bg-brand-cream text-brand-espresso">
+      <PublicMenuHeader
+        restaurantName={restaurantName}
+        categories={categories}
+        activeTabId={activeTabId}
+        allDishesTabId={ALL_DISHES_TAB_ID}
+        onSelectTab={setActiveCategoryId}
+      />
+
       <div className="mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-8">
-        <div className="mb-6 rounded-2xl border border-brand-copper/20 bg-white/80 p-4 shadow-sm backdrop-blur md:p-5">
-          <h1 className="text-xl font-bold md:text-2xl">{t('menu.public.title')}</h1>
-          <p className="mt-1 text-sm text-brand-gray">{t('menu.public.subtitle')}</p>
+        {hasTableId && isTableLoading && (
+          <p className="mb-4 text-xs text-brand-gray">{t('menu.public.checkingTable')}</p>
+        )}
 
-          {hasTableId && isTableLoading && (
-            <p className="mt-3 text-xs text-brand-gray">{t('menu.public.checkingTable')}</p>
-          )}
+        {hasTableId && isTableError && (
+          <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">
+            {t('menu.errors.tableValidationFailed')}
+          </p>
+        )}
 
-          {hasTableId && isTableError && (
-            <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">
-              {t('menu.errors.tableValidationFailed')}
-            </p>
-          )}
+        {hasTableId && !isTableLoading && !isTableError && tableExists === false && (
+          <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">
+            {t('menu.errors.tableNotFound')}
+          </p>
+        )}
 
-          {hasTableId && tableExists === false && (
-            <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-600">
-              {t('menu.errors.tableNotFound')}
-            </p>
-          )}
-        </div>
-
-        <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-          <div className="space-y-8">
-            {menuData.categories.map((category) => (
-              <section key={category.id} className="space-y-3">
-                <h2 className="text-lg font-bold md:text-xl">{category.name}</h2>
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                  {category.dishes.map((dish) => {
-                    const dishImage = getDishPreview(dish);
-                    const dishQty = cart[dish.id] ?? 0;
-
-                    return (
-                      <article key={dish.id} className="overflow-hidden rounded-2xl border border-brand-gray/20 bg-white shadow-sm">
-                        <div className="relative h-36 w-full bg-brand-cream/40">
-                          {dishImage ? (
-                            <Image
-                              src={dishImage}
-                              alt={dish.name}
-                              fill
-                              unoptimized
-                              sizes="(max-width: 768px) 100vw, 320px"
-                              className="object-cover"
-                            />
-                          ) : (
-                            <div className="flex h-full items-center justify-center text-xs text-brand-gray">
-                              {t('menu.public.noPhoto')}
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="flex h-40 flex-col p-3">
-                          <h3 className="line-clamp-1 text-sm font-bold">{dish.name}</h3>
-                          <p className="mt-1 line-clamp-2 text-xs text-brand-gray">
-                            {dish.description || t('menu.public.noDescription')}
-                          </p>
-
-                          <div className="mt-auto flex items-center justify-between pt-2">
-                            <span className="text-base font-bold text-brand-copper">
-                              {dish.price} {t('menu.currency')}
-                            </span>
-                            {canUseCart ? (
-                              <div className="flex items-center gap-2">
-                                <button
-                                  type="button"
-                                  onClick={() => removeDish(dish.id)}
-                                  className="h-7 w-7 rounded-full border border-brand-gray/30 text-sm disabled:opacity-40"
-                                  disabled={dishQty === 0 || isPlacingOrder}
-                                >
-                                  -
-                                </button>
-                                <span className="w-5 text-center text-sm font-semibold">{dishQty}</span>
-                                <button
-                                  type="button"
-                                  onClick={() => addDish(dish.id)}
-                                  className="h-7 w-7 rounded-full bg-brand-copper text-sm font-bold text-white disabled:opacity-40"
-                                  disabled={isPlacingOrder}
-                                >
-                                  +
-                                </button>
-                              </div>
-                            ) : null}
-                          </div>
-                        </div>
-                      </article>
-                    );
-                  })}
-                </div>
-              </section>
-            ))}
+        <div className={canUseCart ? 'grid gap-6 lg:grid-cols-[1fr_320px]' : 'grid gap-6'}>
+          <div className={canUseCart ? 'space-y-8' : 'mx-auto w-full max-w-5xl space-y-8'}>
+            <PublicMenuDishSections
+              categories={categories}
+              activeCategory={activeCategory}
+              isAllDishesTabActive={isAllDishesTabActive}
+              activeTabId={activeTabId}
+              canUseCart={canUseCart}
+              cart={cart}
+              isPlacingOrder={isPlacingOrder}
+              onAddDish={addDish}
+              onRemoveDish={removeDish}
+              onOpenDetails={openDishDetails}
+            />
           </div>
 
           {canUseCart ? (
@@ -190,6 +192,14 @@ export const PublicMenuClient = ({ restaurantSlug, tableId }: PublicMenuClientPr
           ) : null}
         </div>
       </div>
+
+      {selectedDish ? (
+        <PublicMenuDishDetailsModal
+          key={selectedDish.id}
+          dish={selectedDish}
+          onClose={closeDishDetails}
+        />
+      ) : null}
     </div>
   );
 };

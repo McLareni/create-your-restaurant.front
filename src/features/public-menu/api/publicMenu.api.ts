@@ -6,7 +6,7 @@ export const publicMenuApi = {
     apiClient.get<PublicMenuResponse>(`/menu/slug/${slug}`),
 
   checkTableExists: (restaurantId: number, tableId: string) =>
-    apiClient.get<{ exists: boolean }>(`/restaurants/${restaurantId}/tables/${tableId}/exists`),
+    apiClient.get<{ exists: boolean }>(`/restaurants/${restaurantId}/dining-table/${tableId}/exists`),
 
   createOrder: (restaurantId: number, data: CreateOrderInput) =>
     apiClient.post(`/restaurants/${restaurantId}/orders/public`, data),
