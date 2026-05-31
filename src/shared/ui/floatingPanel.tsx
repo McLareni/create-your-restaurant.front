@@ -25,7 +25,7 @@ export const FloatingPanel = ({ isOpen, onClose, title, children, className, pan
   const defaultWidthClass = hasWidthConstraint ? '' : 'w-full max-w-lg';
 
   useEffect(() => {
-    let timerId: NodeJS.Timeout;
+    let timerId: ReturnType<typeof setTimeout>;
     if (isOpen) {
       const saved = localStorage.getItem(`panel-pos-${panelId}`);
       if (saved) {
@@ -45,7 +45,7 @@ export const FloatingPanel = ({ isOpen, onClose, title, children, className, pan
       setIsInitialized(false);
     }
     return () => {
-      if (timerId) clearTimeout(timerId);
+      clearTimeout(timerId);
     };
   }, [isOpen, panelId, className]);
 

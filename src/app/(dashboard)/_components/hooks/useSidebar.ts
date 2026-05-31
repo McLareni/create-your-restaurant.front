@@ -17,14 +17,19 @@ export const useSidebarLogic = () => {
 
   const user = useUserStore((state) => state.user);
   const logout = useUserStore((state) => state.logout);
+  const fetchUser = useUserStore((state) => state.fetchUser);
 
   const activeRestaurant = useRestaurantStore((state) => state.activeRestaurant);
   const setActiveRestaurant = useRestaurantStore((state) => state.setActiveRestaurant);
 
-  const hasModule = useAccessStore((state) => state.hasModule);
-  const isPurchased = useAccessStore((state) => state.isPurchased);
+  // Пряма підписка на масиви для забезпечення реактивності рендерингу
+  const activeModules = useAccessStore((state) => state.activeModules);
+  const purchasedModules = useAccessStore((state) => state.purchasedModules);
   const toggleModule = useAccessStore((state) => state.toggleModule);
   const fetchAccessData = useAccessStore((state) => state.fetchAccessData);
+
+  const hasModule = (moduleKey: string) => activeModules.includes(moduleKey);
+  const isPurchased = (moduleKey: string) => purchasedModules.includes(moduleKey);
 
   const { menuGroups } = useNavigation();
   
@@ -81,7 +86,7 @@ export const useSidebarLogic = () => {
     setIsDeleting(true);
     try {
       await apiClient.delete(`/restaurants/${restaurantToDelete.id}`);
-      await useUserStore.getState().fetchUser(true);
+      await fetchUser(true);
       
       const updatedRestaurants = useUserStore.getState().user?.restaurants || [];
       

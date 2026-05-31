@@ -1,117 +1,42 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { useTranslation } from '@/shared/hooks/useTranslation';
-import { Button, Input, ConfirmModal, Checkbox, Switch, EmptyState, FloatingPanel } from '@/shared/ui';
+import { Button, Input, ConfirmModal, Checkbox, Switch, EmptyState, FloatingPanel, Select } from '@/shared/ui';
 import { Plus, Printer, QrCode } from 'lucide-react';
-import { useTables } from '../hooks/useTables';
-import { Table, CreateTableDTO } from '../types/tables.types';
 import { TableCard } from './tableCard';
-import { useCrudModal } from '@/shared/hooks/useCrudModal';
-import { tableSchema } from '../schemas/tables.schema';
-import QRCode from 'qrcode';
-
-const INITIAL_FORM_DATA: CreateTableDTO = { tableNumber: '', type: '', isActive: true };
+import { QrPrintSection } from './qrPrintSection';
+import { useQrTablesTabLogic } from '@/features/qr-tables/hooks/useQrTablesTabLogic';
+import { Table } from '@/features/qr-tables/types/tables.types';
 
 export const QrTablesTab = () => {
-  const { t } = useTranslation();
-  const { tables, uniqueTypes, createTable, updateTable, deleteTable, isTableNumberUnique, isLoading } = useTables();
-  
-  const [errorMsg, setErrorMsg] = useState('');
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [printingDataUrls, setPrintingDataUrls] = useState<Record<string, string>>({});
-  const printTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
   const {
+    t,
+    tables,
+    zones,
+    isLoading,
+    isSubmitting,
+    errorMsg,
+    setErrorMsg,
+    newZoneName,
+    setNewZoneName,
+    selectedIds,
+    printingDataUrls,
     isModalOpen,
     setIsModalOpen,
-    editingItem: editingTable,
+    editingTable,
     formData,
-    setFormData,
     deleteId,
     setDeleteId,
-    isSubmitting,
-    openCreateModal,
-    openEditModal,
-    handleSave,
-    confirmDelete,
-  } = useCrudModal<Table, CreateTableDTO>({
-    initialFormData: INITIAL_FORM_DATA,
-    createItem: createTable,
-    updateItem: updateTable,
-    deleteItem: deleteTable,
-  });
-
-  useEffect(() => {
-    return () => {
-      if (printTimeoutRef.current) clearTimeout(printTimeoutRef.current);
-    };
-  }, []);
-
-  const onOpenCreate = () => {
-    setErrorMsg('');
-    openCreateModal();
-  };
-
-  const onOpenEdit = (table: Table) => {
-    setErrorMsg('');
-    openEditModal(table, (t) => ({ ...t }));
-  };
-
-  const onSave = async () => {
-    setErrorMsg('');
-    
-    const validationResult = tableSchema.safeParse(formData);
-    if (!validationResult.success) {
-      const firstError = validationResult.error.issues[0]?.message;
-      setErrorMsg(t(firstError || 'common.errors.formValidation'));
-      return;
-    }
-
-    if (!isTableNumberUnique(formData.tableNumber, editingTable?.id)) {
-      setErrorMsg(t('qr.errors.numberUnique'));
-      return;
-    }
-    
-    await handleSave();
-  };
-
-  const onDeleteConfirm = async () => {
-    if (deleteId) {
-      setSelectedIds(prev => prev.filter(id => id !== deleteId));
-      await confirmDelete();
-    }
-  };
-
-  const handleToggleSelect = (id: string) => {
-    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => id !== i) : [...prev, id]);
-  };
-
-  const handleSelectAll = (checked: boolean) => {
-    setSelectedIds(checked ? tables.map(t => t.id) : []);
-  };
-
-  const handlePrint = async () => {
-    if (printTimeoutRef.current) {
-      clearTimeout(printTimeoutRef.current);
-    }
-
-    const urls: Record<string, string> = {};
-    const tablesToPrint = tables.filter(t => selectedIds.includes(t.id));
-    for (const table of tablesToPrint) {
-      if (!table.qrUrl) continue;
-      try {
-        urls[table.id] = await QRCode.toDataURL(table.qrUrl, { margin: 0, width: 300 });
-      } catch (err) {
-        console.error(err);
-      }
-    }
-    setPrintingDataUrls(urls);
-    
-    printTimeoutRef.current = setTimeout(() => {
-      window.print();
-    }, 500);
-  };
+    onOpenCreate,
+    onOpenEdit,
+    handleAddZone,
+    onSave,
+    onDeleteConfirm,
+    handleToggleSelect,
+    handleSelectAll,
+    handlePrint,
+    handleStatusChange,
+    handleFormDataChange,
+  } = useQrTablesTabLogic();
 
   return (
     <div className="flex h-full flex-col">
@@ -144,7 +69,7 @@ export const QrTablesTab = () => {
             
             <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar pb-6">
               <div className="grid gap-5" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
-                {tables.map(table => (
+                {tables.map((table: Table) => (
                   <TableCard 
                     key={table.id} 
                     table={table} 
@@ -152,7 +77,7 @@ export const QrTablesTab = () => {
                     onToggleSelect={handleToggleSelect}
                     onEdit={onOpenEdit} 
                     onDelete={setDeleteId}
-                    onStatusChange={(id: string, isActive: boolean) => updateTable({ id, data: { isActive } })}
+                    onStatusChange={handleStatusChange}
                   />
                 ))}
               </div>
@@ -161,14 +86,11 @@ export const QrTablesTab = () => {
         )}
       </div>
 
-      <div className="hidden print:flex flex-wrap gap-8 justify-center items-center w-full bg-white text-black">
-        {tables.filter(t => selectedIds.includes(t.id)).map(table => (
-          <div key={`print-${table.id}`} className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-gray-300 w-[60mm] h-[60mm]">
-            {printingDataUrls[table.id] && <img src={printingDataUrls[table.id]} alt="QR" className="w-full h-full object-contain mb-2" />}
-            <span className="text-xl font-bold text-black">{table.tableNumber}</span>
-          </div>
-        ))}
-      </div>
+      <QrPrintSection 
+        tables={tables} 
+        selectedIds={selectedIds} 
+        printingDataUrls={printingDataUrls} 
+      />
 
       <FloatingPanel 
         panelId="qr-table-floating-panel"
@@ -178,27 +100,62 @@ export const QrTablesTab = () => {
         className="w-132 border-brand-copper/20 shadow-2xl"
       >
         <div className="flex flex-col gap-5 text-brand-espresso dark:text-brand-cream">
-          <Input id="tableNumber" label={t('qr.modal.numberLabel')} placeholder={t('qr.modal.numberPlaceholder')} value={formData.tableNumber} onChange={(e) => { setFormData(prev => ({ ...prev, tableNumber: e.target.value })); setErrorMsg(''); }} disabled={isLoading || isSubmitting} />
+          <Input id="tableNumber" label={t('qr.modal.numberLabel')} placeholder={t('qr.modal.numberPlaceholder')} value={formData.tableNumber} onChange={(e) => { handleFormDataChange({ tableNumber: e.target.value }); setErrorMsg(''); }} disabled={isLoading || isSubmitting} />
           
-          <div className="flex flex-col gap-1.5">
-            <Input 
-              id="type" 
-              list="uniqueTypesList" 
+          <div className="flex flex-col gap-4">
+            <Select
+              id="zoneSelect"
               label={t('qr.modal.typeLabel')}
-              placeholder={t('qr.modal.typePlaceholder')} 
-              value={formData.type} 
-              onChange={(e) => { setFormData(prev => ({ ...prev, type: e.target.value })); setErrorMsg(''); }} 
-              disabled={isLoading || isSubmitting} 
-            />
-            <datalist id="uniqueTypesList">
-              {uniqueTypes.map(type => <option key={type} value={type} />)}
-            </datalist>
-            <span className="text-xs text-brand-gray">{t('qr.modal.typeHint')}</span>
+              value={formData.zoneId || ''}
+              onChange={(e) => {
+                const val = e.target.value;
+                const matchedZone = zones.find((z: { id: string; name: string }) => z.id === val);
+                handleFormDataChange({
+                  zoneId: val || null,
+                  type: matchedZone ? matchedZone.name : '',
+                });
+                setErrorMsg('');
+              }}
+              disabled={isLoading || isSubmitting}
+            >
+              <option value="">Оберіть наявну зону закладу</option>
+              {zones.map((zone: { id: string; name: string }) => (
+                <option key={zone.id} value={zone.id}>
+                  {zone.name}
+                </option>
+              ))}
+            </Select>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-sm font-medium text-brand-espresso dark:text-brand-cream">
+                Або створіть нову зону, якщо її немає у списку
+              </label>
+              <div className="flex gap-2 items-end">
+                <div className="flex-1">
+                  <Input
+                    id="newZoneInput"
+                    placeholder="Назва нової зони (напр. VIP, Тераса)"
+                    value={newZoneName}
+                    onChange={(e) => setNewZoneName(e.target.value)}
+                    disabled={isLoading || isSubmitting}
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="brand"
+                  onClick={handleAddZone}
+                  disabled={isLoading || isSubmitting || !newZoneName.trim()}
+                  className="h-12 px-4 shrink-0 flex items-center justify-center"
+                >
+                  <Plus className="h-5 w-5" />
+                </Button>
+              </div>
+            </div>
           </div>
 
           <div className="flex items-center justify-between border-t border-brand-gray/10 dark:border-brand-gray/20 pt-4">
             <span className="text-sm font-medium text-brand-espresso dark:text-brand-cream">{t('qr.modal.statusLabel')}</span>
-            <Switch checked={formData.isActive} onChange={(val) => setFormData(prev => ({ ...prev, isActive: val }))} disabled={isLoading || isSubmitting} />
+            <Switch id="isActive" checked={formData.isActive} onChange={(val) => handleFormDataChange({ isActive: val })} disabled={isLoading || isSubmitting} />
           </div>
 
           {errorMsg && <div className="text-sm text-red-500 font-medium">{errorMsg}</div>}

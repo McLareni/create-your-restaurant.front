@@ -6,9 +6,10 @@ export const useTranslation = () => {
     const keys = key.split('.');
     let value: any = uk;
     for (const k of keys) {
-      if (value[k] === undefined) return key;
+      if (value === null || value[k] === undefined) return key;
       value = value[k];
     }
+    if (typeof value === 'object') return key;
     return value;
   }, []);
 
