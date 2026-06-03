@@ -1,20 +1,24 @@
 'use client';
 
 import { useState } from 'react';
-import toast from 'react-hot-toast';
+import { useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from '@/shared/hooks/useTranslation';
+import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 import { dishSchema, DishFormValues, INITIAL_DISH_FORM } from '../../schemas/dishes.schema';
 import { Dish } from '../../types/dishes.types';
 import { menuApi } from '../../api/menu.api';
-import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
+import toast from 'react-hot-toast';
 
-export const useDishModal = (
-  createDishAsync: any,
-  updateDishAsync: any,
-  queryClient: any,
-  t: any
-) => {
+interface UseDishModalProps {
+  createDishAsync: (variables: { categoryId: string; data: DishFormValues }) => Promise<any>;
+  updateDishAsync: (variables: { id: string; data: DishFormValues }) => Promise<any>;
+}
+
+export const useDishModal = ({ createDishAsync, updateDishAsync }: UseDishModalProps) => {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const activeRestaurant = useRestaurantStore((state) => state.activeRestaurant);
-  const restaurantId = Number(activeRestaurant?.id || 1);
+  const restaurantId = activeRestaurant?.id ? Number(activeRestaurant.id) : null;
 
   const [isDishModalOpen, setIsDishModalOpen] = useState(false);
   const [editingDish, setEditingDish] = useState<Dish | null>(null);
@@ -146,7 +150,7 @@ export const useDishModal = (
   };
 
   const handleSaveDish = async () => {
-    if (isSaving) return;
+    if (isSaving || !restaurantId) return;
     setFormErrors({});
 
     const validation = dishSchema.safeParse(dishForm);
@@ -196,20 +200,11 @@ export const useDishModal = (
     }
   };
 
-  const handleCloseDishModal = () => {
-    dishImageUrls.forEach(url => { if (url.startsWith('blob:')) URL.revokeObjectURL(url); });
-    setDishPhotoFiles([]);
-    setDishImageUrls([]);
-    setActiveDishImageIndex(0);
-    setIsSaving(false);
-    setIsDishModalOpen(false);
-  };
-
   return {
     isDishModalOpen,
     setIsDishModalOpen: (open: boolean) => {
-      if (!open) handleCloseDishModal();
-      else setIsDishModalOpen(true);
+      if (!open) dishImageUrls.forEach(url => { if (url.startsWith('blob:')) URL.revokeObjectURL(url); });
+      setIsDishModalOpen(open);
     },
     dishForm,
     setDishForm,

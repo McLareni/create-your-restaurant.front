@@ -1,4 +1,4 @@
-import { ChangeEvent, MouseEvent, Dispatch, SetStateAction } from 'react';
+import { Dispatch, SetStateAction, ChangeEvent, MouseEvent } from 'react';
 
 export interface CustomStaffRole {
   id: string;
@@ -21,21 +21,37 @@ export interface StaffMember {
 export type CreateStaffDTO = Omit<StaffMember, 'id' | 'avatarColor'>;
 export type UpdateStaffDTO = Partial<CreateStaffDTO>;
 
-export interface UseStaffModalProps {
-  formData: CreateStaffDTO;
-  setFormData: Dispatch<SetStateAction<CreateStaffDTO>>;
-  onPhotoFileChange: (file: File) => void;
-  onCreateRole: (name: string) => Promise<any>;
-  onDeleteRole: (id: string) => Promise<any>;
-  onClose: () => void;
-  isLoading: boolean;
-}
-
 export interface StaffCardProps {
   member: StaffMember;
   onEdit: (member: StaffMember) => void;
   onDelete: (id: string) => void;
   onStatusChange: (id: string, isActive: boolean) => void;
+}
+
+export interface StaffListViewProps {
+  t: (key: string) => string;
+  staff: StaffMember[];
+  roles: CustomStaffRole[];
+  isLoading: boolean;
+  searchQuery: string;
+  setSearchQuery: (value: string) => void;
+  validationError: string | null;
+  setValidationError: (value: string | null) => void;
+  isModalOpen: boolean;
+  setIsModalOpen: (value: boolean) => void;
+  editingMember: StaffMember | null;
+  formData: CreateStaffDTO;
+  setFormData: Dispatch<SetStateAction<CreateStaffDTO>>;
+  deleteId: string | null;
+  setDeleteId: (value: string | null) => void;
+  openCreateModal: () => void;
+  openEditModal: (member: StaffMember) => void;
+  confirmDelete: () => Promise<void>;
+  onSave: () => Promise<void>;
+  setSelectedPhotoFile: (file: File | null) => void;
+  createRole: (name: string) => Promise<any>;
+  deleteRole: (id: string) => Promise<any>;
+  updateStaff: (params: { id: string; data: any }) => void;
 }
 
 export interface StaffModalViewProps {
@@ -67,7 +83,7 @@ export interface StaffModalProps {
   isEditing: boolean;
   formData: CreateStaffDTO;
   setFormData: Dispatch<SetStateAction<CreateStaffDTO>>;
-  onPhotoFileChange: (file: File) => void;
+  onPhotoFileChange: (file: File | null) => void;
   onSave: () => void;
   roles: CustomStaffRole[];
   onCreateRole: (name: string) => Promise<any>;
@@ -78,28 +94,35 @@ export interface StaffModalProps {
   isLoading?: boolean;
 }
 
-export interface StaffListViewProps {
-  t: (key: string) => string;
-  staff: StaffMember[];
-  roles: CustomStaffRole[];
-  isLoading: boolean;
-  searchQuery: string;
-  setSearchQuery: (value: string) => void;
-  validationError: string | null;
-  setValidationError: (value: string | null) => void;
-  isModalOpen: boolean;
-  setIsModalOpen: (value: boolean) => void;
-  editingMember: StaffMember | null;
+export interface UseStaffModalProps {
   formData: CreateStaffDTO;
   setFormData: Dispatch<SetStateAction<CreateStaffDTO>>;
-  deleteId: string | null;
-  setDeleteId: (value: string | null) => void;
-  openCreateModal: () => void;
-  openEditModal: (member: StaffMember) => void;
-  confirmDelete: () => Promise<void>;
-  onSave: () => Promise<void>;
-  setSelectedPhotoFile: (file: File | null) => void;
-  createRole: (name: string) => Promise<any>;
-  deleteRole: (id: string) => Promise<any>;
-  updateStaff: (params: { id: string; data: any }) => void;
+  onPhotoFileChange: (file: File | null) => void;
+  onCreateRole: (name: string) => Promise<any>;
+  onDeleteRole: (id: string) => Promise<any>;
+  onClose: () => void;
+  isLoading: boolean;
+}
+
+export interface ClockInResponse {
+  status: string;
+  firstName: string;
+}
+
+export interface WaiterZReport {
+  waiterId: number;
+  waiterName: string;
+  shiftStart: string;
+  shiftEnd: string;
+  totalHours: number;
+  totalOrdersClosed: number;
+  totalSalesVolume: number;
+  baseHourlyEarnings: number;
+  percentageEarnings: number;
+  finalTotalEarnings: number;
+}
+
+export interface AuthorizeVoidResponse {
+  success: boolean;
+  voidedBy: string;
 }

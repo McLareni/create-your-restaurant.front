@@ -4,13 +4,7 @@ import { CreateStaffDTO, UseStaffModalProps } from '../types/staff.types';
 import toast from 'react-hot-toast';
 
 export const useStaffModal = ({
-  formData,
-  setFormData,
-  onPhotoFileChange,
-  onCreateRole,
-  onDeleteRole,
-  onClose,
-  isLoading
+  formData, setFormData, onPhotoFileChange, onCreateRole, onDeleteRole, onClose, isLoading
 }: UseStaffModalProps) => {
   const { t } = useTranslation();
   const [newRoleName, setNewRoleName] = useState('');
@@ -25,8 +19,6 @@ export const useStaffModal = ({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    toast.loading(t('menu.constructor.dishes.notifications.imageUploading'), { id: 'staff-img' });
-
     if (formData.photo && formData.photo.startsWith('blob:')) {
       URL.revokeObjectURL(formData.photo);
     }
@@ -34,13 +26,10 @@ export const useStaffModal = ({
     const previewUrl = URL.createObjectURL(file);
     setFormData(prev => ({ ...prev, photo: previewUrl }));
     onPhotoFileChange(file);
-    toast.success(t('menu.constructor.dishes.notifications.imageUploadSuccess'), { id: 'staff-img' });
+    toast.success(t('staff.modal.imageQueued') || 'Зображення додано до черги збереження');
   };
 
   const handleCleanClose = () => {
-    if (formData.photo && formData.photo.startsWith('blob:')) {
-      URL.revokeObjectURL(formData.photo);
-    }
     setNewRoleName('');
     setShowPassword(false);
     onClose();

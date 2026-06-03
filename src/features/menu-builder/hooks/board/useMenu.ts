@@ -5,11 +5,11 @@ import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 export const useMenu = () => {
   const queryClient = useQueryClient();
   const activeRestaurant = useRestaurantStore((state) => state.activeRestaurant);
-  const restaurantId = Number(activeRestaurant?.id || 1);
+  const restaurantId = activeRestaurant?.id ? Number(activeRestaurant.id) : null;
 
   const { data: menuData, isLoading } = useQuery({
     queryKey: ['fullMenu', restaurantId],
-    queryFn: () => menuApi.getFullMenu(restaurantId),
+    queryFn: () => menuApi.getFullMenu(restaurantId!),
     enabled: !!restaurantId,
   });
 
@@ -18,7 +18,7 @@ export const useMenu = () => {
   const createCategoryMutation = useMutation({
     mutationFn: (name: string) =>
       menuApi.createCategory({
-        restaurantId: restaurantId,
+        restaurantId: restaurantId!,
         name,
         sortOrder: categories.length,
       }),
@@ -96,19 +96,16 @@ export const useMenu = () => {
 
       queryClient.setQueryData(['fullMenu', restaurantId], (old: any) => {
         if (!old) return old;
-        
         const updatedCategories = old.categories.map((category: any) => {
           const updatedDishes = category.dishes.map((dish: any) => {
             const item = newItems.find((i) => i.id === dish.id);
             return item ? { ...dish, sortOrder: item.sortOrder } : dish;
           });
-          
           return {
             ...category,
             dishes: updatedDishes.sort((a: any, b: any) => (a.sortOrder || 0) - (b.sortOrder || 0)),
           };
         });
-        
         return { ...old, categories: updatedCategories };
       });
 

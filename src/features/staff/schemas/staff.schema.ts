@@ -10,5 +10,3 @@ export const staffSchema = z.object({
   photo: z.string().optional().default(''),
   password: z.string().min(4, 'staff.errors.passwordLength').optional().or(z.literal('')),
 });
-
-export type StaffFormValues = z.infer<typeof staffSchema>;

@@ -1,13 +1,8 @@
 import { apiClient } from '@/shared/api/client';
 import { CreateStaffDTO, StaffMember, UpdateStaffDTO, CustomStaffRole } from '../types/staff.types';
 
-type BackendStaff = Omit<StaffMember, 'avatarColor'> & {
-  role: string;
-};
-
-type StaffEnvelope = {
-  staff: BackendStaff;
-};
+type BackendStaff = Omit<StaffMember, 'avatarColor'> & { role: string };
+type StaffEnvelope = { staff: BackendStaff };
 
 const AVATAR_COLOR_POOL = [
   'bg-orange-500',
@@ -28,16 +23,16 @@ const toUiStaff = (staff: BackendStaff): StaffMember => ({
   avatarColor: getAvatarColor(staff.id),
 });
 
-const unwrapStaff = (payload: BackendStaff | StaffEnvelope): BackendStaff =>
+const unwrapStaff = (payload: BackendStaff | StaffEnvelope): BackendStaff => 
   'staff' in payload ? payload.staff : payload;
 
 export const staffApi = {
-  async getStaff(restaurantId: number) {
+  async getStaff(restaurantId: number): Promise<StaffMember[]> {
     const response = await apiClient.get<BackendStaff[]>(`/restaurants/${restaurantId}/staff`);
     return response.map(toUiStaff);
   },
 
-  async createStaff(restaurantId: number, data: CreateStaffDTO) {
+  async createStaff(restaurantId: number, data: CreateStaffDTO): Promise<StaffMember> {
     const response = await apiClient.post<BackendStaff | StaffEnvelope>(
       `/restaurants/${restaurantId}/staff`,
       data,
@@ -45,7 +40,7 @@ export const staffApi = {
     return toUiStaff(unwrapStaff(response));
   },
 
-  async updateStaff(restaurantId: number, staffId: string, data: UpdateStaffDTO) {
+  async updateStaff(restaurantId: number, staffId: string, data: UpdateStaffDTO): Promise<StaffMember> {
     const response = await apiClient.patch<BackendStaff | StaffEnvelope>(
       `/restaurants/${restaurantId}/staff/${staffId}`,
       data,
@@ -53,10 +48,9 @@ export const staffApi = {
     return toUiStaff(unwrapStaff(response));
   },
 
-  async uploadStaffPhoto(restaurantId: number, staffId: string, photo: File) {
+  async uploadStaffPhoto(restaurantId: number, staffId: string, photo: File): Promise<StaffMember> {
     const formData = new FormData();
     formData.append('photo', photo);
-
     const response = await apiClient.patch<BackendStaff | StaffEnvelope>(
       `/restaurants/${restaurantId}/staff/${staffId}/photo`,
       formData,
@@ -64,19 +58,19 @@ export const staffApi = {
     return toUiStaff(unwrapStaff(response));
   },
 
-  async deleteStaff(restaurantId: number, staffId: string) {
+  async deleteStaff(restaurantId: number, staffId: string): Promise<{ message: string }> {
     return await apiClient.delete<{ message: string }>(`/restaurants/${restaurantId}/staff/${staffId}`);
   },
 
-  async getRoles(restaurantId: number) {
+  async getRoles(restaurantId: number): Promise<CustomStaffRole[]> {
     return await apiClient.get<CustomStaffRole[]>(`/restaurants/${restaurantId}/staff/roles`);
   },
 
-  async createRole(restaurantId: number, name: string) {
+  async createRole(restaurantId: number, name: string): Promise<CustomStaffRole> {
     return await apiClient.post<CustomStaffRole>(`/restaurants/${restaurantId}/staff/roles`, { name });
   },
 
-  async deleteRole(restaurantId: number, roleId: string) {
+  async deleteRole(restaurantId: number, roleId: string): Promise<{ message: string }> {
     return await apiClient.delete<{ message: string }>(`/restaurants/${restaurantId}/staff/roles/${roleId}`);
   }
 };

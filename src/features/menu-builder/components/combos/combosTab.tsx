@@ -1,6 +1,6 @@
 'use client';
 
-import { useCombosTab } from '../../hooks/combos/useCombosTab';
+import { useCombosManagement } from '../../hooks/combos/useCombosManagement';
 import { Button, ConfirmModal, EmptyState } from '@/shared/ui';
 import { PackagePlus, Plus } from 'lucide-react';
 import { Combo } from '../../types/combos.types';
@@ -8,7 +8,7 @@ import { ComboCard } from './comboCard';
 import { ComboModal } from './comboModal';
 
 export const CombosTab = () => {
-  const state = useCombosTab();
+  const state = useCombosManagement();
 
   if (state.isLoading && state.combos.length === 0) {
     return (
@@ -63,15 +63,7 @@ export const CombosTab = () => {
         </div>
       )}
 
-      {state.isModalOpen && (
-        <ComboModal 
-          isOpen={state.isModalOpen}
-          onClose={() => state.setIsModalOpen(false)}
-          isLoading={state.isLoading}
-          onSave={state.handleSave}
-          initialData={state.formData}
-        />
-      )}
+      <ComboModal state={state} />
 
       <ConfirmModal 
         isOpen={!!state.deleteId} 

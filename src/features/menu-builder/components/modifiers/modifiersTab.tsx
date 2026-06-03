@@ -1,6 +1,6 @@
 'use client';
 
-import { useModifiersTab } from '../../hooks/modifiers/useModifiersTab';
+import { useModifiersManagement } from '../../hooks/modifiers/useModifiersManagement';
 import { Button, ConfirmModal } from '@/shared/ui';
 import { Plus, Layers } from 'lucide-react';
 import { ModifierGroupModal } from './modifierGroupModal';
@@ -9,9 +9,9 @@ import { ModifierCard } from './modifierCard';
 import { ModifierGroup } from '../../types/modifiers.types';
 
 export const ModifiersTab = () => {
-  const state = useModifiersTab();
+  const state = useModifiersManagement();
 
-  if (state.isLoading) {
+  if (state.isLoading && state.groups.length === 0) {
     return (
       <div className="flex flex-col gap-4 py-2 w-full">
         <div className="h-16 w-full rounded-xl bg-brand-gray/10 animate-pulse" />
@@ -30,7 +30,7 @@ export const ModifiersTab = () => {
           </h2>
           <p className="text-sm text-brand-gray mt-1">{state.t('menu.constructor.modifiers.emptyDesc')}</p>
         </div>
-        <Button variant="brand" onClick={() => state.handleOpenGroupModal()} className="h-10 px-5 rounded-lg text-sm shadow-md" icon={<Plus className="h-4 w-4" />}>
+        <Button variant="brand" onClick={() => state.handleOpenGroupModal()} disabled={state.isSubmitting} className="h-10 px-5 rounded-lg text-sm shadow-md" icon={<Plus className="h-4 w-4" />}>
           {state.t('menu.constructor.modifiers.addBtn')}
         </Button>
       </div>
@@ -42,7 +42,7 @@ export const ModifiersTab = () => {
           </div>
           <h3 className="text-xl font-bold text-brand-espresso dark:text-brand-cream mb-2">{state.t('menu.constructor.modifiers.emptyTitle')}</h3>
           <p className="text-brand-gray max-w-sm mb-6 text-sm">{state.t('menu.constructor.modifiers.emptyStateDesc')}</p>
-          <Button variant="outline" onClick={() => state.handleOpenGroupModal()} className="border-brand-copper text-brand-copper" icon={<Plus className="h-4 w-4" />}>
+          <Button variant="outline" onClick={() => state.handleOpenGroupModal()} disabled={state.isSubmitting} className="border-brand-copper text-brand-copper" icon={<Plus className="h-4 w-4" />}>
             {state.t('menu.constructor.modifiers.addFirstBtn')}
           </Button>
         </div>

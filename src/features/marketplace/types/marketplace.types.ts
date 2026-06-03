@@ -5,3 +5,14 @@ export interface MarketplaceModule {
   icon: LucideIcon;
   price: number;
 }
+
+export interface ConnectModulePayload {
+  moduleKey: string;
+  activationCode?: string;
+}
+
+export interface AccessResponse {
+  purchasedModules: string[];
+  activeModules: string[];
+  permissions: string[];
+}

@@ -20,7 +20,9 @@ export const qr = {
     typePlaceholder: "Наприклад: Тераса, Основний зал",
     typeHint: "Почніть вводити, щоб побачити попередні зони",
     statusLabel: "Приймати замовлення з цього столу",
+    createZoneLabel: "Створити нову зону / локацію",
     cancel: "Скасувати",
+    newZonePlaceholder: "Назва нової зони",
     save: "Зберегти"
   },
   errors: {

@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { Card, Button, Switch } from '@/shared/ui';
 import { CheckCircle2, Plus, Settings2, Check } from 'lucide-react';
@@ -12,30 +11,25 @@ interface ModuleCardProps {
   isActive: boolean;
   onConnect: (moduleKey: string) => void;
   onToggle: (moduleKey: string, isActive: boolean) => void;
+  onSettingsClick: (moduleKey: string) => void;
 }
 
-export const ModuleCard = ({ moduleData, isPurchased, isActive, onConnect, onToggle }: ModuleCardProps) => {
+export const ModuleCard = ({
+  moduleData,
+  isPurchased,
+  isActive,
+  onConnect,
+  onToggle,
+  onSettingsClick,
+}: ModuleCardProps) => {
   const { t } = useTranslation();
-  const router = useRouter();
   const Icon = moduleData.icon;
 
-  const getPriceText = (price: number) => {
-    if (price === 0) return t('marketplace.price.free');
-    return t('marketplace.price.monthly').replace('{{price}}', price.toString());
-  };
+  const priceText = moduleData.price === 0 
+    ? t('marketplace.price.free') 
+    : t('marketplace.price.monthly').replace('{{price}}', moduleData.price.toString());
 
   const features = t(`marketplace.modules.${moduleData.key}.features`) as unknown as string[];
-
-  const handleSettingsClick = () => {
-    const routeMap: Record<string, string> = {
-      'menu-engine': '/dashboard/menu-builder',
-      'qr-tables': '/dashboard/qr',
-      'staff': '/dashboard/staff',
-      'pos-sync': '/dashboard/pos',
-    };
-    
-    router.push(routeMap[moduleData.key] || `/dashboard/${moduleData.key}`);
-  };
 
   return (
     <Card className={`p-6! flex flex-col h-full min-h-80 ${isActive ? 'border-brand-copper/30 bg-brand-copper/5 dark:bg-brand-copper/10' : ''}`}>
@@ -78,7 +72,7 @@ export const ModuleCard = ({ moduleData, isPurchased, isActive, onConnect, onTog
         {!isPurchased ? (
           <>
             <span className="font-semibold text-brand-espresso dark:text-brand-cream">
-              {getPriceText(moduleData.price)}
+              {priceText}
             </span>
             <Button 
               variant="outline" 
@@ -99,7 +93,7 @@ export const ModuleCard = ({ moduleData, isPurchased, isActive, onConnect, onTog
               <Button 
                 variant="ghost" 
                 className="h-8 px-3 text-xs text-brand-gray hover:text-brand-copper outline-none"
-                onClick={handleSettingsClick}
+                onClick={() => onSettingsClick(moduleData.key)}
               >
                 <Settings2 className="h-3.5 w-3.5 mr-1.5" />
                 {t('marketplace.status.settings')}

@@ -3,10 +3,19 @@ import { useTranslation } from '@/shared/hooks/useTranslation';
 import { useStaff } from '@/features/staff/hooks/useStaff';
 import { useCrudModal } from '@/shared/hooks/useCrudModal';
 import { staffSchema } from '@/features/staff/schemas/staff.schema';
-import { StaffMember, CreateStaffDTO } from '@/features/staff/types/staff.types';
+import { StaffMember, CreateStaffDTO, UpdateStaffDTO } from '../types/staff.types';
 import toast from 'react-hot-toast';
 
-const INITIAL_FORM_DATA: CreateStaffDTO = { firstName: '', lastName: '', email: '', phone: '', role: '', isActive: true, photo: '', password: '' };
+const INITIAL_FORM_DATA: CreateStaffDTO = { 
+  firstName: '', 
+  lastName: '', 
+  email: '', 
+  phone: '', 
+  role: '', 
+  isActive: true, 
+  photo: '', 
+  password: '' 
+};
 
 export const useStaffList = () => {
   const { t } = useTranslation();
@@ -20,12 +29,14 @@ export const useStaffList = () => {
     uploadStaffPhotoAsync,
     createRole,
     deleteRole,
-    isLoading,
+    isLoading: isQueriesLoading,
   } = useStaff();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [selectedPhotoFile, setSelectedPhotoFile] = useState<File | null>(null);
+  const [isMutationPending, setIsMutationPending] = useState(false);
 
   const {
     isModalOpen,
@@ -40,20 +51,22 @@ export const useStaffList = () => {
     confirmDelete,
   } = useCrudModal<StaffMember, CreateStaffDTO>({
     initialFormData: INITIAL_FORM_DATA,
-    createItem: (data) => {
-      void createStaffAsync(data);
-    },
-    updateItem: updateStaff,
-    deleteItem: deleteStaff,
+    createItem: async () => {},
+    updateItem: () => {},
+    deleteItem: deleteStaff as any,
   });
 
   const openCreateModal = () => {
     setSelectedPhotoFile(null);
+    setFieldErrors({});
+    setValidationError(null);
     coreOpenCreateModal();
   };
 
   const openEditModal = (item: StaffMember) => {
     setSelectedPhotoFile(null);
+    setFieldErrors({});
+    setValidationError(null);
     coreOpenEditModal(item, (i) => ({
       firstName: i.firstName,
       lastName: i.lastName,
@@ -67,21 +80,36 @@ export const useStaffList = () => {
   };
 
   const onSave = async () => {
+    if (isMutationPending) return;
     setValidationError(null);
+    setFieldErrors({});
+    
     const validation = staffSchema.safeParse(formData);
     
     if (!validation.success) {
+      const errorsMap: Record<string, string> = {};
+      validation.error.issues.forEach((issue) => {
+        const path = issue.path[0] as string;
+        errorsMap[path] = t(issue.message);
+      });
+      setFieldErrors(errorsMap);
       setValidationError(t(validation.error.issues[0].message));
       return;
     }
 
+    setIsMutationPending(true);
     try {
-      const { photo, ...payload } = validation.data;
+      const { photo, password, ...payload } = validation.data;
       void photo;
 
+      const submitData: UpdateStaffDTO = {
+        ...payload,
+        ...(password && password.trim() !== '' ? { password } : {})
+      };
+
       const savedStaff = editingMember
-        ? await updateStaffAsync({ id: editingMember.id, data: payload })
-        : await createStaffAsync(payload);
+        ? await updateStaffAsync({ id: editingMember.id, data: submitData })
+        : await createStaffAsync(submitData as CreateStaffDTO);
 
       if (selectedPhotoFile && savedStaff?.id) {
         await uploadStaffPhotoAsync({ staffId: savedStaff.id, file: selectedPhotoFile });
@@ -90,10 +118,13 @@ export const useStaffList = () => {
       setSelectedPhotoFile(null);
       setIsModalOpen(false);
       setValidationError(null);
-      toast.success(editingMember ? t('staff.modal.updateSuccess' as any) || 'Дані працівника оновлено' : t('staff.modal.createSuccess' as any) || 'Працівника успішно додано');
+      setFieldErrors({});
+      toast.success(editingMember ? t('staff.notifications.updateSuccess') : t('staff.notifications.createSuccess'));
     } catch (error: any) {
       const backendMessage = error?.response?.data?.message || t('auth.errors.defaultError');
       toast.error(backendMessage);
+    } finally {
+      setIsMutationPending(false);
     }
   };
 
@@ -109,11 +140,12 @@ export const useStaffList = () => {
     t,
     staff: filteredStaff,
     roles,
-    isLoading,
+    isLoading: isQueriesLoading || isMutationPending,
     searchQuery,
     setSearchQuery,
     validationError,
     setValidationError,
+    errors: fieldErrors,
     isModalOpen,
     setIsModalOpen,
     editingMember,

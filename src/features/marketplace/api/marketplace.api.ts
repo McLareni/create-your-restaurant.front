@@ -2,11 +2,7 @@ import { apiClient } from '@/shared/api/client';
 import { MarketplaceModule } from '../types/marketplace.types';
 import { Utensils, QrCode, Users, BarChart3, BellRing, ArrowRightLeft, MessageSquareQuote, Palette, } from 'lucide-react';
 
-type AccessResponse = {
-  purchasedModules: string[];
-  activeModules: string[];
-  permissions: string[];
-};
+type AccessResponse = { purchasedModules: string[]; activeModules: string[]; permissions: string[]; };
 
 const MODULE_CATALOG: MarketplaceModule[] = [
   { key: 'menu-engine', icon: Utensils, price: 0 },
@@ -31,9 +27,8 @@ export const marketplaceApi = {
       .map((key) => ({ key, icon: Utensils, price: 0 }));
     return [...MODULE_CATALOG, ...dynamicModules];
   },
-
-  connectModule: async (restaurantId: number, moduleKey: string): Promise<boolean> => {
-    await apiClient.post(`/restaurants/${restaurantId}/modules/connect`, { moduleKey });
+  connectModule: async (restaurantId: number, moduleKey: string, activationCode?: string): Promise<boolean> => {
+    await apiClient.post(`/restaurants/${restaurantId}/modules/connect`, { moduleKey, activationCode });
     return true;
   }
 };

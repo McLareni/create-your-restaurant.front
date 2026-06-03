@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import { useLookup } from './dishes/useLookup';
+import { useLookup } from './dishes/useDishesQueries';
 import { DishFormValues } from '../schemas/dishes.schema';
 import toast from 'react-hot-toast';
 

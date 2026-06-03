@@ -16,7 +16,9 @@ export const marketplace = {
   connectModal: {
     title: "Підключення модуля",
     description: "Ви збираєтесь підключити модуль «{{module}}» за {{price}}. Сума буде списана з вашого балансу або додана до наступного рахунку. Продовжити?",
-    confirmBtn: "Підключити"
+    confirmBtn: "Підключити",
+    activationCodeLabel: "Промокод / Код активації (Опціонально)",
+    activationCodePlaceholder: "напр. GUSTIO-FREE-2026"
   },
   modules: {
     "menu-engine": {
@@ -51,7 +53,7 @@ export const marketplace = {
     },
     "feedback": {
       title: "Відгуки та Фідбек",
-      description: "Збір чайових та оцінок від гостей після оплати рахунку. Аналіз задоволеності.",
+      description: "Збір чайових та оцінок від гостей після оплати рахунку. - фідбек.",
       features: ["Безготівкові чайові", "Рейтинг страв", "Сповіщення про негатив"]
     },
     "visual": {

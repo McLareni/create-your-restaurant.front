@@ -1,30 +1,15 @@
 'use client';
 
+import Image from 'next/image';
 import { Button, FloatingPanel, Input, Select, Switch } from '@/shared/ui';
 import { Camera, User, Plus, Trash2, Eye, EyeOff, ShieldCheck, ShieldAlert } from 'lucide-react';
 import { StaffModalViewProps } from '../types/staff.types';
 
 export const StaffModalView = ({
-  isOpen,
-  isEditing,
-  formData,
-  roles,
-  hasPassword = false,
-  errors = {},
-  validationError,
-  isLoading = false,
-  onSave,
-  t,
-  newRoleName,
-  setNewRoleName,
-  isCreatingRole,
-  showPassword,
-  setShowPassword,
-  handlePhotoChange,
-  handleCleanClose,
-  handleAddRole,
-  handleRemoveRole,
-  onFieldChange
+  isOpen, isEditing, formData, roles, hasPassword = false, errors = {},
+  validationError, isLoading = false, onSave, t, newRoleName, setNewRoleName,
+  isCreatingRole, showPassword, setShowPassword, handlePhotoChange,
+  handleCleanClose, handleAddRole, handleRemoveRole, onFieldChange
 }: StaffModalViewProps) => {
   return (
     <FloatingPanel 
@@ -32,14 +17,20 @@ export const StaffModalView = ({
       isOpen={isOpen} 
       onClose={handleCleanClose} 
       title={isEditing ? t('staff.modal.editTitle') : t('staff.modal.createTitle')}
-      className="w-xl border-brand-copper/20 shadow-2xl"
+      className="w-full max-w-xl border-brand-copper/20 shadow-2xl"
     >
       <div className="flex flex-col gap-5 text-brand-espresso dark:text-brand-cream">
         
         <div className="flex flex-col items-center justify-center gap-2 pb-2 self-center relative group">
           <div className="h-20 w-20 rounded-full border border-brand-gray/30 bg-brand-cream/40 flex items-center justify-center overflow-hidden relative shadow-inner">
             {formData.photo ? (
-              <img src={formData.photo} alt="Staff preview" className="h-full w-full object-cover" />
+              <Image 
+                src={formData.photo} 
+                alt="Staff preview" 
+                fill 
+                unoptimized={formData.photo.startsWith('blob:') || formData.photo.startsWith('data:')}
+                className="object-cover" 
+              />
             ) : (
               <User className="h-10 w-10 text-brand-gray/50" />
             )}
@@ -109,15 +100,15 @@ export const StaffModalView = ({
 
         <div className="bg-brand-cream/40 dark:bg-brand-espresso/30 border border-brand-gray/20 rounded-xl p-4 flex flex-col gap-3">
           <span className="text-xs font-semibold text-brand-espresso dark:text-brand-cream">{t('staff.modal.addRoleLabel')}</span>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-end">
             <div className="flex-1">
-              <input 
-                type="text"
+              <Input 
+                id="new-role-input"
                 placeholder={t('staff.modal.addRolePlaceholder')}
                 value={newRoleName}
                 onChange={(e) => setNewRoleName(e.target.value)}
                 disabled={isLoading || isCreatingRole}
-                className="h-10 w-full rounded-md border border-brand-gray/30 bg-white dark:bg-brand-mocha px-3 py-2 text-sm text-brand-espresso dark:text-brand-cream outline-none focus:border-brand-copper"
+                className="h-10 border-brand-gray/30"
               />
             </div>
             <Button 

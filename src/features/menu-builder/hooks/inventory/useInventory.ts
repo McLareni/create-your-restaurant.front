@@ -6,30 +6,28 @@ import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 export const useInventory = () => {
   const queryClient = useQueryClient();
   const activeRestaurant = useRestaurantStore((state) => state.activeRestaurant);
-  const restaurantId = Number(activeRestaurant?.id || 1);
+  const restaurantId = activeRestaurant?.id ? Number(activeRestaurant.id) : null;
 
   const queryKey = ['inventory', restaurantId];
 
   const { data: inventoryItems = [], isLoading } = useQuery({
     queryKey,
-    queryFn: () => inventoryApi.getAll(restaurantId),
+    queryFn: () => inventoryApi.getAll(restaurantId!),
     enabled: !!restaurantId,
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: CreateInventoryItemDTO) => inventoryApi.create(restaurantId, data),
+    mutationFn: (data: CreateInventoryItemDTO) => inventoryApi.create(restaurantId!, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: UpdateInventoryItemDTO) => inventoryApi.update(restaurantId, data),
-    
+    mutationFn: (data: UpdateInventoryItemDTO) => inventoryApi.update(restaurantId!, data),
     onMutate: async (updatedItem) => {
       await queryClient.cancelQueries({ queryKey });
       const previousInventory = queryClient.getQueryData<InventoryItem[]>(queryKey);
-
       if (previousInventory) {
         queryClient.setQueryData<InventoryItem[]>(
           queryKey,
@@ -40,20 +38,18 @@ export const useInventory = () => {
       }
       return { previousInventory };
     },
-    
     onError: (err, updatedItem, context) => {
       if (context?.previousInventory) {
         queryClient.setQueryData(queryKey, context.previousInventory);
       }
     },
-    
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey });
     },
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => inventoryApi.delete(restaurantId, id),
+    mutationFn: (id: string) => inventoryApi.delete(restaurantId!, id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey });
     },
@@ -61,7 +57,7 @@ export const useInventory = () => {
 
   return {
     inventoryItems,
-    isLoading,
+    isLoading: isLoading || restaurantId === null,
     createItem: createMutation.mutate,
     updateItem: updateMutation.mutate,
     deleteItem: deleteMutation.mutate,
