@@ -13,6 +13,7 @@ export const createOrganizationSchema = z.object({
   name: z.string()
     .min(3, 'organization.errors.nameLength')
     .max(100, 'organization.errors.nameLength')
+    .regex(/^[a-zA-Zа-яА-ЯёЁіІїЇєЄґҐ0-9\s’'ʼ«»!-–—.]+$/, 'organization.errors.nameFormat')
     .refine((val) => val.trim().length >= 3, 'organization.errors.nameSpaces'),
     
   slug: z.string()

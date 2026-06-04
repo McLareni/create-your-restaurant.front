@@ -1,6 +1,6 @@
 import { apiClient } from '@/shared/api/client';
-import { MarketplaceModule } from '../types/marketplace.types';
-import { Utensils, QrCode, Users, BarChart3, BellRing, ArrowRightLeft, MessageSquareQuote, Palette, } from 'lucide-react';
+import { MarketplaceModule } from '@/features/marketplace/types/marketplace.types';
+import { Utensils, QrCode, Users, BarChart3, BellRing, ArrowRightLeft, MessageSquareQuote, Palette } from 'lucide-react';
 
 type AccessResponse = { purchasedModules: string[]; activeModules: string[]; permissions: string[]; };
 

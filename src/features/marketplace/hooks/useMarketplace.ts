@@ -1,10 +1,11 @@
-import { useState, FormEvent } from 'react';
+import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { marketplaceApi } from '../api/marketplace.api';
+import { marketplaceApi } from '@/features/marketplace/api/marketplace.api';
 import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 import { useAccessStore } from '@/shared/store/useAccessStore';
 import { useTranslation } from '@/shared/hooks/useTranslation';
+import { ConnectModuleArgs } from '../types/marketplace.types';
 import toast from 'react-hot-toast';
 
 export const useMarketplace = () => {
@@ -13,13 +14,16 @@ export const useMarketplace = () => {
   const queryClient = useQueryClient();
   const activeRestaurant = useRestaurantStore((state) => state.activeRestaurant);
   const restaurantId = activeRestaurant?.id ? Number(activeRestaurant.id) : null;
-  const hasModule = useAccessStore((state) => state.hasModule);
-  const isPurchased = useAccessStore((state) => state.isPurchased);
+
+  const activeModules = useAccessStore((state) => state.activeModules);
+  const purchasedModules = useAccessStore((state) => state.purchasedModules);
+  
   const toggleModuleState = useAccessStore((state) => state.toggleModule);
   const purchaseModuleState = useAccessStore((state) => state.purchaseModule);
+  
   const [selectedModule, setSelectedModule] = useState<string | null>(null);
   const [activationCode, setActivationCode] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   const { data: modules = [], isLoading } = useQuery({
     queryKey: ['marketplace-modules', restaurantId],
@@ -28,7 +32,7 @@ export const useMarketplace = () => {
   });
 
   const connectMutation = useMutation({
-    mutationFn: ({ moduleKey, activationCode }: { moduleKey: string; activationCode?: string }) => 
+    mutationFn: ({ moduleKey, activationCode }: ConnectModuleArgs) => 
       marketplaceApi.connectModule(restaurantId!, moduleKey, activationCode),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['marketplace-modules', restaurantId] });
@@ -46,26 +50,24 @@ export const useMarketplace = () => {
   };
 
   const handleCloseConnectModal = () => {
-    if (isSubmitting) return;
+    if (isPending) return;
     setSelectedModule(null);
     setActivationCode('');
   };
 
-  const handleConfirmConnection = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!selectedModule || isSubmitting) return;
-    setIsSubmitting(true);
-    try {
-      await connectMutation.mutateAsync({
-        moduleKey: selectedModule,
-        activationCode: activationCode.trim() || undefined,
-      });
-      setSelectedModule(null);
-      setActivationCode('');
-    } catch {
-    } vanished: {
-      setIsSubmitting(false);
-    }
+  const handleConfirmConnectionAction = () => {
+    if (!selectedModule || isPending) return;
+    startTransition(async () => {
+      try {
+        await connectMutation.mutateAsync({
+          moduleKey: selectedModule,
+          activationCode: activationCode.trim() || undefined,
+        });
+        setSelectedModule(null);
+        setActivationCode('');
+      } catch {
+      }
+    });
   };
 
   const handleToggleModule = async (moduleKey: string, isActive: boolean) => {
@@ -87,10 +89,13 @@ export const useMarketplace = () => {
   };
 
   const currentMod = modules.find(m => m.key === selectedModule);
-  const priceText = currentMod ? (currentMod.price === 0 ? t('marketplace.price.free') : t('marketplace.price.monthly').replace('{{price}}', currentMod.price.toString())) : '';
-  const modalDescription = selectedModule ? t('marketplace.connectModal.description')
-    .replace('{{module}}', t(`marketplace.modules.${selectedModule}.title`))
-    .replace('{{price}}', priceText) : '';
+  const priceText = currentMod ?
+    (currentMod.price === 0 ? t('marketplace.price.free') : t('marketplace.price.monthly').replace('{{price}}', currentMod.price.toString())) : '';
+  
+  const modalDescription = selectedModule ?
+    t('marketplace.connectModal.description')
+      .replace('{{module}}', t(`marketplace.modules.${selectedModule}.title`))
+      .replace('{{price}}', priceText) : '';
 
   return {
     t,
@@ -99,14 +104,14 @@ export const useMarketplace = () => {
     selectedModule,
     activationCode,
     setActivationCode,
-    isSubmitting,
+    isPending,
     modalDescription,
     handleOpenConnectModal,
     handleCloseConnectModal,
-    handleConfirmConnection,
+    handleConfirmConnectionAction,
     handleToggleModule,
     handleSettingsClick,
-    isModulePurchased: (key: string) => isPurchased(key),
-    isModuleActive: (key: string) => hasModule(key),
+    isModulePurchased: (key: string) => purchasedModules.includes(key),
+    isModuleActive: (key: string) => activeModules.includes(key),
   };
 };

@@ -4,12 +4,7 @@ import { useState } from 'react';
 import { Phone, MapPin, Printer, Globe, Clock, RefreshCw } from 'lucide-react';
 import { Button } from '@/shared/ui';
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import { z } from 'zod';
-import { createOrganizationSchema } from '../schemas/organization.schema';
-
-interface CreateOrgCardProps {
-  formData: Partial<z.infer<typeof createOrganizationSchema>>;
-}
+import { CreateOrgCardProps } from '@/features/organizations/types/organization.types';
 
 const formatPhone = (raw: string | undefined): string => {
   if (!raw) return '';
@@ -18,15 +13,12 @@ const formatPhone = (raw: string | undefined): string => {
   if (clean.startsWith('380') && clean.length === 12) {
     return `+380 ${clean.substring(3, 5)} ${clean.substring(5, 8)} ${clean.substring(8, 10)} ${clean.substring(10, 12)}`;
   }
-  
   if (clean.startsWith('48') && clean.length === 11) {
     return `+48 ${clean.substring(2, 5)} ${clean.substring(5, 8)} ${clean.substring(8, 11)}`;
   }
-
   if (clean.length === 9) {
     return `${clean.substring(0, 3)} ${clean.substring(3, 6)} ${clean.substring(6, 9)}`;
   }
-
   return raw.startsWith('+') ? raw : '+' + clean;
 };
 
@@ -40,16 +32,19 @@ const formatWorkDays = (days: string[] | undefined, t: (key: string) => string):
 export const CreateOrgCard = ({ formData }: CreateOrgCardProps) => {
   const { t } = useTranslation();
   const [variant, setVariant] = useState<'classic' | 'elegant'>('elegant');
-  const [isFlipped, setIsFlipped] = useState(false);
+  const [isFlipped, setIsFlipped] = useState<boolean>(false);
   const isElegant = variant === 'elegant';
 
+  const domainSuffix = process.env.NEXT_PUBLIC_DOMAIN_SUFFIX || '.gustio.com';
+
   const styles = {
-    cardBg: isElegant ? 'bg-zinc-950 text-[#F5EFE6] border-zinc-800/80 shadow-2xl' : 'bg-[#FAF9F6] text-zinc-900 border-zinc-300 shadow-2xl',
-    titleText: isElegant ? 'text-white' : 'text-zinc-900',
-    goldText: isElegant ? 'text-brand-gold font-semibold tracking-wide' : 'text-brand-copper font-semibold tracking-wide',
-    badge: isElegant ? 'bg-white/5 border-white/10 text-brand-gold backdrop-blur-md' : 'bg-brand-copper/5 border-brand-copper/10 text-brand-copper',
-    iconColor: isElegant ? 'text-brand-gold' : 'text-brand-copper',
-    subText: isElegant ? 'text-zinc-400/80' : 'text-zinc-500'
+    cardBg: isElegant 
+      ? 'bg-zinc-950 text-[#F5EFE6] border-zinc-800/80 shadow-2xl relative' 
+      : 'bg-[#FAF9F6] text-zinc-900 border-zinc-300 shadow-2xl relative',
+    titleText: 'text-lg font-serif font-black tracking-tight truncate leading-none relative z-10 text-white',
+    goldText: isElegant ? 'text-brand-gold font-semibold tracking-wide relative z-10' : 'text-brand-copper font-semibold tracking-wide relative z-10',
+    badge: isElegant ? 'bg-white/5 border-white/10 text-brand-gold backdrop-blur-md relative z-10' : 'bg-brand-copper/5 border-brand-copper/10 text-brand-copper relative z-10',
+    iconColor: isElegant ? 'text-brand-gold relative z-10' : 'text-brand-copper relative z-10',
   };
 
   const fullAddress = [
@@ -96,13 +91,24 @@ export const CreateOrgCard = ({ formData }: CreateOrgCardProps) => {
       <div className="w-100 h-64 group cursor-pointer perspective-[1000px] print:w-[85mm] print:h-[55mm]">
         <div className={`w-full h-full relative transition-transform duration-500 transform-3d ${isFlipped ? 'transform-[rotateY(180deg)]' : ''} print:transform-none`}>
           <div className={`absolute inset-0 w-full h-full rounded-3xl border p-6 flex flex-col justify-between overflow-hidden backface-hidden print:inset-auto ${styles.cardBg}`}>
+            
+            {isElegant && formData.imageUrl && (
+              <>
+                <div 
+                  className="absolute inset-0 z-0 bg-cover bg-center opacity-25 scale-105"
+                  style={{ backgroundImage: `url(${formData.imageUrl})` }}
+                />
+                <div className="absolute inset-0 z-0 bg-linear-to-t from-zinc-950 via-zinc-950/85 to-zinc-950/40" />
+              </>
+            )}
+
             <div className="flex justify-between items-start w-full relative z-10 border-b border-border-main/10 pb-3">
               <div className="flex gap-3.5 items-center min-w-0 flex-1">
-                <div className={`h-11 w-11 rounded-xl shrink-0 flex items-center justify-center border font-serif font-extrabold text-base shadow-md ${isElegant ? 'bg-white/10 border-white/20 text-brand-gold backdrop-blur-md' : 'bg-brand-copper/10 border-brand-copper/20 text-brand-copper'}`}>
+                <div className={`h-11 w-11 rounded-xl shrink-0 flex items-center justify-center border border-white/20 font-serif font-extrabold text-base shadow-md ${isElegant ? 'bg-white/10 text-brand-gold backdrop-blur-md' : 'bg-brand-copper/10 text-brand-copper'}`}>
                   {initialLetter}
                 </div>
                 <div className="flex flex-col min-w-0 flex-1">
-                  <h2 className={`text-lg font-serif font-black tracking-tight truncate leading-none ${styles.titleText}`}>
+                  <h2 className={isElegant ? styles.titleText : 'text-lg font-serif font-black tracking-tight truncate leading-none text-zinc-900'}>
                     {formData.name || t('organization.create.nameLabel')}
                   </h2>
                   <div className="flex items-center gap-1.5 mt-1.5">
@@ -117,7 +123,7 @@ export const CreateOrgCard = ({ formData }: CreateOrgCardProps) => {
             <div className="flex flex-col gap-2 pt-3 relative z-10 w-full mt-auto">
               <div className="flex items-center gap-3 text-xs">
                 <Globe className={`h-3.5 w-3.5 shrink-0 stroke-[2.2] ${styles.iconColor}`} />
-                <span className={styles.goldText}>{formData.slug ? `${formData.slug}.gustio.com` : 'address.gustio.com'}</span>
+                <span className={styles.goldText}>{formData.slug ? `${formData.slug}${domainSuffix}` : `address${domainSuffix}`}</span>
               </div>
               <div className="flex items-center gap-3 text-xs">
                 <Clock className={`h-3.5 w-3.5 shrink-0 stroke-[2.2] ${styles.iconColor}`} />
@@ -142,7 +148,7 @@ export const CreateOrgCard = ({ formData }: CreateOrgCardProps) => {
                 <Globe className="h-16 w-16 text-zinc-900 stroke-[1.5]" />
               </div>
               <span className="text-[10px] font-medium tracking-wider uppercase text-brand-gold">
-                {formData.slug ? `${formData.slug}.gustio.com` : 'gustio.com'}
+                {formData.slug ? `${formData.slug}${domainSuffix}` : 'gustio.com'}
               </span>
             </div>
           </div>

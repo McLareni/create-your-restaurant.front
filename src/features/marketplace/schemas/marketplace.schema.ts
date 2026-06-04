@@ -1,7 +1,8 @@
 import { z } from 'zod';
+import { activationCodeSchema } from '@/shared/domain/validation/common.schema';
 
 export const connectModuleSchema = z.object({
-  activationCode: z.string().optional(),
+  activationCode: activationCodeSchema,
 });
 
 export type ConnectModuleFormValues = z.infer<typeof connectModuleSchema>;

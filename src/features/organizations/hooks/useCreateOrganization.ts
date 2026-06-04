@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useActionState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { createOrganizationSchema, CreateOrganizationValues, RESERVED_SLUGS } from '../schemas/organization.schema';
@@ -49,12 +49,12 @@ export const useCreateOrganization = (): UseCreateOrganizationReturn => {
     imageUrl: '',
   });
 
-  const [errors, setErrors] = useState<Partial<Record<keyof CreateOrganizationValues, string>>>({});
   const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
   const [isCheckingSlug, setIsCheckingSlug] = useState(false);
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [animationStep, setAnimationStep] = useState<number>(0);
+  const [imageError, setImageError] = useState<string | undefined>(undefined);
+  
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const timersRef = useRef<NodeJS.Timeout[]>([]);
 
@@ -66,7 +66,7 @@ export const useCreateOrganization = (): UseCreateOrganizationReturn => {
         .replace(/[^a-z0-9-]/g, '')
         .replace(/-+/g, '-');
       
-      setFormData((prev: Partial<CreateOrganizationValues>) => ({ ...prev, slug: generatedSlug }));
+      setFormData((prev) => ({ ...prev, slug: generatedSlug }));
     }
   }, [formData.name, isSlugManuallyEdited]);
 
@@ -78,7 +78,6 @@ export const useCreateOrganization = (): UseCreateOrganizationReturn => {
 
     if (RESERVED_SLUGS.includes(formData.slug.toLowerCase().trim())) {
       setSlugAvailable(false);
-      setErrors((prev: Partial<Record<keyof CreateOrganizationValues, string>>) => ({ ...prev, slug: t('organization.errors.slugReserved') }));
       return;
     }
 
@@ -91,14 +90,8 @@ export const useCreateOrganization = (): UseCreateOrganizationReturn => {
       try {
         const res = await organizationApi.checkSlug(formData.slug!);
         setSlugAvailable(res.isAvailable);
-        if (!res.isAvailable) {
-          setErrors((prev: Partial<Record<keyof CreateOrganizationValues, string>>) => ({ ...prev, slug: t('organization.errors.slugTaken') }));
-        } else {
-          setErrors((prev: Partial<Record<keyof CreateOrganizationValues, string>>) => ({ ...prev, slug: undefined }));
-        }
       } catch {
         setSlugAvailable(true);
-        setErrors((prev: Partial<Record<keyof CreateOrganizationValues, string>>) => ({ ...prev, slug: undefined }));
       } finally {
         setIsCheckingSlug(false);
       }
@@ -107,7 +100,7 @@ export const useCreateOrganization = (): UseCreateOrganizationReturn => {
     return () => {
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     };
-  }, [formData.slug, t]);
+  }, [formData.slug]);
 
   useEffect(() => {
     return () => timersRef.current.forEach(clearTimeout);
@@ -131,13 +124,34 @@ export const useCreateOrganization = (): UseCreateOrganizationReturn => {
           });
         }
         router.push('/dashboard/menu-builder');
-      } catch (err) {
-        console.error(err);
-      }
+      } catch {}
     }, 6500);
-
     timersRef.current.push(t1, t2, t3, t4);
   };
+
+  const [actionState, formAction, isPending] = useActionState(
+    async (prevState: { errors: Partial<Record<keyof CreateOrganizationValues, string>> }) => {
+      if (isCheckingSlug || slugAvailable === false) return prevState;
+
+      const validation = createOrganizationSchema.safeParse(formData);
+      if (!validation.success) {
+        const newErrors: Partial<Record<keyof CreateOrganizationValues, string>> = {};
+        validation.error.issues.forEach(issue => {
+          newErrors[issue.path[0] as keyof CreateOrganizationValues] = t(issue.message);
+        });
+        return { errors: newErrors };
+      }
+
+      try {
+        await organizationApi.create(validation.data);
+        playSuccessAnimation();
+        return { errors: {} };
+      } catch {
+        return { errors: { name: t('organization.errors.serverError') } };
+      }
+    },
+    { errors: {} }
+  );
 
   const handleChange = (field: keyof CreateOrganizationValues, value: string) => {
     if (field === 'slug') setIsSlugManuallyEdited(true);
@@ -145,67 +159,42 @@ export const useCreateOrganization = (): UseCreateOrganizationReturn => {
     if (field === 'slug') {
       finalValue = value.toLowerCase().replace(/[\s_]+/g, '-').replace(/[^a-z0-9-]/g, '');
     }
-
-    setFormData((prev: Partial<CreateOrganizationValues>) => ({ ...prev, [field]: finalValue }));
-    if (errors[field]) setErrors((prev: Partial<Record<keyof CreateOrganizationValues, string>>) => ({ ...prev, [field]: undefined }));
+    setFormData((prev) => ({ ...prev, [field]: finalValue }));
   };
 
   const handleDaysChange = (updatedDays: string[]) => {
-    setFormData((prev: Partial<CreateOrganizationValues>) => ({ ...prev, workDays: updatedDays }));
-    if (errors.workDays) setErrors((prev: Partial<Record<keyof CreateOrganizationValues, string>>) => ({ ...prev, workDays: undefined }));
+    setFormData((prev) => ({ ...prev, workDays: updatedDays }));
   };
 
   const handleImageChange = async (file: File) => {
-    setIsLoading(true);
-    setErrors((prev: Partial<Record<keyof CreateOrganizationValues, string>>) => ({ ...prev, imageUrl: undefined }));
+    setImageError(undefined);
     try {
       const uploadData = new FormData();
       uploadData.append('photo', file);
       const data = await apiClient.post<{ imageUrl: string }>('/restaurants/upload-cover', uploadData);
-      setFormData((prev: Partial<CreateOrganizationValues>) => ({ ...prev, imageUrl: data.imageUrl }));
+      setFormData((prev) => ({ ...prev, imageUrl: data.imageUrl }));
     } catch {
-      setErrors((prev: Partial<Record<keyof CreateOrganizationValues, string>>) => ({ ...prev, imageUrl: t('organization.errors.serverError') }));
-    } finally {
-      setIsLoading(false);
+      setImageError(t('organization.errors.serverError'));
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isLoading || isCheckingSlug || slugAvailable === false) return;
-    setErrors({});
-
-    const validation = createOrganizationSchema.safeParse(formData);
-    if (!validation.success) {
-      const newErrors: any = {};
-      validation.error.issues.forEach(issue => {
-        newErrors[issue.path[0]] = t(issue.message);
-      });
-      setErrors(newErrors);
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      await organizationApi.create(validation.data);
-      playSuccessAnimation();
-    } catch {
-      setErrors({ name: t('organization.errors.serverError') });
-    } finally {
-      setIsLoading(false);
-    }
+  const combinedErrors = {
+    ...actionState.errors,
+    ...(imageError ? { imageUrl: imageError } : {}),
+    ...(slugAvailable === false ? { slug: t('organization.errors.slugTaken') } : {}),
+    ...(RESERVED_SLUGS.includes(formData.slug?.toLowerCase().trim() || '') ? { slug: t('organization.errors.slugReserved') } : {})
   };
 
   return {
     formData,
-    errors,
+    errors: combinedErrors,
     isCheckingSlug,
     slugAvailable,
     animationStep,
-    isLoading,
+    isPending,
     handleChange,
     handleDaysChange,
     handleImageChange,
-    handleSubmit
+    formAction
   };
 };

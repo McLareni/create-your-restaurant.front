@@ -3,16 +3,7 @@
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { Card, Button, Switch } from '@/shared/ui';
 import { CheckCircle2, Plus, Settings2, Check } from 'lucide-react';
-import { MarketplaceModule } from '../types/marketplace.types';
-
-interface ModuleCardProps {
-  moduleData: MarketplaceModule;
-  isPurchased: boolean;
-  isActive: boolean;
-  onConnect: (moduleKey: string) => void;
-  onToggle: (moduleKey: string, isActive: boolean) => void;
-  onSettingsClick: (moduleKey: string) => void;
-}
+import { ModuleCardProps } from '../types/marketplace.types';
 
 export const ModuleCard = ({
   moduleData,
@@ -21,6 +12,7 @@ export const ModuleCard = ({
   onConnect,
   onToggle,
   onSettingsClick,
+  isDisabled = false,
 }: ModuleCardProps) => {
   const { t } = useTranslation();
   const Icon = moduleData.icon;
@@ -32,7 +24,7 @@ export const ModuleCard = ({
   const features = t(`marketplace.modules.${moduleData.key}.features`) as unknown as string[];
 
   return (
-    <Card className={`p-6! flex flex-col h-full min-h-80 ${isActive ? 'border-brand-copper/30 bg-brand-copper/5 dark:bg-brand-copper/10' : ''}`}>
+    <Card className={`p-6! flex flex-col h-full min-h-80 ${isActive ? 'border-brand-copper/30 bg-brand-copper/5 dark:bg-brand-copper/10' : ''} ${isDisabled ? 'opacity-70 pointer-events-none' : ''}`}>
       <div className="flex justify-between items-start mb-5">
         <div className={`p-3 rounded-xl transition-colors ${isActive ? 'bg-brand-copper text-white shadow-md' : 'bg-brand-cream text-brand-espresso dark:bg-brand-mocha/50 dark:text-brand-cream'}`}>
           <Icon className="h-6 w-6" />
@@ -43,12 +35,12 @@ export const ModuleCard = ({
             <span className={`text-xs font-bold ${isActive ? 'text-green-600 dark:text-green-500' : 'text-brand-gray dark:text-brand-gray/80'}`}>
               {isActive ? t('marketplace.status.enabled') : t('marketplace.status.disabled')}
             </span>
-            <Switch checked={isActive} onChange={(val) => onToggle(moduleData.key, val)} />
+            <Switch checked={isActive} disabled={isDisabled} onChange={(val) => onToggle(moduleData.key, val)} />
           </div>
         )}
       </div>
 
-      <div className="flex-1">
+      <div className="flex-1 flex flex-col">
         <h3 className="text-lg font-bold text-brand-espresso dark:text-brand-cream mb-2">
           {t(`marketplace.modules.${moduleData.key}.title`)}
         </h3>
@@ -78,6 +70,7 @@ export const ModuleCard = ({
               variant="outline" 
               className="h-9 px-4 text-sm border-brand-copper text-brand-copper hover:bg-brand-copper hover:text-white"
               onClick={() => onConnect(moduleData.key)}
+              disabled={isDisabled}
             >
               <Plus className="h-4 w-4 mr-1.5" />
               {t('marketplace.status.connect')}
@@ -94,6 +87,7 @@ export const ModuleCard = ({
                 variant="ghost" 
                 className="h-8 px-3 text-xs text-brand-gray hover:text-brand-copper outline-none"
                 onClick={() => onSettingsClick(moduleData.key)}
+                disabled={isDisabled}
               >
                 <Settings2 className="h-3.5 w-3.5 mr-1.5" />
                 {t('marketplace.status.settings')}

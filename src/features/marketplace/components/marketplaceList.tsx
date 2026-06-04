@@ -2,8 +2,8 @@
 
 import { FloatingPanel, Input, Button } from '@/shared/ui';
 import { Zap, Info } from 'lucide-react';
-import { useMarketplace } from '../hooks/useMarketplace';
-import { ModuleCard } from './moduleCard';
+import { useMarketplace } from '@/features/marketplace/hooks/useMarketplace';
+import { ModuleCard } from '@/features/marketplace/components/moduleCard';
 
 export const MarketplaceList = () => {
   const state = useMarketplace();
@@ -32,6 +32,7 @@ export const MarketplaceList = () => {
             onConnect={state.handleOpenConnectModal}
             onToggle={state.handleToggleModule}
             onSettingsClick={state.handleSettingsClick}
+            isDisabled={state.isPending}
           />
         ))}
       </div>
@@ -44,7 +45,7 @@ export const MarketplaceList = () => {
           title={state.t('marketplace.connectModal.title')}
           className="w-full max-w-md"
         >
-          <form onSubmit={state.handleConfirmConnection} className="space-y-4 text-brand-espresso dark:text-brand-cream">
+          <form action={state.handleConfirmConnectionAction} className="space-y-4 text-brand-espresso dark:text-brand-cream">
             <div className="bg-brand-cream/40 dark:bg-brand-espresso/40 p-4 rounded-xl border border-brand-gray/10 flex gap-3 text-sm leading-relaxed">
               <Info className="h-5 w-5 text-brand-copper shrink-0 mt-0.5" />
               <p>{state.modalDescription}</p>
@@ -57,7 +58,7 @@ export const MarketplaceList = () => {
                 placeholder={state.t('marketplace.connectModal.activationCodePlaceholder')}
                 value={state.activationCode}
                 onChange={(e) => state.setActivationCode(e.target.value)}
-                disabled={state.isSubmitting}
+                disabled={state.isPending}
               />
             </div>
 
@@ -67,7 +68,7 @@ export const MarketplaceList = () => {
                 variant="ghost"
                 className="h-10 text-xs font-semibold"
                 onClick={state.handleCloseConnectModal}
-                disabled={state.isSubmitting}
+                disabled={state.isPending}
               >
                 {state.t('confirmModal.cancel')}
               </Button>
@@ -75,8 +76,8 @@ export const MarketplaceList = () => {
                 type="submit"
                 variant="brand"
                 className="px-5 h-10 text-xs font-bold shadow-md"
-                isLoading={state.isSubmitting}
-                disabled={state.isSubmitting}
+                isLoading={state.isPending}
+                disabled={state.isPending}
               >
                 {state.t('marketplace.connectModal.confirmBtn')}
               </Button>

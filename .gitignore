@@ -42,6 +42,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+.vscode/
+
 # Repomix exclusions (додайте це в кінець .gitignore)
 # src/features/marketplace/
 # # src/features/organizations/
@@ -66,5 +68,5 @@ next-env.d.ts
 !/src/features/
 
 /src/features/*
-!/src/features/organizations/
+!/src/features/marketplace/
 !/src/app/

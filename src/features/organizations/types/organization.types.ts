@@ -1,4 +1,4 @@
-import { CreateOrganizationValues } from '../schemas/organization.schema';
+import { CreateOrganizationValues } from '@/features/organizations/schemas/organization.schema';
 
 export interface CheckSlugResponse {
   isAvailable: boolean;
@@ -10,11 +10,11 @@ export interface UseCreateOrganizationReturn {
   isCheckingSlug: boolean;
   slugAvailable: boolean | null;
   animationStep: number;
-  isLoading: boolean;
+  isPending: boolean;
   handleChange: (field: keyof CreateOrganizationValues, value: string) => void;
   handleDaysChange: (days: string[]) => void;
   handleImageChange: (file: File) => Promise<void>;
-  handleSubmit: (e: React.FormEvent) => Promise<void>;
+  formAction: (payload: FormData) => void;
 }
 
 export interface CreateOrgFormProps {
@@ -33,5 +33,4 @@ export interface CreateOrgAnimationProps {
 
 export interface CreateOrgCardProps {
   formData: Partial<CreateOrganizationValues>;
-  t: (key: string) => string;
 }
