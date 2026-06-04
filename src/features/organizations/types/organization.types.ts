@@ -4,16 +4,6 @@ export interface CheckSlugResponse {
   isAvailable: boolean;
 }
 
-export interface CreateRestaurantPayload {
-  title: string;
-  slug: string;
-  type: string;
-  currency: string;
-  language: string;
-  city?: string;
-  phoneNumber?: string;
-}
-
 export interface UseCreateOrganizationReturn {
   formData: Partial<CreateOrganizationValues>;
   errors: Partial<Record<keyof CreateOrganizationValues, string>>;
@@ -22,6 +12,8 @@ export interface UseCreateOrganizationReturn {
   animationStep: number;
   isLoading: boolean;
   handleChange: (field: keyof CreateOrganizationValues, value: string) => void;
+  handleDaysChange: (days: string[]) => void;
+  handleImageChange: (file: File) => Promise<void>;
   handleSubmit: (e: React.FormEvent) => Promise<void>;
 }
 
@@ -37,4 +29,9 @@ export interface CreateOrgAnimationProps {
       slug: string;
     };
   };
+}
+
+export interface CreateOrgCardProps {
+  formData: Partial<CreateOrganizationValues>;
+  t: (key: string) => string;
 }

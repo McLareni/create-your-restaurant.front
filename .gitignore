@@ -58,3 +58,13 @@ next-env.d.ts
 # src/app/(dashboard)/dashboard/qr/
 # # src/app/(dashboard)/dashboard/staff/
 # src/app/(dashboard)/dashboard/pos/
+
+!/src/
+/src/*
+
+!/src/shared/
+!/src/features/
+
+/src/features/*
+!/src/features/organizations/
+!/src/app/

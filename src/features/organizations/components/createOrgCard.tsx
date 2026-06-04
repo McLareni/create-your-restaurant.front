@@ -1,0 +1,153 @@
+'use client';
+
+import { useState } from 'react';
+import { Phone, MapPin, Printer, Globe, Clock, RefreshCw } from 'lucide-react';
+import { Button } from '@/shared/ui';
+import { useTranslation } from '@/shared/hooks/useTranslation';
+import { z } from 'zod';
+import { createOrganizationSchema } from '../schemas/organization.schema';
+
+interface CreateOrgCardProps {
+  formData: Partial<z.infer<typeof createOrganizationSchema>>;
+}
+
+const formatPhone = (raw: string | undefined): string => {
+  if (!raw) return '';
+  const clean = raw.replace(/\D/g, '');
+  
+  if (clean.startsWith('380') && clean.length === 12) {
+    return `+380 ${clean.substring(3, 5)} ${clean.substring(5, 8)} ${clean.substring(8, 10)} ${clean.substring(10, 12)}`;
+  }
+  
+  if (clean.startsWith('48') && clean.length === 11) {
+    return `+48 ${clean.substring(2, 5)} ${clean.substring(5, 8)} ${clean.substring(8, 11)}`;
+  }
+
+  if (clean.length === 9) {
+    return `${clean.substring(0, 3)} ${clean.substring(3, 6)} ${clean.substring(6, 9)}`;
+  }
+
+  return raw.startsWith('+') ? raw : '+' + clean;
+};
+
+const formatWorkDays = (days: string[] | undefined, t: (key: string) => string): string => {
+  if (!days || days.length === 0) return t('organization.create.days.all');
+  const order = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
+  const sorted = [...days].sort((a, b) => order.indexOf(a) - order.indexOf(b));
+  return sorted.map(d => t(`organization.create.days.${d}`)).join(', ');
+};
+
+export const CreateOrgCard = ({ formData }: CreateOrgCardProps) => {
+  const { t } = useTranslation();
+  const [variant, setVariant] = useState<'classic' | 'elegant'>('elegant');
+  const [isFlipped, setIsFlipped] = useState(false);
+  const isElegant = variant === 'elegant';
+
+  const styles = {
+    cardBg: isElegant ? 'bg-zinc-950 text-[#F5EFE6] border-zinc-800/80 shadow-2xl' : 'bg-[#FAF9F6] text-zinc-900 border-zinc-300 shadow-2xl',
+    titleText: isElegant ? 'text-white' : 'text-zinc-900',
+    goldText: isElegant ? 'text-brand-gold font-semibold tracking-wide' : 'text-brand-copper font-semibold tracking-wide',
+    badge: isElegant ? 'bg-white/5 border-white/10 text-brand-gold backdrop-blur-md' : 'bg-brand-copper/5 border-brand-copper/10 text-brand-copper',
+    iconColor: isElegant ? 'text-brand-gold' : 'text-brand-copper',
+    subText: isElegant ? 'text-zinc-400/80' : 'text-zinc-500'
+  };
+
+  const fullAddress = [
+    formData.city,
+    formData.street ? `${t('organization.create.addressStreetPrefix')} ${formData.street}` : '',
+    formData.building ? formData.building : ''
+  ].filter(Boolean).join(', ') || t('organization.create.cardAddressPlaceholder');
+
+  const workDaysText = formatWorkDays(formData.workDays, t);
+  const initialLetter = formData.name ? formData.name[0].toUpperCase() : 'G';
+
+  return (
+    <div className="flex flex-col items-start pt-2 w-100 shrink-0 relative select-none print:pt-0 print:w-[85mm] print:h-[55mm]">
+      <div className="w-full flex items-center justify-between mb-5 print:hidden">
+        <div className="flex bg-bg-main p-1 rounded-xl border border-border-main gap-1 shadow-inner">
+          {(['classic', 'elegant'] as const).map((v) => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => setVariant(v)}
+              className={`px-3 py-1.5 text-[10px] font-bold rounded-lg uppercase tracking-wider transition-all cursor-pointer outline-none ${variant === v ? 'bg-brand-copper text-white shadow-xs' : 'text-text-muted hover:text-text-main'}`}
+            >
+              {t(`organization.create.variants.${v}`)}
+            </button>
+          ))}
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <Button 
+            type="button"
+            variant="outline" 
+            onClick={() => setIsFlipped(!isFlipped)} 
+            className="h-7 text-[11px] px-2.5 gap-1.5 border-border-main bg-bg-surface text-text-main hover:bg-bg-hover rounded-xl shadow-xs active:scale-95"
+          >
+            <RefreshCw className={`h-3 w-3 transition-transform duration-500 ${isFlipped ? 'rotate-180' : ''}`} />
+            {t('organization.create.cardFlipBtn')}
+          </Button>
+          <Button type="button" variant="outline" onClick={() => window.print()} className="h-7 text-[11px] px-2.5 gap-1 border-border-main bg-bg-surface text-text-main hover:bg-bg-hover rounded-xl shadow-xs">
+            <Printer className="h-3 w-3" /> {t('organization.create.cardPrintBtn')}
+          </Button>
+        </div>
+      </div>
+
+      <div className="w-100 h-64 group cursor-pointer perspective-[1000px] print:w-[85mm] print:h-[55mm]">
+        <div className={`w-full h-full relative transition-transform duration-500 transform-3d ${isFlipped ? 'transform-[rotateY(180deg)]' : ''} print:transform-none`}>
+          <div className={`absolute inset-0 w-full h-full rounded-3xl border p-6 flex flex-col justify-between overflow-hidden backface-hidden print:inset-auto ${styles.cardBg}`}>
+            <div className="flex justify-between items-start w-full relative z-10 border-b border-border-main/10 pb-3">
+              <div className="flex gap-3.5 items-center min-w-0 flex-1">
+                <div className={`h-11 w-11 rounded-xl shrink-0 flex items-center justify-center border font-serif font-extrabold text-base shadow-md ${isElegant ? 'bg-white/10 border-white/20 text-brand-gold backdrop-blur-md' : 'bg-brand-copper/10 border-brand-copper/20 text-brand-copper'}`}>
+                  {initialLetter}
+                </div>
+                <div className="flex flex-col min-w-0 flex-1">
+                  <h2 className={`text-lg font-serif font-black tracking-tight truncate leading-none ${styles.titleText}`}>
+                    {formData.name || t('organization.create.nameLabel')}
+                  </h2>
+                  <div className="flex items-center gap-1.5 mt-1.5">
+                    <span className={`text-[8px] font-extrabold px-2 py-0.5 rounded-md uppercase tracking-widest border shadow-2xs ${styles.badge}`}>
+                      {formData.type ? t(`organization.create.types.${formData.type}`) : t('organization.create.cardMenuBadge')}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2 pt-3 relative z-10 w-full mt-auto">
+              <div className="flex items-center gap-3 text-xs">
+                <Globe className={`h-3.5 w-3.5 shrink-0 stroke-[2.2] ${styles.iconColor}`} />
+                <span className={styles.goldText}>{formData.slug ? `${formData.slug}.gustio.com` : 'address.gustio.com'}</span>
+              </div>
+              <div className="flex items-center gap-3 text-xs">
+                <Clock className={`h-3.5 w-3.5 shrink-0 stroke-[2.2] ${styles.iconColor}`} />
+                <span className={styles.goldText}>{workDaysText}: {formData.workHoursStart || '10:00'} — {formData.workHoursEnd || '22:00'}</span>
+              </div>
+              <div className="flex items-center gap-3 w-full text-xs">
+                <MapPin className={`h-3.5 w-3.5 shrink-0 stroke-[2.2] ${styles.iconColor}`} />
+                <span className={`truncate block ${styles.goldText}`}>{fullAddress}</span>
+              </div>
+              <div className="flex items-center gap-3 w-full text-xs">
+                <Phone className={`h-3.5 w-3.5 shrink-0 stroke-[2.2] ${styles.iconColor}`} />
+                <span className={`truncate block font-medium tracking-wide ${styles.goldText}`}>
+                  {formData.phone ? formatPhone(formData.phone) : t('organization.create.cardPhonePlaceholder')}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className={`absolute inset-0 w-full h-full rounded-3xl border p-6 flex items-center justify-center overflow-hidden backface-hidden transform-[rotateY(180deg)] print:inset-auto ${styles.cardBg}`}>
+            <div className="text-center relative z-10 p-4 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md flex flex-col items-center gap-2">
+              <div className="w-24 h-24 bg-white rounded-xl p-2 flex items-center justify-center">
+                <Globe className="h-16 w-16 text-zinc-900 stroke-[1.5]" />
+              </div>
+              <span className="text-[10px] font-medium tracking-wider uppercase text-brand-gold">
+                {formData.slug ? `${formData.slug}.gustio.com` : 'gustio.com'}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};

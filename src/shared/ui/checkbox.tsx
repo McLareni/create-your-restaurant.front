@@ -1,26 +1,29 @@
-import { InputHTMLAttributes, ReactNode, Ref } from 'react';
+import { InputHTMLAttributes } from 'react';
 
-interface CheckboxProps extends InputHTMLAttributes<HTMLInputElement> {
-  label: ReactNode;
-  id: string;
-  ref?: Ref<HTMLInputElement>;
+interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
+  label?: string;
+  error?: string;
 }
 
-export const Checkbox = ({ label, id, className = '', ref, ...props }: CheckboxProps) => {
+export const Checkbox = ({
+  label,
+  error,
+  className = '',
+  id,
+  ...props
+}: CheckboxProps) => {
   return (
-    <div className="flex items-start gap-3">
-      <div className="flex h-5 items-center">
+    <div className="flex flex-col gap-1">
+      <label className="flex items-center gap-2 cursor-pointer select-none text-sm text-brand-espresso dark:text-brand-cream">
         <input
           id={id}
           type="checkbox"
-          ref={ref}
-          className={`h-4 w-4 rounded border-stone-500 dark:border-brand-gray/70 bg-transparent text-brand-copper focus:ring-brand-copper focus:ring-offset-0 ${className}`}
+          className={`h-4 w-4 rounded border-brand-gray/40 text-brand-copper focus:ring-brand-copper/30 disabled:opacity-50 cursor-pointer ${className}`}
           {...props}
         />
-      </div>
-      <label htmlFor={id} className="text-sm text-stone-400 dark:text-brand-gray">
-        {label}
+        {label && <span>{label}</span>}
       </label>
+      {error && <span className="text-xs text-red-500">{error}</span>}
     </div>
   );
 };

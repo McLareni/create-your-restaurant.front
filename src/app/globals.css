@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:is(.dark *));
+@variant dark (&:is(.dark *));
 
 @theme {
   --color-brand-espresso: #2A211C;
@@ -9,13 +9,38 @@
   --color-brand-copper: #B87333;
   --color-brand-gray: #A89B90;
   --color-brand-gold: #D6B37A;
+
+  --color-bg-main: var(--bg-main);
+  --color-bg-surface: var(--bg-surface);
+  --color-text-main: var(--text-main);
+  --color-text-muted: var(--text-muted);
+  --color-border-main: var(--border-main);
+  --color-bg-hover: var(--bg-hover);
+}
+
+:root {
+  --bg-main: #F3EFE6;
+  --bg-surface: #FFFFFF;
+  --text-main: #2A211C;
+  --text-muted: #7A6E65;
+  --border-main: rgba(42, 33, 28, 0.08);
+  --bg-hover: rgba(184, 115, 51, 0.06);
+}
+
+.dark {
+  --bg-main: #0B0908;
+  --bg-surface: #14100E;
+  --text-main: #F5EFE6;
+  --text-muted: #9C8D82;
+  --border-main: rgba(245, 239, 230, 0.07);
+  --bg-hover: rgba(214, 179, 122, 0.08);
 }
 
 @layer base {
   html, body {
     height: 100%;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
   }
-
   .custom-scrollbar::-webkit-scrollbar {
     width: 4px;
   }
@@ -23,9 +48,8 @@
     background: transparent;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: var(--color-brand-gray);
+    background-color: var(--border-main);
     border-radius: 10px;
-    opacity: 0.5;
   }
 }
 
@@ -34,5 +58,53 @@
   scrollbar-width: none;
   &::-webkit-scrollbar {
     display: none;
+  }
+}
+
+
+/* ==========================================================================
+   БЕЗПЕЧНИЙ ДРУК ВІЗИТКИ (БЕЗ СКЛАДНОГО ЕКРАНУВАННЯ ДЛЯ TAILWIND v4)
+   ========================================================================== */
+@media print {
+  body, html, main, aside, nav, form, h1, p, button, .print\:hidden {
+    display: none !important;
+    background: transparent !important;
+  }
+
+  @page {
+    size: 85mm 55mm;
+    margin: 0 !important;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Знаходимо контейнери картки через нативні стилі */
+  div[class*="perspective"], div[class*="transform-3d"] {
+    perspective: none !important;
+    transform: none !important;
+    display: block !important;
+    width: 85mm !important;
+    height: 55mm !important;
+  }
+
+  .backface-hidden {
+    backface-visibility: visible !important;
+    position: relative !important;
+    display: block !important;
+    width: 85mm !important;
+    height: 55mm !important;
+    page-break-after: always !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+  }
+
+  /* Зворотна сторона картки (елемент з QR кодом) */
+  div[class*="rotateY"] {
+    transform: none !important;
+    page-break-after: avoid !important;
   }
 }

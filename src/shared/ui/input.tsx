@@ -1,12 +1,11 @@
-import { InputHTMLAttributes, ReactNode, Ref } from 'react';
+import { InputHTMLAttributes } from 'react';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
   hint?: string;
-  leftIcon?: ReactNode;
-  rightElement?: ReactNode;
-  ref?: Ref<HTMLInputElement>;
+  leftIcon?: React.ReactNode;
+  rightElement?: React.ReactNode;
 }
 
 export const Input = ({
@@ -17,7 +16,6 @@ export const Input = ({
   rightElement,
   className = '',
   id,
-  ref,
   ...props
 }: InputProps) => {
   return (
@@ -34,7 +32,6 @@ export const Input = ({
           </div>
         )}
         <input
-          ref={ref}
           id={id}
           className={`h-12 w-full rounded-md border bg-white dark:bg-brand-mocha px-3 py-2 text-sm text-brand-espresso dark:text-brand-cream outline-none transition-colors placeholder:text-brand-gray/60 dark:placeholder:text-brand-gray/40 focus:border-brand-copper focus:ring-1 focus:ring-brand-copper disabled:cursor-not-allowed disabled:opacity-50 ${
             leftIcon ? 'pl-10' : ''

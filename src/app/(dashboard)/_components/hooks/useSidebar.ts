@@ -22,7 +22,6 @@ export const useSidebarLogic = () => {
   const activeRestaurant = useRestaurantStore((state) => state.activeRestaurant);
   const setActiveRestaurant = useRestaurantStore((state) => state.setActiveRestaurant);
 
-  // Пряма підписка на масиви для забезпечення реактивності рендерингу
   const activeModules = useAccessStore((state) => state.activeModules);
   const purchasedModules = useAccessStore((state) => state.purchasedModules);
   const toggleModule = useAccessStore((state) => state.toggleModule);
@@ -54,7 +53,7 @@ export const useSidebarLogic = () => {
 
   useEffect(() => {
     if (activeRestaurant?.id) {
-      fetchAccessData(String(activeRestaurant.id));
+      fetchAccessData(String(activeRestaurant.id)).catch(() => {});
     }
   }, [activeRestaurant?.id, fetchAccessData]);
 
@@ -84,23 +83,24 @@ export const useSidebarLogic = () => {
   const handleConfirmDeleteRestaurant = async () => {
     if (!restaurantToDelete) return;
     setIsDeleting(true);
-    try {
-      await apiClient.delete(`/restaurants/${restaurantToDelete.id}`);
-      await fetchUser(true);
-      
-      const updatedRestaurants = useUserStore.getState().user?.restaurants || [];
-      
-      if (activeRestaurant?.id === restaurantToDelete.id) {
-        if (updatedRestaurants.length > 0) {
-          setActiveRestaurant({
-            ...updatedRestaurants[0],
-            id: Number(updatedRestaurants[0].id)
-          });
-        } else {
-          setActiveRestaurant(undefined as any);
-        }
+    
+    const idToDelete = restaurantToDelete.id;
+    const updatedRestaurants = restaurants.filter(r => Number(r.id) !== Number(idToDelete));
+    
+    if (activeRestaurant?.id === idToDelete) {
+      if (updatedRestaurants.length > 0) {
+        setActiveRestaurant({
+          ...updatedRestaurants[0],
+          id: Number(updatedRestaurants[0].id)
+        });
+      } else {
+        setActiveRestaurant(undefined as any);
       }
-      
+    }
+
+    try {
+      await apiClient.delete(`/restaurants/${idToDelete}`);
+      await fetchUser(true);
       setIsOrgDropdownOpen(false);
       router.refresh();
     } catch (error) {

@@ -38,7 +38,6 @@ export const useAccessStore = create<AccessState>((set, get) => ({
       });
     } catch (error) {
       set({ purchasedModules: [], activeModules: [], permissions: [], isLoadingAccess: false });
-      throw error;
     }
   },
   hasModule: (moduleKey: string) => get().activeModules.includes(moduleKey),

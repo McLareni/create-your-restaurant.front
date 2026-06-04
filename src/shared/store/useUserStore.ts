@@ -3,7 +3,7 @@ import { apiClient } from '@/shared/api/client';
 import { authApi } from '@/features/auth/api/auth.api';
 
 export interface RestaurantSummary {
-  id: number | string; 
+  id: number; 
   name: string;
   slug?: string;
 }
