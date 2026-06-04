@@ -61,10 +61,30 @@
   }
 }
 
+@utility print-isolate-canvas {
+  @media print {
+    body * {
+      visibility: hidden !important;
+      overflow: visible !important;
+    }
+    .print-canvas-target,
+    .print-canvas-target * {
+      visibility: visible !important;
+    }
+    .print-canvas-target {
+      position: absolute !important;
+      left: 0 !important;
+      top: 0 !important;
+      width: 100% !important;
+    }
+  }
+}
 
-/* ==========================================================================
-   БЕЗПЕЧНИЙ ДРУК ВІЗИТКИ (БЕЗ СКЛАДНОГО ЕКРАНУВАННЯ ДЛЯ TAILWIND v4)
-   ========================================================================== */
+@utility print-no-break {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
 @media print {
   body, html, main, aside, nav, form, h1, p, button, .print\:hidden {
     display: none !important;
@@ -81,7 +101,6 @@
     print-color-adjust: exact !important;
   }
 
-  /* Знаходимо контейнери картки через нативні стилі */
   div[class*="perspective"], div[class*="transform-3d"] {
     perspective: none !important;
     transform: none !important;
@@ -102,7 +121,6 @@
     box-shadow: none !important;
   }
 
-  /* Зворотна сторона картки (елемент з QR кодом) */
   div[class*="rotateY"] {
     transform: none !important;
     page-break-after: avoid !important;

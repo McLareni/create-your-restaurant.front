@@ -1,4 +1,3 @@
-// src/features/qr-tables/api/tables.api.ts
 import { apiClient } from '@/shared/api/client';
 import {
   Table,
@@ -7,7 +6,7 @@ import {
   BackendTable,
   TableStatus,
   Zone,
-} from '../types/tables.types';
+} from '@/features/qr-tables/types/tables.types';
 
 type TableEnvelope = {
   table: BackendTable;
@@ -16,7 +15,7 @@ type TableEnvelope = {
 const toStatus = (isActive: boolean): TableStatus =>
   isActive ? 'ACTIVE' : 'INACTIVE';
 
-const getPublicMenuBaseUrl = () => {
+const getPublicMenuBaseUrl = (): string => {
   if (process.env.NEXT_PUBLIC_APP_URL) {
     return process.env.NEXT_PUBLIC_APP_URL;
   }
@@ -44,19 +43,24 @@ const toUiTable = (
 
 const toBackendPayload = (data: CreateTableDTO) => ({
   number: Number(data.tableNumber),
-  type: data.type,
+  type: data.type.trim(),
   status: toStatus(data.isActive),
   zoneId: data.zoneId,
 });
 
 const toBackendPatchPayload = (data: UpdateTableDTO) => {
-  const payload: { number?: number; type?: string; status?: TableStatus; zoneId?: string | null } = {};
+  const payload: {
+    number?: number;
+    type?: string;
+    status?: TableStatus;
+    zoneId?: string | null;
+  } = {};
 
   if (data.tableNumber !== undefined) {
     payload.number = Number(data.tableNumber);
   }
   if (data.type !== undefined) {
-    payload.type = data.type;
+    payload.type = data.type.trim();
   }
   if (data.isActive !== undefined) {
     payload.status = toStatus(data.isActive);

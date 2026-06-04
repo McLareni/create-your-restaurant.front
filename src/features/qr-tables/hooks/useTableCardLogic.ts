@@ -15,7 +15,7 @@ export const useTableCardLogic = ({
     if (table.qrUrl) {
       QRCode.toDataURL(table.qrUrl, { margin: 1, width: 200 })
         .then((url) => setQrImage(url))
-        .catch((err) => console.error(err));
+        .catch(() => {});
     }
   }, [table.qrUrl]);
 

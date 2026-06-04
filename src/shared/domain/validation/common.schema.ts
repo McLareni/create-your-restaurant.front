@@ -1,11 +1,12 @@
 import { z } from 'zod';
 
-// Спільні правила валідації текстових примітивів для всього закладу
 export const activationCodeSchema = z
   .string()
-  .max(50, 'Код активації занадто довгий')
-  .regex(/^[A-Z0-9-_]+$/, 'Некоректний формат промокоду')
+  .max(50, 'common.errors.activationCodeTooLong')
+  .regex(/^[A-Z0-9-_]+$/, 'common.errors.activationCodeInvalid')
   .optional()
   .or(z.literal(''));
 
-export const restaurantIdSchema = z.number().positive('Некоректний ID ресторану');
+export const restaurantIdSchema = z
+  .number()
+  .positive('common.errors.restaurantIdInvalid');

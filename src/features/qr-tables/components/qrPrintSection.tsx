@@ -1,34 +1,61 @@
 'use client';
 
+import React from 'react';
+import Image from 'next/image';
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import { QrPrintSectionProps } from '../types/tables.types';
+import { QrPrintSectionProps } from '@/features/qr-tables/types/tables.types';
 
-export const QrPrintSection = ({ tables, selectedIds, printingDataUrls }: QrPrintSectionProps) => {
+export const QrPrintSection = ({
+  tables,
+  selectedIds,
+  printingDataUrls,
+}: QrPrintSectionProps) => {
   const { t } = useTranslation();
-  const tablesToPrint = tables.filter((t) => selectedIds.includes(t.id));
 
-  if (tablesToPrint.length === 0) return null;
+  if (selectedIds.length === 0) return null;
+
+  const tablesToPrint = tables.filter((table) => selectedIds.includes(table.id));
 
   return (
-    <div className="hidden print:block print:fixed print:inset-0 print:bg-white print:z-[99999] print:overflow-visible p-4 text-black">
-      <style dangerouslySetInnerHTML={{ __html: '@media print { body * { visibility: hidden; } #print-section-area, #print-section-area * { visibility: visible; } #print-section-area { position: absolute; left: 0; top: 0; width: 100%; } }' }} />
-      <div id="print-section-area" className="grid grid-cols-3 gap-6 w-full bg-white">
-        {tablesToPrint.map((table) => (
-          <div 
-            key={`print-${table.id}`} 
-            className="flex flex-col items-center justify-center p-4 border-2 border-dashed border-gray-400 rounded-xl bg-white w-full aspect-square text-center break-inside-avoid"
-          >
-            {printingDataUrls[table.id] && (
-              <img src={printingDataUrls[table.id]} alt="QR" className="w-3/4 h-3/4 object-contain mb-2 mx-auto" />
-            )}
-            <span className="text-xl font-bold text-black">{t('qr.table')} {table.tableNumber}</span>
-            {table.type && (
-              <span className="text-xs font-medium text-gray-500 border border-gray-200 px-2 py-0.5 rounded-full mt-1">
-                {table.type}
-              </span>
-            )}
-          </div>
-        ))}
+    <div className="hidden print:block print-isolate-canvas print-canvas-target bg-white text-black p-8">
+      <div className="grid grid-cols-2 gap-8">
+        {tablesToPrint.map((table) => {
+          const qrCodeUrl = printingDataUrls[table.id];
+          return (
+            <div
+              key={table.id}
+              className="flex flex-col items-center justify-center border-2 border-dashed border-gray-400 p-6 rounded-xl text-center print-no-break"
+            >
+              <h2 className="text-2xl font-bold tracking-wide text-gray-900 mb-1">
+                {t('qr.table')} {table.tableNumber}
+              </h2>
+              {table.type && (
+                <span className="text-sm font-medium text-gray-600 bg-gray-100 px-3 py-1 rounded-full mb-4">
+                  {table.type}
+                </span>
+              )}
+              
+              {qrCodeUrl ? (
+                <Image
+                  src={qrCodeUrl}
+                  alt={`${t('qr.table')} ${table.tableNumber}`}
+                  width={192}
+                  height={192}
+                  unoptimized
+                  className="object-contain"
+                />
+              ) : (
+                <div className="w-48 h-48 bg-gray-200 animate-pulse rounded-lg flex items-center justify-center text-xs text-gray-400">
+                  {t('qr.print.generating')}
+                </div>
+              )}
+              
+              <p className="text-xs text-gray-500 mt-4 font-mono">
+                {t('qr.print.scanHint')}
+              </p>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

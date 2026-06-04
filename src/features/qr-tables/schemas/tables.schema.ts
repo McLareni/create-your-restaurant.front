@@ -1,13 +1,15 @@
 import { z } from 'zod';
 
 export const tableSchema = z.object({
-  tableNumber: z
-    .string()
+  tableNumber: z.string()
     .min(1, 'qr.errors.numberRequired')
-    .regex(/^\d+$/, 'qr.errors.numberRequired')
-    .refine((value) => Number(value) > 0, 'qr.errors.numberRequired'),
-  type: z.string().min(1, 'qr.errors.typeRequired'),
+    .max(10, 'qr.errors.numberTooLong')
+    .refine((val) => !isNaN(Number(val)), {
+      message: 'qr.errors.numberNumeric',
+    }),
+  type: z.string()
+    .min(1, 'qr.errors.typeRequired')
+    .max(60, 'qr.errors.typeTooLong'),
   isActive: z.boolean().default(true),
+  zoneId: z.string().uuid().nullable().optional(),
 });
-
-export type TableFormValues = z.infer<typeof tableSchema>;

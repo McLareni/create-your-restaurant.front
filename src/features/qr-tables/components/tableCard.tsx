@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { Switch, Checkbox, Card } from '@/shared/ui';
 import { Pencil, Trash2 } from 'lucide-react';
@@ -9,7 +10,7 @@ import { useTableCardLogic } from '@/features/qr-tables/hooks/useTableCardLogic'
 export const TableCard = (props: TableCardProps) => {
   const { table, isSelected, onToggleSelect } = props;
   const { t } = useTranslation();
-  
+
   const {
     qrImage,
     handleEditClick,
@@ -54,12 +55,15 @@ export const TableCard = (props: TableCardProps) => {
       </div>
 
       <div className="flex flex-col items-center justify-center mb-4 mt-8 relative z-10 pointer-events-none">
-        <div className="relative rounded-xl border border-brand-gray/10 dark:border-brand-gray/20 bg-white dark:bg-brand-mocha/50 p-2 shadow-sm pointer-events-auto">
+        <div className="relative rounded-xl border border-brand-gray/10 dark:border-brand-gray/20 bg-white dark:bg-brand-mocha/50 p-2 shadow-sm pointer-events-auto w-32 h-32 flex items-center justify-center">
           {qrImage ? (
-            <img 
+            <Image 
               src={qrImage} 
-              alt={`QR ${table.tableNumber}`} 
-              className="h-28 w-28 object-contain mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:rounded-md dark:p-1" 
+              alt={`${t('qr.table')} ${table.tableNumber}`}
+              width={112}
+              height={112}
+              unoptimized
+              className="object-contain mix-blend-multiply dark:mix-blend-normal dark:bg-white dark:rounded-md dark:p-1" 
             />
           ) : (
             <div className="h-28 w-28 bg-brand-cream/50 dark:bg-brand-gray/10 rounded-lg animate-pulse" />

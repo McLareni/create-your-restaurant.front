@@ -1,12 +1,13 @@
 import { MenuItem } from '@/shared/hooks/useNavigation';
+import { RestaurantSummary, User } from '@/shared/store/useUserStore';
 
 export interface SidebarState {
   t: (key: string) => string;
   pathname: string;
-  user: any;
+  user: User | null;
   logout: () => Promise<void>;
-  activeRestaurant: any;
-  restaurants: any[];
+  activeRestaurant: RestaurantSummary | null;
+  restaurants: RestaurantSummary[];
   menuGroups: MenuItem[][];
   isOrgDropdownOpen: boolean;
   setIsOrgDropdownOpen: (value: boolean) => void;
@@ -14,13 +15,13 @@ export interface SidebarState {
   isLockModalOpen: boolean;
   setIsLockModalOpen: (value: boolean) => void;
   lockedModule: { name: string; key: string } | null;
-  restaurantToDelete: any;
-  setRestaurantToDelete: (value: any) => void;
+  restaurantToDelete: RestaurantSummary | null;
+  setRestaurantToDelete: (value: RestaurantSummary | null) => void;
   isDeleting: boolean;
   orgInitial: string;
   currentOrgName: string;
-  handleRestaurantSwitch: (res: any) => void;
-  handleDeleteRestaurantClick: (e: React.MouseEvent, res: any) => void;
+  handleRestaurantSwitch: (res: RestaurantSummary) => void;
+  handleDeleteRestaurantClick: (e: React.MouseEvent, res: RestaurantSummary) => void;
   handleConfirmDeleteRestaurant: () => Promise<void>;
   handleLockedClick: (e: React.MouseEvent, moduleName: string, moduleKey: string) => void;
   handleActivateLocked: () => void;
