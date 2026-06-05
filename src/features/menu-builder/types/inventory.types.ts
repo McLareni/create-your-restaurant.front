@@ -1,21 +1,30 @@
 import { z } from 'zod';
-import { inventoryItemSchema } from '../schemas/inventory.schema';
+import { inventoryItemSchema } from '@/features/menu-builder/schemas/inventory.schema';
+
+export type InventoryUnit = 'kg' | 'g' | 'l' | 'ml' | 'pcs';
 
 export interface InventoryItem {
   id: string;
   restaurantId: number;
   name: string;
   stock: number;
-  unit: 'kg' | 'g' | 'l' | 'ml' | 'pcs';
+  unit: InventoryUnit;
   createdAt: string;
   updatedAt: string;
 }
 
 export type CreateInventoryItemDTO = z.infer<typeof inventoryItemSchema>;
 
-export type UpdateInventoryItemDTO = {
-  id: string;
-  name?: string;
-  stock?: number;
-  unit?: 'kg' | 'g' | 'l' | 'ml' | 'pcs';
-};
+export interface InventoryFormValues {
+  name: string;
+  stock: number;
+  unit: InventoryUnit;
+}
+
+export interface ApiErrorResponse {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+}

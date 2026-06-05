@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
 
 interface MinimalRestaurant {
   id: number;
@@ -13,16 +12,9 @@ interface RestaurantStoreState {
   clearActiveRestaurant: () => void;
 }
 
-export const useRestaurantStore = create<RestaurantStoreState>()(
-  persist(
-    (set) => ({
-      activeRestaurant: null,
-      setActiveRestaurant: (restaurant) => set({ activeRestaurant: restaurant }),
-      clearActiveRestaurant: () => set({ activeRestaurant: null }),
-    }),
-    {
-      name: 'gustio_active_restaurant',
-      storage: createJSONStorage(() => localStorage),
-    }
-  )
-);
+// Повна відмова від клієнтського localStorage для безпеки
+export const useRestaurantStore = create<RestaurantStoreState>()((set) => ({
+  activeRestaurant: null,
+  setActiveRestaurant: (restaurant) => set({ activeRestaurant: restaurant }),
+  clearActiveRestaurant: () => set({ activeRestaurant: null }),
+}));

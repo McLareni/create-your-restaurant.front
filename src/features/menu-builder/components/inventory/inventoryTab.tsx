@@ -1,16 +1,20 @@
 'use client';
 
-import { useInventoryTab } from '../../hooks/inventory/useInventoryTab';
-import { AVAILABLE_UNITS } from '../../schemas/inventory.schema';
+import { useInventoryTab } from '@/features/menu-builder/hooks/inventory/useInventoryTab';
+import { AVAILABLE_UNITS } from '@/features/menu-builder/schemas/inventory.schema';
 import { Input, Select, ConfirmModal, FloatingPanel } from '@/shared/ui';
-import { Search, AlertCircle, Package, Edit2, Trash2 } from 'lucide-react';
-import { InventoryItem } from '../../types/inventory.types';
+import { Search, AlertCircle, Package, Edit2, Trash2, Loader2 } from 'lucide-react';
+import { InventoryItem } from '@/features/menu-builder/types/inventory.types';
 
 export const InventoryTab = () => {
   const board = useInventoryTab();
 
   if (board.isLoading) {
-    return <div className="p-8 text-center text-brand-gray">{board.t('common.loading')}</div>;
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-transparent">
+        <Loader2 className="h-10 w-10 animate-spin text-brand-copper" />
+      </div>
+    );
   }
 
   return (
@@ -128,7 +132,7 @@ export const InventoryTab = () => {
           title={board.editingId ? board.t('inventory.modal.editTitle') : board.t('inventory.modal.createTitle')}
           className="w-full max-w-md"
         >
-          <form onSubmit={board.handleFormSubmit} className="space-y-4">
+          <form action={board.handleFormAction} className="space-y-4">
             <div>
               <Input
                 id="inventory-item-name"
@@ -137,12 +141,13 @@ export const InventoryTab = () => {
                 value={board.formData.name}
                 onChange={(e) => board.setFormData({ ...board.formData, name: e.target.value })}
                 error={board.validationErrors.name}
+                disabled={board.isSubmitting}
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-brand-gray mb-1">
+                <label className="block text-sm font-medium text-brand-espresso dark:text-brand-cream mb-1">
                   {board.t('inventory.modal.stockLabel')}
                 </label>
                 <input
@@ -150,6 +155,7 @@ export const InventoryTab = () => {
                   step="any"
                   value={board.formData.stock}
                   onChange={(e) => board.setFormData({ ...board.formData, stock: parseFloat(e.target.value) || 0 })}
+                  disabled={board.isSubmitting}
                   className={`h-11 w-full rounded-lg border bg-white dark:bg-brand-espresso px-3 text-sm text-brand-espresso dark:text-brand-cream outline-none focus:border-brand-copper ${
                     board.validationErrors.stock ? 'border-red-500' : 'border-brand-gray/30 dark:border-brand-gray/50'
                   }`}
@@ -159,15 +165,16 @@ export const InventoryTab = () => {
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium text-brand-gray mb-1">
+                <label className="block text-sm font-medium text-brand-espresso dark:text-brand-cream mb-1">
                   {board.t('inventory.modal.unitLabel')}
                 </label>
                 <Select
                   id="inventory-unit-select"
                   value={board.formData.unit}
-                  onChange={(e) => board.setFormData({ ...board.formData, unit: e.target.value as any })}
+                  onChange={board.handleUnitChange}
                   className="h-11 border-brand-gray/30"
                   error={board.validationErrors.unit}
+                  disabled={board.isSubmitting}
                 >
                   {AVAILABLE_UNITS.map((u) => (
                     <option key={u} value={u}>
@@ -182,14 +189,17 @@ export const InventoryTab = () => {
               <button
                 type="button"
                 onClick={() => board.setIsModalOpen(false)}
+                disabled={board.isSubmitting}
                 className="px-4 h-11 border border-brand-gray/30 text-brand-gray rounded-lg text-sm font-medium hover:bg-brand-cream/30 cursor-pointer"
               >
                 {board.t('inventory.modal.cancel')}
               </button>
               <button
                 type="submit"
-                className="px-4 h-11 bg-brand-copper hover:bg-brand-copper/90 text-white rounded-lg text-sm font-medium transition-colors cursor-pointer"
+                disabled={board.isSubmitting}
+                className="px-4 h-11 bg-brand-copper hover:bg-brand-copper/90 text-white rounded-lg text-sm font-medium transition-colors cursor-pointer flex items-center justify-center gap-2"
               >
+                {board.isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
                 {board.t('inventory.modal.save')}
               </button>
             </div>

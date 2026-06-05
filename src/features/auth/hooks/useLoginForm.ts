@@ -1,14 +1,15 @@
 'use client';
 
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect, useTransition, ChangeEvent } from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import { authApi } from '../api/auth.api';
+import { authApi } from '@/features/auth/api/auth.api';
 import { useUserStore } from '@/shared/store/useUserStore';
 import { useRouter } from 'next/navigation';
-import { emailSchema, verifySchema } from '../schemas/login.schema';
+import { emailSchema, verifySchema } from '@/features/auth/schemas/login.schema';
+import { LoginFormState, AuthApiError } from '@/features/auth/types/auth.types';
 import toast from 'react-hot-toast';
 
-export const useLoginForm = () => {
+export const useLoginForm = (): LoginFormState => {
   const { t } = useTranslation();
   const router = useRouter();
   const fetchUser = useUserStore((state) => state.fetchUser);
@@ -16,11 +17,10 @@ export const useLoginForm = () => {
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [step, setStep] = useState<1 | 2>(1);
-  const [isLoading, setIsLoading] = useState(false);
   const [emailError, setEmailError] = useState('');
   const [codeError, setCodeError] = useState('');
-  const [isEmailDirty, setIsEmailDirty] = useState(false);
   const [timeLeft, setTimeLeft] = useState(0);
+  const [isPending, startTransition] = useTransition();
 
   const isEmailSyntacticallyValid = email.includes('@') && email.includes('.');
 
@@ -30,74 +30,87 @@ export const useLoginForm = () => {
     return () => clearTimeout(timer);
   }, [timeLeft]);
 
-  const formatTime = (seconds: number) => {
+  const formatTime = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
-  const formatDisplayCode = (rawCode: string) => {
-    return rawCode;
+  const formatDisplayCode = (rawCode: string): string => {
+    const clean = rawCode.replace(/\D/g, '').slice(0, 6);
+    if (clean.length > 3) {
+      return `${clean.slice(0, 3)} ${clean.slice(3)}`;
+    }
+    return clean;
   };
 
   const handleResendCode = async () => {
-    setIsLoading(true);
-    try {
-      await authApi.requestLoginCode(email);
-      setTimeLeft(60);
-      toast.success(t('auth.login.resendCode'));
-    } catch (error: any) {
-      const errorKey = `auth.errors.${error.message}`;
-      const translated = t(errorKey);
-      toast.error(translated === errorKey ? t('auth.errors.defaultError') : translated);
-    } finally {
-      setIsLoading(false);
-    }
+    if (timeLeft > 0 || isPending) return;
+    setEmailError('');
+    setCodeError('');
+    
+    startTransition(async () => {
+      try {
+        await authApi.requestLoginCode(email);
+        setTimeLeft(60);
+        toast.success(t('auth.login.codeResent'));
+      } catch (error: unknown) {
+        const err = error as AuthApiError;
+        const errorKey = `auth.errors.${err.message}`;
+        const translated = t(errorKey);
+        setEmailError(translated === errorKey ? t('auth.errors.defaultError') : translated);
+      }
+    });
   };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
+  const handleFormAction = () => {
     setEmailError('');
     setCodeError('');
 
-    try {
-      if (step === 1) {
-        const validation = emailSchema.safeParse({ email });
-        if (!validation.success) {
-          setEmailError(t(validation.error.issues[0].message));
-          setIsLoading(false);
-          return;
+    startTransition(async () => {
+      try {
+        if (step === 1) {
+          const validation = emailSchema.safeParse({ email });
+          if (!validation.success) {
+            setEmailError(t(validation.error.issues[0].message));
+            return;
+          }
+          await authApi.requestLoginCode(email);
+          setStep(2);
+          setTimeLeft(60);
+        } else {
+          const validation = verifySchema.safeParse({ email, code });
+          if (!validation.success) {
+            setCodeError(t(validation.error.issues[0].message));
+            return;
+          }
+          await authApi.verifyLoginCode(email, code);
+          await fetchUser(true);
+          toast.success(t('dashboard.successMessage'));
+          router.push('/dashboard');
         }
-        await authApi.requestLoginCode(email);
-        setStep(2);
-        setTimeLeft(60);
-      } else {
-        const validation = verifySchema.safeParse({ email, code });
-        if (!validation.success) {
-          setCodeError(t(validation.error.issues[0].message));
-          setIsLoading(false);
-          return;
-        }
-        await authApi.verifyLoginCode(email, code);
-        await fetchUser(true);
-        toast.success(t('dashboard.successMessage'));
-        router.push('/dashboard');
-      }
-    } catch (error: any) {
-      const errorKey = `auth.errors.${error.message}`;
-      const translated = t(errorKey);
-      const fallback = step === 1 ? t('auth.errors.defaultError') : t('auth.errors.verifyFailed');
-      const finalMessage = translated === errorKey ? fallback : translated;
+      } catch (error: unknown) {
+        const err = error as AuthApiError;
+        const errorKey = `auth.errors.${err.message}`;
+        const translated = t(errorKey);
+        const fallback = step === 1 ? t('auth.errors.defaultError') : t('auth.errors.verifyFailed');
+        const finalMessage = translated === errorKey ? fallback : translated;
 
-      if (step === 1) {
-        setEmailError(finalMessage);
-      } else {
-        setCodeError(finalMessage);
+        if (step === 1) {
+          setEmailError(finalMessage);
+        } else {
+          setCodeError(finalMessage);
+        }
       }
-    } finally {
-      setIsLoading(false);
-    }
+    });
+  };
+
+  const handleEmailChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
+  };
+
+  const handleCodeChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setCode(e.target.value);
   };
 
   return {
@@ -107,15 +120,17 @@ export const useLoginForm = () => {
     code,
     setCode,
     step,
-    isLoading,
     emailError,
     codeError,
     isEmailSyntacticallyValid,
     timeLeft,
-    setIsEmailDirty,
+    setIsEmailDirty: () => {},
     formatTime,
     formatDisplayCode,
     handleResendCode,
-    handleSubmit,
+    handleFormAction,
+    isSubmitting: isPending,
+    handleEmailChange,
+    handleCodeChange,
   };
 };

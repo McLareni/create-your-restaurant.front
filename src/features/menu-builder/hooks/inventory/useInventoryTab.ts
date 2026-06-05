@@ -1,24 +1,27 @@
 'use client';
 
-import { useState, useMemo, FormEvent } from 'react';
-import { useInventory } from './useInventory';
+import { useState, useMemo, useTransition, ChangeEvent } from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import { InventoryItem } from '../../types/inventory.types';
-import { inventoryItemSchema, InventoryFormValues, INITIAL_INVENTORY_FORM } from '../../schemas/inventory.schema';
+import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
+import { useInventory } from '@/features/menu-builder/hooks/inventory/useInventory';
+import { inventoryItemSchema } from '@/features/menu-builder/schemas/inventory.schema';
+import { InventoryItem, InventoryFormValues, ApiErrorResponse, InventoryUnit } from '@/features/menu-builder/types/inventory.types';
 import { ZodError } from 'zod';
 import toast from 'react-hot-toast';
 
 export const useInventoryTab = () => {
   const { t } = useTranslation();
   const { inventoryItems, isLoading, createItem, updateItem, deleteItem } = useInventory();
+  const restaurantId = useRestaurantStore((state) => state.activeRestaurant?.id);
   
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   
-  const [formData, setFormData] = useState<InventoryFormValues>(INITIAL_INVENTORY_FORM);
+  const [formData, setFormData] = useState<InventoryFormValues>({ name: '', stock: 0, unit: 'kg' });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [isPending, startTransition] = useTransition();
 
   const filteredItems = useMemo(() => {
     if (!searchQuery) return inventoryItems;
@@ -45,63 +48,71 @@ export const useInventoryTab = () => {
   const openCreateModal = () => {
     setEditingId(null);
     setValidationErrors({});
-    setFormData(INITIAL_INVENTORY_FORM);
+    setFormData({ name: '', stock: 0, unit: 'kg' });
     setIsModalOpen(true);
   };
 
-  const handleDeleteConfirm = async () => {
-    if (deleteId) {
-      try {
-        await deleteItem(deleteId);
-        toast.success(t('common.success') || 'Успішно видалено');
-      } catch {
-        toast.error(t('auth.errors.defaultError'));
-      } finally {
-        setDeleteId(null);
-      }
+  const handleDeleteConfirm = () => {
+    if (deleteId && restaurantId) {
+      startTransition(async () => {
+        try {
+          await deleteItem(deleteId);
+          toast.success(t('common.success'));
+        } catch {
+          toast.error(t('auth.errors.defaultError'));
+        } finally {
+          setDeleteId(null);
+        }
+      });
     }
   };
 
-  const handleFormSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleFormAction = () => {
     setValidationErrors({});
 
-    try {
-      const validatedData = inventoryItemSchema.parse({
-        name: formData.name,
-        stock: Number(formData.stock),
-        unit: formData.unit,
-      });
-
-      const mutationOptions = {
-        onSuccess: () => {
-          setIsModalOpen(false);
-          setEditingId(null);
-          setFormData(INITIAL_INVENTORY_FORM);
-          toast.success(t('common.success') || 'Збережено успішно');
-        },
-        onError: (err: any) => {
-          const apiError = err?.response?.data?.message || t('auth.errors.defaultError');
-          toast.error(apiError);
-        },
-      };
-
-      if (editingId) {
-        updateItem({ id: editingId, ...validatedData }, mutationOptions);
-      } else {
-        createItem(validatedData, mutationOptions);
-      }
-    } catch (error) {
-      if (error instanceof ZodError) {
-        const errorsMap: Record<string, string> = {};
-        error.issues.forEach((issue) => {
-          if (issue.path[0]) {
-            errorsMap[issue.path[0].toString()] = t(issue.message);
-          }
+    startTransition(async () => {
+      try {
+        const validatedData = inventoryItemSchema.parse({
+          name: formData.name,
+          stock: Number(formData.stock),
+          unit: formData.unit,
         });
-        setValidationErrors(errorsMap);
+
+        const mutationOptions = {
+          onSuccess: () => {
+            setIsModalOpen(false);
+            setEditingId(null);
+            setFormData({ name: '', stock: 0, unit: 'kg' });
+            toast.success(t('common.success'));
+          },
+          onError: (err: unknown) => {
+            const errorWrapper = err as ApiErrorResponse;
+            const apiError = errorWrapper?.response?.data?.message || t('auth.errors.defaultError');
+            toast.error(apiError);
+          },
+        };
+
+        if (editingId) {
+          updateItem({ id: editingId, ...validatedData }, mutationOptions);
+        } else {
+          createItem(validatedData, mutationOptions);
+        }
+      } catch (error) {
+        if (error instanceof ZodError) {
+          const errorsMap: Record<string, string> = {};
+          error.issues.forEach((issue) => {
+            if (issue.path[0]) {
+              errorsMap[issue.path[0].toString()] = t(issue.message);
+            }
+          });
+          setValidationErrors(errorsMap);
+        }
       }
-    }
+    });
+  };
+
+  const handleUnitChange = (e: ChangeEvent<HTMLSelectElement>) => {
+    setFormData({ ...formData, unit: e.target.value as InventoryUnit });
   };
 
   return {
@@ -117,11 +128,13 @@ export const useInventoryTab = () => {
     setFormData,
     validationErrors,
     filteredItems,
-    isLoading,
+    isLoading: isLoading || restaurantId === undefined,
+    isSubmitting: isPending,
     handleStockBlur,
     startEdit,
     openCreateModal,
     handleDeleteConfirm,
-    handleFormSubmit,
+    handleFormAction,
+    handleUnitChange,
   };
 };

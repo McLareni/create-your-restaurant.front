@@ -1,12 +1,12 @@
-import { FormEvent } from 'react';
+import { ChangeEvent } from 'react';
 
-export interface LoginFormProps {
+export interface LoginFormState {
+  t: (key: string) => string;
   email: string;
   setEmail: (value: string) => void;
   code: string;
   setCode: (value: string) => void;
   step: 1 | 2;
-  isLoading: boolean;
   emailError: string;
   codeError: string;
   isEmailSyntacticallyValid: boolean;
@@ -15,6 +15,12 @@ export interface LoginFormProps {
   formatTime: (seconds: number) => string;
   formatDisplayCode: (rawCode: string) => string;
   handleResendCode: () => Promise<void>;
-  handleSubmit: (e: FormEvent) => Promise<void>;
-  t: (key: string) => string;
+  handleFormAction: () => void;
+  isSubmitting: boolean;
+  handleEmailChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  handleCodeChange: (e: ChangeEvent<HTMLInputElement>) => void;
+}
+
+export interface AuthApiError {
+  message?: string;
 }

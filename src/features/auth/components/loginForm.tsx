@@ -1,8 +1,8 @@
 'use client';
 
-import { Mail, Key } from 'lucide-react';
+import { Mail, Key, Loader2 } from 'lucide-react';
 import { Input, Button, Checkbox, GoogleIcon, AppleIcon } from '@/shared/ui';
-import { useLoginForm } from '../hooks/useLoginForm';
+import { useLoginForm } from '@/features/auth/hooks/useLoginForm';
 
 export const LoginForm = () => {
   const login = useLoginForm();
@@ -18,7 +18,7 @@ export const LoginForm = () => {
         </p>
       </div>
 
-      <form onSubmit={login.handleSubmit} className="flex flex-col gap-5">
+      <form action={login.handleFormAction} className="flex flex-col gap-5">
         <div className="p-1 -m-1">
           <Input
             id="email"
@@ -28,57 +28,58 @@ export const LoginForm = () => {
             leftIcon={<Mail className="h-5 w-5" />}
             hint={login.t('auth.login.emailHint')}
             value={login.email}
-            onChange={(e) => {
-              login.setEmail(e.target.value);
-              login.setIsEmailDirty(true);
-            }}
+            onChange={login.handleEmailChange}
             error={login.emailError}
-            disabled={login.step === 2 || login.isLoading}
+            disabled={login.isSubmitting || login.step === 2}
+            autoComplete="email"
+            required
           />
         </div>
 
-        <div className={`grid transition-all duration-300 ease-in-out ${login.step === 2 ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-          <div className="overflow-hidden p-1 -m-1">
-            <div className="flex flex-col gap-2">
-              <Input
-                id="code"
-                type="text"
-                maxLength={7}
-                label={login.t('auth.login.codeLabel')}
-                placeholder={login.t('auth.login.codePlaceholder')}
-                leftIcon={<Key className="h-5 w-5" />}
-                value={login.formatDisplayCode(login.code)}
-                onChange={(e) => login.setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                error={login.codeError}
-                disabled={login.isLoading}
-              />
-              
-              <div className="text-right text-[13px] px-1">
-                {login.timeLeft > 0 ? (
-                  <span className="text-brand-gray dark:text-brand-gray/80">
-                    {login.t('auth.login.resendCodeTimer')} <span className="font-medium text-brand-espresso dark:text-brand-cream">{login.formatTime(login.timeLeft)}</span>
-                  </span>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={login.handleResendCode}
-                    disabled={login.isLoading}
-                    className="text-brand-copper hover:text-brand-gold transition-colors font-medium outline-none disabled:opacity-50 cursor-pointer"
-                  >
-                    {login.t('auth.login.resendCode')}
-                  </button>
-                )}
-              </div>
+        {login.step === 2 && (
+          <div className="p-1 -m-1 flex flex-col gap-2">
+            <Input
+              id="code"
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              label={login.t('auth.login.codeLabel')}
+              placeholder={login.t('auth.login.codePlaceholder')}
+              leftIcon={<Key className="h-5 w-5" />}
+              value={login.formatDisplayCode(login.code)}
+              onChange={login.handleCodeChange}
+              error={login.codeError}
+              disabled={login.isSubmitting}
+              autoComplete="one-time-code"
+              maxLength={7}
+              required
+            />
+            
+            <div className="text-right text-[13px] px-1">
+              {login.timeLeft > 0 ? (
+                <span className="text-brand-gray dark:text-brand-gray/80">
+                  {login.t('auth.login.resendCodeTimer')} <span className="font-medium text-brand-espresso dark:text-brand-cream">{login.formatTime(login.timeLeft)}</span>
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={login.handleResendCode}
+                  disabled={login.isSubmitting}
+                  className="text-brand-copper hover:text-brand-gold transition-colors font-medium outline-none disabled:opacity-50 cursor-pointer"
+                >
+                  {login.t('auth.login.resendCode')}
+                </button>
+              )}
             </div>
           </div>
-        </div>
+        )}
 
-        <div className={`grid transition-all duration-300 ease-in-out ${login.isEmailSyntacticallyValid || login.step === 2 ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-          <div className="overflow-hidden p-1 -m-1">
+        <div className={login.isEmailSyntacticallyValid || login.step === 2 ? 'block' : 'hidden'}>
+          <div className="p-1 -m-1">
             <Button 
               variant="brand" 
               type="submit" 
-              isLoading={login.isLoading} 
+              isLoading={login.isSubmitting} 
               className="h-14 w-full text-lg shadow-lg shadow-brand-copper/20"
               disabled={login.emailError !== ''}
             >
@@ -91,19 +92,19 @@ export const LoginForm = () => {
           <Checkbox 
             id="terms" 
             required
-            label={
-              <span className="text-brand-gray dark:text-brand-gray/80">
-                {login.t('auth.login.termsPrefix')}
-                <a href="#" className="text-brand-copper hover:text-brand-gold transition-colors hover:underline">
-                  {login.t('auth.login.privacyPolicy')}
-                </a> 
-                {login.t('auth.login.and')}
-                <a href="#" className="text-brand-copper hover:text-brand-gold transition-colors hover:underline">
-                  {login.t('auth.login.terms')}
-                </a>.
-              </span>
-            } 
-          />
+            disabled={login.isSubmitting}
+          >
+            <span className="text-brand-gray dark:text-brand-gray/80">
+              {login.t('auth.login.termsPrefix')}
+              <a href="#" className="text-brand-copper hover:text-brand-gold transition-colors hover:underline">
+                {login.t('auth.login.privacyPolicy')}
+              </a> 
+              {login.t('auth.login.and')}
+              <a href="#" className="text-brand-copper hover:text-brand-gold transition-colors hover:underline">
+                {login.t('auth.login.terms')}
+              </a>.
+            </span>
+          </Checkbox>
         </div>
       </form>
 
@@ -119,6 +120,7 @@ export const LoginForm = () => {
           type="button" 
           className="w-full text-brand-espresso dark:text-brand-cream border-brand-gray/30 dark:border-brand-gray/50 hover:bg-brand-gray/10 dark:hover:bg-brand-gray/20"
           icon={<GoogleIcon className="h-5 w-5" />}
+          disabled={login.isSubmitting}
         >
           {login.t('auth.login.google')}
         </Button>
@@ -127,6 +129,7 @@ export const LoginForm = () => {
           type="button" 
           className="w-full text-brand-espresso dark:text-brand-cream border-brand-gray/30 dark:border-brand-gray/50 hover:bg-brand-gray/10 dark:hover:bg-brand-gray/20"
           icon={<AppleIcon className="h-5 w-5" />}
+          disabled={login.isSubmitting}
         >
           {login.t('auth.login.apple')}
         </Button>
