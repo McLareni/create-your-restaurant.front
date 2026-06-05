@@ -44,29 +44,29 @@ next-env.d.ts
 
 .vscode/
 
-# Repomix exclusions (додайте це в кінець .gitignore)
-# src/features/marketplace/
-# # src/features/organizations/
-# src/features/public-menu/
-# src/features/pos
-# src/features/qr-tables/
-# # src/features/staff/
-# src/features/menu-builder/
+# # Repomix exclusions (додайте це в кінець .gitignore)
+# # src/features/marketplace/
+# # # src/features/organizations/
+# # src/features/public-menu/
+# # src/features/pos
+# # src/features/qr-tables/
+# # # src/features/staff/
+# # src/features/menu-builder/
 
 
-# src/app/(dashboard)/dashboard/marketplace/
-# src/app/(dashboard)/dashboard/menu-builder/
-# # src/app/(dashboard)/create-organization/
-# src/app/(dashboard)/dashboard/qr/
-# # src/app/(dashboard)/dashboard/staff/
-# src/app/(dashboard)/dashboard/pos/
+# # src/app/(dashboard)/dashboard/marketplace/
+# # src/app/(dashboard)/dashboard/menu-builder/
+# # # src/app/(dashboard)/create-organization/
+# # src/app/(dashboard)/dashboard/qr/
+# # # src/app/(dashboard)/dashboard/staff/
+# # src/app/(dashboard)/dashboard/pos/
 
-!/src/
-/src/*
+# !/src/
+# /src/*
 
-!/src/shared/
-!/src/features/
+# !/src/shared/
+# !/src/features/
 
-/src/features/*
-!/src/features/menu-builder/
-!/src/app/
+# /src/features/*
+# !/src/features/menu-builder/
+# !/src/app/
