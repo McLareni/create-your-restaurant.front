@@ -1,21 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@/shared/ui';
+import { Button } from '@/shared/ui/button';
 import { Delete, X } from 'lucide-react';
-
-interface PinPadProps {
-  maxLength?: number;
-  onConfirm: (pin: string) => void;
-  isLoading?: boolean;
-}
+import type { PinPadProps } from '@/features/staff/types/staff.types';
 
 export const PinPad = ({ maxLength = 4, onConfirm, isLoading = false }: PinPadProps) => {
   const [pin, setPin] = useState('');
 
   const handleNumberClick = (num: string) => {
     if (isLoading) return;
-
     if (pin.length >= maxLength) {
       setPin(num);
       return;
@@ -75,7 +69,7 @@ export const PinPad = ({ maxLength = 4, onConfirm, isLoading = false }: PinPadPr
           disabled={isLoading || !pin}
           icon={<X className="h-5 w-5" />}
         >
-          ""
+          {" "}
         </Button>
 
         <Button
@@ -96,7 +90,7 @@ export const PinPad = ({ maxLength = 4, onConfirm, isLoading = false }: PinPadPr
           disabled={isLoading || !pin}
           icon={<Delete className="h-5 w-5" />}
         >
-          ""
+          {" "}
         </Button>
       </div>
     </div>

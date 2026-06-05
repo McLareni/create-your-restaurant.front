@@ -68,5 +68,5 @@ next-env.d.ts
 !/src/features/
 
 /src/features/*
-!/src/features/qr-tables/
+!/src/features/staff/
 !/src/app/

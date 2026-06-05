@@ -1,3 +1,4 @@
+// src/app/api/proxy/[...path]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 
 async function handleProxy(
@@ -14,7 +15,6 @@ async function handleProxy(
 
   const headers = new Headers();
   const incomingContentType = request.headers.get('content-type');
-  
   if (incomingContentType) {
     headers.set('Content-Type', incomingContentType);
   }
@@ -24,8 +24,7 @@ async function handleProxy(
   }
 
   try {
-    let body: any = undefined;
-    
+    let body: ArrayBuffer | undefined = undefined;
     if (request.method !== 'GET' && request.method !== 'HEAD') {
       body = await request.arrayBuffer();
     }
@@ -35,7 +34,6 @@ async function handleProxy(
       headers,
       body,
     });
-
     const data = await response.text();
     
     return new NextResponse(data, {

@@ -10,6 +10,17 @@ import { useTranslation } from '@/shared/hooks/useTranslation';
 export default function StaffTerminalPage() {
   const { t } = useTranslation();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [activeVoidOrderId, setActiveVoidOrderId] = useState<string | null>(null);
+
+  const handleOpenManagerAuth = (orderId: string) => {
+    setActiveVoidOrderId(orderId);
+    setIsAuthModalOpen(true);
+  };
+
+  const handleCloseManagerAuth = () => {
+    setIsAuthModalOpen(false);
+    setActiveVoidOrderId(null);
+  };
 
   return (
     <div className="p-6 flex flex-col gap-8 min-h-screen bg-brand-espresso/5">
@@ -27,7 +38,7 @@ export default function StaffTerminalPage() {
           variant="outline"
           className="flex items-center gap-2 border-amber-500/30 text-amber-600 hover:bg-amber-500/10 text-xs"
           icon={<ShieldAlert className="h-4 w-4" />}
-          onClick={() => setIsAuthModalOpen(true)}
+          onClick={() => handleOpenManagerAuth('active-terminal-session')}
         >
           {t('staff.ops.managerAuthTitle')}
         </Button>
@@ -37,11 +48,13 @@ export default function StaffTerminalPage() {
         <StaffShiftManager />
       </div>
 
-      <ManagerAuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        orderId="test-order-uuid-12345"
-      />
+      {activeVoidOrderId && (
+        <ManagerAuthModal
+          isOpen={isAuthModalOpen}
+          onClose={handleCloseManagerAuth}
+          orderId={activeVoidOrderId}
+        />
+      )}
     </div>
   );
 }

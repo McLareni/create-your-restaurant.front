@@ -3,7 +3,7 @@
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { Switch, Card } from '@/shared/ui';
 import { Pencil, Trash2, Mail, Phone } from 'lucide-react';
-import { StaffCardProps } from '../types/staff.types';
+import { StaffCardProps } from '@/features/staff/types/staff.types';
 import Image from 'next/image';
 
 export const StaffCard = ({ member, onEdit, onDelete, onStatusChange }: StaffCardProps) => {
@@ -29,7 +29,7 @@ export const StaffCard = ({ member, onEdit, onDelete, onStatusChange }: StaffCar
         </button>
       </div>
 
-      <div className="flex items-center gap-4 mb-5 relative z-0">
+      <div className="flex items-center gap-4 mb-5 relative z-0 min-w-0">
         {member.photo ? (
           <div className="relative h-14 w-14 shrink-0 rounded-full overflow-hidden border border-brand-gray/20 shadow-inner bg-brand-cream/20">
             <Image 
@@ -45,11 +45,13 @@ export const StaffCard = ({ member, onEdit, onDelete, onStatusChange }: StaffCar
             {initials}
           </div>
         )}
-        <div className="flex flex-col pr-12">
-          <h3 className="text-lg font-bold text-brand-espresso dark:text-brand-cream line-clamp-1">
+        
+        {/* 🛠️ ВИПРАВЛЕНО: Додано min-w-0 та flex-1 для стабілізації текстового блоку у Flexbox */}
+        <div className="flex flex-col pr-12 min-w-0 flex-1">
+          <h3 className="text-lg font-bold text-brand-espresso dark:text-brand-cream truncate">
             {member.firstName} {member.lastName}
           </h3>
-          <span className="text-xs font-semibold text-brand-copper mt-0.5">{member.role}</span>
+          <span className="text-xs font-semibold text-brand-copper mt-0.5 truncate">{member.role}</span>
         </div>
       </div>
 

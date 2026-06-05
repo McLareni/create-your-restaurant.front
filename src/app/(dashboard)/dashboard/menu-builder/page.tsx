@@ -1,6 +1,6 @@
 'use client';
 
-import { useMenuBuilder } from './hooks/useMenuBuilder';
+import { useMenuBuilder } from '@/app/(dashboard)/dashboard/menu-builder/hooks/useMenuBuilder';
 import { ModifiersTab } from '@/features/menu-builder/components/modifiers/modifiersTab';
 import { CombosTab } from '@/features/menu-builder/components/combos/combosTab';
 import { MenuBoard } from '@/features/menu-builder/components/board/menuBoard';

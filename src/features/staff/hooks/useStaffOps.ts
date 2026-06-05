@@ -1,8 +1,12 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { staffOpsApi } from '../api/staffOps.api';
+import { staffOpsApi } from '@/features/staff/api/staffOps.api';
 import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import toast from 'react-hot-toast';
+
+interface ApiErrorResponse {
+  message?: string;
+}
 
 export const useStaffOps = () => {
   const { t } = useTranslation();
@@ -19,8 +23,9 @@ export const useStaffOps = () => {
       queryClient.invalidateQueries({ queryKey: ['staffList', restaurantId] });
       toast.success(`${t('staff.ops.welcome')}, ${data.firstName}!`);
     },
-    onError: (error: any) => {
-      toast.error(error.message || t('auth.errors.defaultError'));
+    onError: (error: unknown) => {
+      const err = error as ApiErrorResponse;
+      toast.error(err.message || t('auth.errors.defaultError'));
     }
   });
 
@@ -33,8 +38,9 @@ export const useStaffOps = () => {
       queryClient.invalidateQueries({ queryKey: ['staffList', restaurantId] });
       toast.success(t('staff.ops.clockOutSuccess'));
     },
-    onError: (error: any) => {
-      toast.error(error.message || t('auth.errors.defaultError'));
+    onError: (error: unknown) => {
+      const err = error as ApiErrorResponse;
+      toast.error(err.message || t('auth.errors.defaultError'));
     }
   });
 
@@ -47,8 +53,9 @@ export const useStaffOps = () => {
       queryClient.invalidateQueries({ queryKey: ['orders', restaurantId] });
       toast.success(`${t('staff.ops.voidSuccess')} ${data.voidedBy}`);
     },
-    onError: (error: any) => {
-      toast.error(error.message || t('staff.ops.voidError'));
+    onError: (error: unknown) => {
+      const err = error as ApiErrorResponse;
+      toast.error(err.message || t('staff.ops.voidError'));
     }
   });
 

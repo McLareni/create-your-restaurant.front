@@ -1,21 +1,11 @@
-import { useState, useMemo } from 'react';
+'use client';
+
+import { useState, useMemo, useActionState, useEffect, ChangeEvent } from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { useStaff } from '@/features/staff/hooks/useStaff';
-import { useCrudModal } from '@/shared/hooks/useCrudModal';
-import { staffSchema } from '@/features/staff/schemas/staff.schema';
-import { StaffMember, CreateStaffDTO, UpdateStaffDTO } from '../types/staff.types';
+import { validateStaffForm } from '@/features/staff/schemas/staff.schema';
 import toast from 'react-hot-toast';
-
-const INITIAL_FORM_DATA: CreateStaffDTO = { 
-  firstName: '', 
-  lastName: '', 
-  email: '', 
-  phone: '', 
-  role: '', 
-  isActive: true, 
-  photo: '', 
-  password: '' 
-};
+import type { StaffMember, StaffFormFields } from '@/features/staff/types/staff.types';
 
 export const useStaffList = () => {
   const { t } = useTranslation();
@@ -23,115 +13,145 @@ export const useStaffList = () => {
     staff,
     roles,
     createStaffAsync,
-    updateStaff,
     updateStaffAsync,
     deleteStaff,
     uploadStaffPhotoAsync,
-    createRole,
-    deleteRole,
-    isLoading: isQueriesLoading,
+    updateStaff,
   } = useStaff();
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [validationError, setValidationError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingMember, setEditingMember] = useState<StaffMember | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isActiveStatus, setIsActiveStatus] = useState(true);
+  const [photoPreview, setPhotoPreview] = useState('');
   const [selectedPhotoFile, setSelectedPhotoFile] = useState<File | null>(null);
-  const [isMutationPending, setIsMutationPending] = useState(false);
 
-  const {
-    isModalOpen,
-    setIsModalOpen,
-    editingItem: editingMember,
-    formData,
-    setFormData,
-    deleteId,
-    setDeleteId,
-    openCreateModal: coreOpenCreateModal,
-    openEditModal: coreOpenEditModal,
-    confirmDelete,
-  } = useCrudModal<StaffMember, CreateStaffDTO>({
-    initialFormData: INITIAL_FORM_DATA,
-    createItem: async () => {},
-    updateItem: () => {},
-    deleteItem: deleteStaff as any,
+  const [fields, setFields] = useState<StaffFormFields>({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    role: '',
+    password: '',
   });
 
-  const openCreateModal = () => {
+  useEffect(() => {
+    return () => {
+      if (photoPreview && photoPreview.startsWith('blob:')) {
+        URL.revokeObjectURL(photoPreview);
+      }
+    };
+  }, [photoPreview]);
+
+  const handleFieldChange = (name: keyof StaffFormFields, value: string) => {
+    setFields((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const clearPhotoPreviewSafely = () => {
+    if (photoPreview && photoPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(photoPreview);
+    }
+    setPhotoPreview('');
     setSelectedPhotoFile(null);
-    setFieldErrors({});
-    setValidationError(null);
-    coreOpenCreateModal();
+  };
+
+  const openCreateModal = () => {
+    clearPhotoPreviewSafely();
+    setEditingMember(null);
+    setIsActiveStatus(true);
+    setFields({ firstName: '', lastName: '', email: '', phone: '', role: '', password: '' });
+    setIsModalOpen(true);
   };
 
   const openEditModal = (item: StaffMember) => {
-    setSelectedPhotoFile(null);
-    setFieldErrors({});
-    setValidationError(null);
-    coreOpenEditModal(item, (i) => ({
-      firstName: i.firstName,
-      lastName: i.lastName,
-      email: i.email,
-      phone: i.phone,
-      role: i.role,
-      isActive: i.isActive,
-      photo: i.photo || '',
+    clearPhotoPreviewSafely();
+    setEditingMember(item);
+    setIsActiveStatus(item.isActive);
+    setPhotoPreview(item.photo || '');
+    setFields({
+      firstName: item.firstName || '',
+      lastName: item.lastName || '',
+      email: item.email || '',
+      phone: item.phone || '',
+      role: item.role || '',
       password: '',
-    }));
+    });
+    setIsModalOpen(true);
   };
 
-  const onSave = async () => {
-    if (isMutationPending) return;
-    setValidationError(null);
-    setFieldErrors({});
-    
-    const validation = staffSchema.safeParse(formData);
-    
-    if (!validation.success) {
-      const errorsMap: Record<string, string> = {};
-      validation.error.issues.forEach((issue) => {
-        const path = issue.path[0] as string;
-        errorsMap[path] = t(issue.message);
-      });
-      setFieldErrors(errorsMap);
-      setValidationError(t(validation.error.issues[0].message));
-      return;
-    }
-
-    setIsMutationPending(true);
-    try {
-      const { photo, password, ...payload } = validation.data;
-      void photo;
-
-      const submitData: UpdateStaffDTO = {
-        ...payload,
-        ...(password && password.trim() !== '' ? { password } : {})
+  const [formState, formAction, isFormPending] = useActionState(
+    async (prevState: Record<string, string> | null, incomingFormData: FormData) => {
+      const rawData = {
+        firstName: (incomingFormData.get('firstName') as string) || '',
+        lastName: (incomingFormData.get('lastName') as string) || '',
+        email: (incomingFormData.get('email') as string) || '',
+        phone: (incomingFormData.get('phone') as string) || '',
+        role: (incomingFormData.get('role') as string) || '',
+        password: (incomingFormData.get('password') as string) || '',
+        isActive: isActiveStatus,
       };
 
-      const savedStaff = editingMember
-        ? await updateStaffAsync({ id: editingMember.id, data: submitData })
-        : await createStaffAsync(submitData as CreateStaffDTO);
-
-      if (selectedPhotoFile && savedStaff?.id) {
-        await uploadStaffPhotoAsync({ staffId: savedStaff.id, file: selectedPhotoFile });
+      const validation = validateStaffForm(rawData, t);
+      if (!validation.success) {
+        return validation.errors || {};
       }
 
-      setSelectedPhotoFile(null);
-      setIsModalOpen(false);
-      setValidationError(null);
-      setFieldErrors({});
-      toast.success(editingMember ? t('staff.notifications.updateSuccess') : t('staff.notifications.createSuccess'));
-    } catch (error: any) {
-      const backendMessage = error?.response?.data?.message || t('auth.errors.defaultError');
-      toast.error(backendMessage);
-    } finally {
-      setIsMutationPending(false);
+      try {
+        const { password, ...payload } = validation.data!;
+        
+        const submitData = {
+          ...payload,
+          ...(password && password.trim() !== '' ? { password } : {}),
+        };
+
+        const savedStaff = editingMember
+          ? await updateStaffAsync({ id: editingMember.id, data: submitData })
+          : await createStaffAsync(submitData);
+
+        if (selectedPhotoFile && savedStaff?.id) {
+          await uploadStaffPhotoAsync({ staffId: savedStaff.id, file: selectedPhotoFile });
+        }
+
+        clearPhotoPreviewSafely();
+        setIsModalOpen(false);
+        toast.success(editingMember ? t('staff.notifications.updateSuccess') : t('staff.notifications.createSuccess'));
+        return null;
+      } catch (error: unknown) {
+        const err = error as Error;
+        const backendMessage = err.message || t('auth.errors.defaultError');
+        toast.error(backendMessage);
+        return { global: backendMessage };
+      }
+    },
+    null
+  );
+
+  const confirmDelete = async () => {
+    if (deleteId) {
+      try {
+        await deleteStaff(deleteId);
+        setDeleteId(null);
+        toast.success(t('staff.notifications.deleteSuccess'));
+      } catch {}
     }
+  };
+
+  const handlePhotoChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (photoPreview && photoPreview.startsWith('blob:')) {
+      URL.revokeObjectURL(photoPreview);
+    }
+    setPhotoPreview(URL.createObjectURL(file));
+    setSelectedPhotoFile(file);
+    toast.success(t('staff.modal.imageQueued'));
   };
 
   const filteredStaff = useMemo(() => {
     if (!searchQuery) return staff;
     const lowerQuery = searchQuery.toLowerCase();
-    return staff.filter((s: StaffMember) => 
+    return staff.filter((s: StaffMember) =>
       `${s.firstName} ${s.lastName || ''} ${s.email}`.toLowerCase().includes(lowerQuery)
     );
   }, [staff, searchQuery]);
@@ -140,26 +160,30 @@ export const useStaffList = () => {
     t,
     staff: filteredStaff,
     roles,
-    isLoading: isQueriesLoading || isMutationPending,
+    isLoading: isFormPending,
     searchQuery,
     setSearchQuery,
-    validationError,
-    setValidationError,
-    errors: fieldErrors,
+    validationError: formState?.global || null,
+    errors: formState || {},
     isModalOpen,
-    setIsModalOpen,
+    setIsModalOpen: (open: boolean) => {
+      if (!open) clearPhotoPreviewSafely();
+      setIsModalOpen(open);
+    },
     editingMember,
-    formData,
-    setFormData,
     deleteId,
     setDeleteId,
+    isActiveStatus,
+    setIsActiveStatus,
+    photoPreview,
+    handlePhotoChange,
     openCreateModal,
     openEditModal,
     confirmDelete,
-    onSave,
-    setSelectedPhotoFile,
-    createRole,
-    deleteRole,
+    formAction,
+    isFormPending,
     updateStaff,
+    fields,
+    handleFieldChange,
   };
 };

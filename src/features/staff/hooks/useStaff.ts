@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { staffApi } from '../api/staff.api';
+import { staffApi } from '@/features/staff/api/staff.api';
 import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import { StaffMember, CreateStaffDTO, UpdateStaffDTO, CustomStaffRole } from '../types/staff.types';
+import { StaffMember, CreateStaffDTO, UpdateStaffDTO, CustomStaffRole } from '@/features/staff/types/staff.types';
 import toast from 'react-hot-toast';
 
 export const useStaff = () => {
@@ -29,8 +29,9 @@ export const useStaff = () => {
       queryClient.invalidateQueries({ queryKey: ['staffList', restaurantId] });
       toast.success(t('staff.notifications.createSuccess'));
     },
-    onError: (error: any) => {
-      toast.error(error.message || t('staff.notifications.createError'));
+    onError: (error: unknown) => {
+      const err = error as { message?: string };
+      toast.error(err.message || t('staff.notifications.createError'));
     }
   });
 
@@ -38,6 +39,11 @@ export const useStaff = () => {
     mutationFn: ({ id, data }) => staffApi.updateStaff(restaurantId!, id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staffList', restaurantId] });
+      toast.success(t('staff.notifications.updateSuccess'));
+    },
+    onError: (error: unknown) => {
+      const err = error as { message?: string };
+      toast.error(err.message || t('staff.notifications.updateError'));
     }
   });
 
@@ -66,6 +72,7 @@ export const useStaff = () => {
     mutationFn: (id: string) => staffApi.deleteRole(restaurantId!, id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staffRoles', restaurantId] });
+      queryClient.invalidateQueries({ queryKey: ['staffList', restaurantId] });
     }
   });
 

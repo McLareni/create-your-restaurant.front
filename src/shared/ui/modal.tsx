@@ -3,8 +3,7 @@
 import { useEffect, useState } from 'react';
 import { X, GripHorizontal } from 'lucide-react';
 import { DndContext, useDraggable, useSensor, useSensors, PointerSensor, DragEndEvent } from '@dnd-kit/core';
-// 🔄 ВИПРАВЛЕНО: Використовуємо локальний відносний шлях для залізобетонного резолву типів компилятором
-import { ModalProps, DraggableContentProps } from '../types/ui.types';
+import type { ModalProps, DraggableContentProps } from '@/shared/types/ui.types';
 
 const DraggableContent = ({ title, children, onClose, coordinates, className }: DraggableContentProps) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
@@ -53,8 +52,6 @@ export const Modal = (props: ModalProps) => {
   const [coordinates, setCoordinates] = useState({ x: 0, y: 0 });
   const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
 
-  // 💡 ВИПРАВЛЕНО: Замість useEffect скидаємо координати під час рендеру. 
-  // Це запобігає каскадним ререндарам та усуває попередження лінтера.
   if (isOpen !== prevIsOpen) {
     setPrevIsOpen(isOpen);
     setCoordinates({ x: 0, y: 0 });

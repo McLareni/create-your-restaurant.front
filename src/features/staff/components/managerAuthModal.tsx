@@ -1,17 +1,16 @@
-import { Modal } from '@/shared/ui';
-import { PinPad } from './pinPad';
-import { useStaffOps } from '../hooks/useStaffOps';
+import { Modal } from '@/shared/ui/modal';
+import { PinPad } from '@/features/staff/components/pinPad';
+import { useStaffOps } from '@/features/staff/hooks/useStaffOps';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { ShieldAlert } from 'lucide-react';
+import type { ManagerAuthModalProps } from '@/features/staff/types/staff.types';
 
-interface ManagerAuthModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  orderId: string;
-  onSuccess?: () => void;
-}
-
-export const ManagerAuthModal = ({ isOpen, onClose, orderId, onSuccess }: ManagerAuthModalProps) => {
+export const ManagerAuthModal = ({
+  isOpen,
+  onClose,
+  orderId,
+  onSuccess,
+}: ManagerAuthModalProps) => {
   const { t } = useTranslation();
   const { authorizeVoid, isAuthorizingVoid } = useStaffOps();
 
@@ -24,11 +23,11 @@ export const ManagerAuthModal = ({ isOpen, onClose, orderId, onSuccess }: Manage
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={t('staff.ops.managerAuthTitle' as any) || 'Підтвердження адміністратора'}>
+    <Modal isOpen={isOpen} onClose={onClose} title={t('staff.ops.managerAuthTitle')}>
       <div className="flex flex-col gap-4 text-brand-espresso dark:text-brand-cream">
-        <div className="flex items-center gap-3 p-3 bg-amber-500/10 text-amber-500 rounded-xl border border-amber-500/20 text-xs leading-relaxed">
+        <div className="flex items-center gap-3 border border-amber-500/20 bg-amber-500/10 p-3 text-xs leading-relaxed text-amber-500 rounded-xl">
           <ShieldAlert className="h-5 w-5 shrink-0" />
-          <span>{t('staff.ops.managerAuthDesc' as any) || 'Для скасування або видалення страви з рахунку замовлення потрібне обов’язкове введення ПІН-коду власника чи керуючого закладу.'}</span>
+          <span>{t('staff.ops.managerAuthDesc')}</span>
         </div>
         <div className="pt-2">
           <PinPad onConfirm={handlePinConfirm} isLoading={isAuthorizingVoid} />

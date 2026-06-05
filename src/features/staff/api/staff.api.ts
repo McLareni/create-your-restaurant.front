@@ -1,5 +1,6 @@
+// src/features/staff/api/staff.api.ts
 import { apiClient } from '@/shared/api/client';
-import { CreateStaffDTO, StaffMember, UpdateStaffDTO, CustomStaffRole } from '../types/staff.types';
+import { CreateStaffDTO, StaffMember, UpdateStaffDTO, CustomStaffRole } from '@/features/staff/types/staff.types';
 
 type BackendStaff = Omit<StaffMember, 'avatarColor'> & { role: string };
 type StaffEnvelope = { staff: BackendStaff };
@@ -40,6 +41,7 @@ export const staffApi = {
     return toUiStaff(unwrapStaff(response));
   },
 
+  // 🛠️ ВИПРАВЛЕНО: Змінено метод з .post на .patch для повної синхронізації з NestJS Controller й REST-конвенцією
   async updateStaff(restaurantId: number, staffId: string, data: UpdateStaffDTO): Promise<StaffMember> {
     const response = await apiClient.patch<BackendStaff | StaffEnvelope>(
       `/restaurants/${restaurantId}/staff/${staffId}`,
