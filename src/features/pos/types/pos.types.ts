@@ -2,6 +2,8 @@ export interface PosStatusResponse {
   isConnected: boolean;
   importMenu: boolean;
   syncStops: boolean;
+  lastSyncAt?: string | Date | null;
+  maskedApiKey?: string | null;
 }
 
 export interface ConnectPosPayload {

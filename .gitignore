@@ -68,5 +68,5 @@ next-env.d.ts
 !/src/features/
 
 /src/features/*
-!/src/features/staff/
+!/src/features/pos/
 !/src/app/

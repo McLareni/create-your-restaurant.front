@@ -4,21 +4,19 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAccessStore } from '@/shared/store/useAccessStore';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
-import { posApi } from '../api/pos.api';
-import { z } from 'zod';
+import { posApi } from '@/features/pos/api/pos.api';
+import { posConnectionSchema } from '@/features/pos/schemas/pos.schemas';
 import toast from 'react-hot-toast';
-
-const posConnectionSchema = z.object({
-  apiKey: z.string().min(10, 'pos.errors.tokenTooShort').max(255, 'pos.errors.tokenTooLong'),
-});
 
 export const usePosIntegration = () => {
   const { t } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
   
-  const hasModule = useAccessStore((state) => state.activeModules.includes('pos-sync'));
+  const activeModules = useAccessStore((state) => state.activeModules);
   const activeRestaurant = useRestaurantStore((state) => state.activeRestaurant);
+  
+  const hasModule = activeModules.includes('pos-sync');
   const restaurantId = activeRestaurant?.id ? Number(activeRestaurant.id) : null;
 
   const [apiKey, setApiKey] = useState('');
@@ -58,6 +56,7 @@ export const usePosIntegration = () => {
   const syncMenuMutation = useMutation({
     mutationFn: () => posApi.syncMenu(restaurantId!),
     onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['pos-status', restaurantId] });
       queryClient.invalidateQueries({ queryKey: ['fullMenu', restaurantId] });
       toast.success(`${t('pos.importMenu')}: ${data.categoriesCreated}, ${data.dishesCreated}`);
     },
