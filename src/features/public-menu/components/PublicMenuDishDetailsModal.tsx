@@ -150,25 +150,6 @@ export const PublicMenuDishDetailsModal = ({ dish, onClose }: PublicMenuDishDeta
           </div>
         </div>
 
-        {dish.variants.length > 0 ? (
-          <div className="mt-4 rounded-xl border border-brand-gray/15">
-            <div className="border-b border-brand-gray/15 px-3 py-2 text-sm font-semibold text-brand-espresso">
-              Варіанти страви
-            </div>
-            <div className="divide-y divide-brand-gray/10">
-              {dish.variants.map((variant) => (
-                <div key={variant.id} className="flex items-center justify-between px-3 py-2 text-sm">
-                  <div>
-                    <p className="font-medium text-brand-espresso">{variant.name}</p>
-                    <p className="text-xs text-brand-gray">SKU: {variant.sku || '-'}</p>
-                  </div>
-                  <p className="font-semibold text-brand-copper">{variant.price} {t('menu.currency')}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : null}
-
         <div className="mt-5 flex items-center justify-between border-t border-brand-gray/15 pt-4">
           <span className="text-sm text-brand-gray">Базова ціна</span>
           <span className="text-lg font-bold text-brand-copper">

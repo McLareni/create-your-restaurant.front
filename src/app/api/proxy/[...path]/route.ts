@@ -1,5 +1,6 @@
 // src/app/api/proxy/[...path]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
+import { getApiBaseUrl } from '@/shared/api/base-url';
 
 async function handleProxy(
   request: NextRequest,
@@ -7,8 +8,12 @@ async function handleProxy(
 ) {
   const params = await context.params;
   const path = params.path.join('/');
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  const API_URL = getApiBaseUrl();
   const url = new URL(request.url);
+
+  if (!API_URL) {
+    return NextResponse.json({ errorCode: 'serverError' }, { status: 500 });
+  }
 
   const sessionCookie = request.cookies.get('gustio_session');
   const token = sessionCookie?.value;
@@ -31,6 +36,7 @@ async function handleProxy(
 
     const response = await fetch(`${API_URL}/${path}${url.search}`, {
       method: request.method,
+      cache: 'no-store',
       headers,
       body,
     });

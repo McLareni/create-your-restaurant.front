@@ -10,7 +10,7 @@ import { PublicMenuDishDetailsModal } from './PublicMenuDishDetailsModal';
 
 const ALL_DISHES_TAB_ID = 'all-dishes';
 
-export const PublicMenuClient = ({ restaurantSlug, tableId }: PublicMenuClientProps) => {
+export const PublicMenuClient = ({ restaurantSlug, tableId, orderId }: PublicMenuClientProps) => {
   const { t } = useTranslation();
   const {
     menuData,
@@ -25,11 +25,13 @@ export const PublicMenuClient = ({ restaurantSlug, tableId }: PublicMenuClientPr
     totalItems,
     totalAmount,
     dishesById,
+    activeOrder,
+    activeOrderId,
     addDish,
     removeDish,
     placeOrder,
     isPlacingOrder,
-  } = usePublicMenuClient(restaurantSlug, tableId);
+  } = usePublicMenuClient(restaurantSlug, tableId, orderId);
 
   const categories = useMemo(
     () => (menuData?.categories ?? []).filter((category) => category.dishes.length > 0),
@@ -154,6 +156,39 @@ export const PublicMenuClient = ({ restaurantSlug, tableId }: PublicMenuClientPr
 
           {canUseCart ? (
             <aside className="h-fit rounded-2xl border border-brand-copper/20 bg-white p-4 shadow-sm lg:sticky lg:top-4">
+              {activeOrderId ? (
+                <div className="mb-4 rounded-xl border border-brand-copper/20 bg-brand-cream/40 p-3">
+                  <h4 className="text-sm font-bold">{t('menu.public.activeOrder')}</h4>
+                  <p className="mt-1 text-xs text-brand-gray">
+                    {t('menu.public.orderNumber')}: #{activeOrderId.slice(0, 8)}
+                  </p>
+
+                  {activeOrder?.items?.length ? (
+                    <div className="mt-3 space-y-2">
+                      {activeOrder.items.map((item) => (
+                        <div key={item.id} className="flex items-center justify-between rounded-lg border border-brand-gray/10 bg-white px-2 py-2 text-sm">
+                          <span className="line-clamp-1 pr-2">{item.dishName}</span>
+                          <span className="font-semibold">x{item.quantity}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-2 text-xs text-brand-gray">
+                      {t('menu.public.activeOrderNoItems')}
+                    </p>
+                  )}
+
+                  <div className="mt-3 border-t border-brand-gray/10 pt-2 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span>{t('menu.public.activeOrderTotal')}</span>
+                      <span className="font-bold">
+                        {activeOrder?.totalAmount ?? 0} {t('menu.currency')}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+
               <h3 className="text-base font-bold">{t('menu.public.cart')}</h3>
 
               {totalItems === 0 ? (
@@ -185,7 +220,11 @@ export const PublicMenuClient = ({ restaurantSlug, tableId }: PublicMenuClientPr
                   disabled={totalItems === 0 || isPlacingOrder}
                   className="mt-3 w-full rounded-xl bg-brand-copper px-3 py-2 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  {isPlacingOrder ? t('menu.public.placing') : t('menu.public.submitOrder')}
+                  {isPlacingOrder
+                    ? t('menu.public.placing')
+                    : activeOrderId
+                      ? t('menu.public.addMore')
+                      : t('menu.public.submitOrder')}
                 </button>
               </div>
             </aside>
