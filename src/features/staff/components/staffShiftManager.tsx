@@ -5,8 +5,9 @@ import { Button } from '@/shared/ui/button';
 import { LogIn, LogOut, Clock, CheckCircle2 } from 'lucide-react';
 import { PinPad } from '@/features/staff/components/pinPad';
 import { useStaffShiftManager } from '@/features/staff/hooks/useStaffShiftManager';
+import type { StaffShiftManagerProps } from '@/features/staff/types/staff.types';
 
-export const StaffShiftManager = () => {
+export const StaffShiftManager = ({ restaurantId }: StaffShiftManagerProps) => {
   const { t } = useTranslation();
   const {
     mode,
@@ -17,8 +18,7 @@ export const StaffShiftManager = () => {
     isClockingOut,
     handleClockInConfirm,
     handleClockOutConfirm,
-  } = useStaffShiftManager();
-
+  } = useStaffShiftManager(restaurantId);
   const currencyToken = t('menu.currency');
 
   if (zReport) {

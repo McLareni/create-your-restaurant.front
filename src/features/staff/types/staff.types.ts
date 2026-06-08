@@ -1,13 +1,47 @@
-import { ChangeEvent, MouseEvent } from 'react';
+import { ChangeEvent } from 'react';
+
+export type ShiftMode = 'SELECT' | 'IN' | 'OUT';
+
+export interface Permission {
+  id: string;
+  label: string;
+}
+
+export interface CreateStaffDTO {
+  firstName: string;
+  lastName?: string;
+  email: string;
+  phone?: string;
+  role: string;
+  isActive?: boolean;
+  photo?: string;
+  password?: string;
+}
+
+export type UpdateStaffDTO = Partial<CreateStaffDTO>;
 
 export interface CustomStaffRole {
   id: string;
+  restaurantId: number;
   name: string;
+  createdAt: string;
+}
+
+export interface BackendStaff {
+  id: string;
+  firstName: string | null;
+  lastName: string | null;
+  email: string;
+  phone: string | null;
+  role: 'OWNER' | 'STAFF' | 'CUSTOMER';
+  isActive: boolean;
+  photo: string | null;
+  pinCode: string | null;
 }
 
 export interface StaffMember {
   id: string;
-  photo?: string;
+  photo?: string | null;
   firstName: string;
   lastName: string;
   email: string;
@@ -15,16 +49,13 @@ export interface StaffMember {
   role: string;
   isActive: boolean;
   avatarColor: string;
-  password?: string;
 }
 
-export interface StaffFormFields {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  role: string;
-  password: string;
+export interface StaffCardProps {
+  member: StaffMember;
+  onEdit: (member: StaffMember) => void;
+  onDelete: (id: string) => void;
+  onStatusChange: (id: string, isActive: boolean) => void;
 }
 
 export interface StaffModalViewProps {
@@ -32,24 +63,20 @@ export interface StaffModalViewProps {
   onClose: () => void;
   editingMember: StaffMember | null;
   roles: CustomStaffRole[];
-  errors: Record<string, string>;
   validationError: string | null;
   isFormPending: boolean;
-  formAction: (formData: FormData) => void | Promise<void>;
+  onFormSuccess: (submitData: CreateStaffDTO, photoFile: File | null, previewUrl: string) => void;
+}
+
+export interface UseStaffFormReturn {
+  fields: Record<string, string>;
+  handleFieldChange: (name: string, value: string) => void;
   isActiveStatus: boolean;
   setIsActiveStatus: (value: boolean) => void;
   photoPreview: string;
   handlePhotoChange: (e: ChangeEvent<HTMLInputElement>) => void;
-  fields: StaffFormFields;
-  handleFieldChange: (name: keyof StaffFormFields, value: string) => void;
-}
-
-export interface UseStaffRolesReturn {
-  newRoleName: string;
-  setNewRoleName: (value: string) => void;
-  isCreatingRole: boolean;
-  handleAddRoleClick: () => Promise<void>;
-  handleRemoveRoleClick: (e: MouseEvent, id: string) => Promise<void>;
+  errors: Record<string, string>;
+  formAction: (formData: FormData) => void;
 }
 
 export interface ClockInResponse {
@@ -75,8 +102,15 @@ export interface AuthorizeVoidResponse {
   voidedBy: string;
 }
 
+export interface StaffShiftManagerProps {
+  restaurantId: number;
+}
+
+export interface ApiErrorResponse {
+  message?: string;
+}
+
 export interface PinPadProps {
-  maxLength?: number;
   onConfirm: (pin: string) => void;
-  isLoading?: boolean;
+  isLoading: boolean;
 }

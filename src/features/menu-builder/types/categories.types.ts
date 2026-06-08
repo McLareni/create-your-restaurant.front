@@ -1,13 +1,10 @@
 import { Dish } from './dishes.types';
 
-export interface Category {
+export interface CategoryData {
   id: string;
   name: string;
   sortOrder: number;
 }
-
-export type CreateCategoryDTO = Omit<Category, 'id' | 'sortOrder'>;
-export type UpdateCategoryDTO = Partial<CreateCategoryDTO>;
 
 export interface CategoryModalProps {
   isOpen: boolean;
@@ -16,6 +13,7 @@ export interface CategoryModalProps {
   catName: string;
   setCatName: (name: string) => void;
   onSave: () => void;
+  error?: string | null;
   isLoading?: boolean;
 }
 
@@ -25,9 +23,9 @@ export interface DeleteCategoryTarget {
 }
 
 export interface SortableCategoryProps {
-  category: any;
+  category: CategoryData;
   categoryDishes: Dish[];
-  onEditCategory: (category: any) => void;
+  onEditCategory: (category: CategoryData) => void;
   onDeleteCategory: (target: DeleteCategoryTarget) => void;
   onAddDish: (categoryId: string) => void;
   onEditDish: (categoryId: string, dish: Dish) => void;

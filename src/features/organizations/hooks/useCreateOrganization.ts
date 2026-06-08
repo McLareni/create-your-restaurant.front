@@ -7,6 +7,7 @@ import { createOrganizationSchema, CreateOrganizationValues, RESERVED_SLUGS } fr
 import { organizationApi } from '../api/organizations.api';
 import { useUserStore } from '@/shared/store/useUserStore';
 import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
+import { useAccessStore } from '@/shared/store/useAccessStore';
 import { UseCreateOrganizationReturn } from '../types/organization.types';
 import { apiClient } from '@/shared/api/client';
 
@@ -59,30 +60,9 @@ export const useCreateOrganization = (): UseCreateOrganizationReturn => {
   const timersRef = useRef<NodeJS.Timeout[]>([]);
 
   useEffect(() => {
-    if (!isSlugManuallyEdited && formData.name) {
-      const generatedSlug = transliterate(formData.name)
-        .trim()
-        .replace(/[\s_]+/g, '-')
-        .replace(/[^a-z0-9-]/g, '')
-        .replace(/-+/g, '-');
-      
-      setFormData((prev) => ({ ...prev, slug: generatedSlug }));
-    }
-  }, [formData.name, isSlugManuallyEdited]);
-
-  useEffect(() => {
-    if (!formData.slug || formData.slug.length < 2) {
-      setSlugAvailable(null);
+    if (!isCheckingSlug || !formData.slug || formData.slug.length < 2 || RESERVED_SLUGS.includes(formData.slug.toLowerCase().trim())) {
       return;
     }
-
-    if (RESERVED_SLUGS.includes(formData.slug.toLowerCase().trim())) {
-      setSlugAvailable(false);
-      return;
-    }
-
-    setIsCheckingSlug(true);
-    setSlugAvailable(null);
 
     if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
 
@@ -100,10 +80,11 @@ export const useCreateOrganization = (): UseCreateOrganizationReturn => {
     return () => {
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     };
-  }, [formData.slug]);
+  }, [formData.slug, isCheckingSlug]);
 
   useEffect(() => {
-    return () => timersRef.current.forEach(clearTimeout);
+    const activeTimers = timersRef.current;
+    return () => activeTimers.forEach(clearTimeout);
   }, []);
 
   const playSuccessAnimation = () => {
@@ -133,6 +114,15 @@ export const useCreateOrganization = (): UseCreateOrganizationReturn => {
     async (prevState: { errors: Partial<Record<keyof CreateOrganizationValues, string>> }) => {
       if (isCheckingSlug || slugAvailable === false) return prevState;
 
+      const restaurants = useUserStore.getState().user?.restaurants || [];
+      const userActiveModules = useAccessStore.getState().activeModules;
+      const hasMultiModule = userActiveModules.includes('multi-restaurant');
+      const maxAllowed = hasMultiModule ? 3 : 1;
+
+      if (restaurants.length >= maxAllowed) {
+        return { errors: { name: t('sidebar.limitReached') } };
+      }
+
       const validation = createOrganizationSchema.safeParse(formData);
       if (!validation.success) {
         const newErrors: Partial<Record<keyof CreateOrganizationValues, string>> = {};
@@ -154,12 +144,45 @@ export const useCreateOrganization = (): UseCreateOrganizationReturn => {
   );
 
   const handleChange = (field: keyof CreateOrganizationValues, value: string) => {
-    if (field === 'slug') setIsSlugManuallyEdited(true);
+    let isManual = isSlugManuallyEdited;
+    if (field === 'slug') {
+      isManual = true;
+      setIsSlugManuallyEdited(true);
+    }
+    
     let finalValue = value;
     if (field === 'slug') {
       finalValue = value.toLowerCase().replace(/[\s_]+/g, '-').replace(/[^a-z0-9-]/g, '');
     }
-    setFormData((prev) => ({ ...prev, [field]: finalValue }));
+
+    let targetSlug = field === 'slug' ? finalValue : (formData.slug || '');
+
+    if (field === 'name' && !isManual) {
+      targetSlug = transliterate(finalValue)
+        .trim()
+        .replace(/[\s_]+/g, '-')
+        .replace(/[^a-z0-9-]/g, '')
+        .replace(/-+/g, '-');
+    }
+
+    if (!targetSlug || targetSlug.length < 2) {
+      setSlugAvailable(null);
+      setIsCheckingSlug(false);
+    } else if (RESERVED_SLUGS.includes(targetSlug.toLowerCase().trim())) {
+      setSlugAvailable(false);
+      setIsCheckingSlug(false);
+    } else {
+      setSlugAvailable(null);
+      setIsCheckingSlug(true);
+    }
+
+    setFormData((prev) => {
+      const nextData = { ...prev, [field]: finalValue };
+      if (field === 'name' && !isManual) {
+        nextData.slug = targetSlug;
+      }
+      return nextData;
+    });
   };
 
   const handleDaysChange = (updatedDays: string[]) => {

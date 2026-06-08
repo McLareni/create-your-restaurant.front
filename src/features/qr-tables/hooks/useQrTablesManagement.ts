@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 import { useUserStore } from '@/shared/store/useUserStore';
 import { tableSchema } from '@/features/qr-tables/schemas/tables.schema';
-import { Table, CreateTableDTO, UpdateTableDTO, Zone } from '@/features/qr-tables/types/tables.types';
+import { Table, CreateTableDTO, UpdateTableDTO } from '@/features/qr-tables/types/tables.types';
 import { tablesApi } from '@/features/qr-tables/api/tables.api';
 import QRCode from 'qrcode';
 import toast from 'react-hot-toast';
@@ -15,7 +15,6 @@ const INITIAL_FORM_DATA: CreateTableDTO = {
   tableNumber: '', 
   type: '', 
   isActive: true, 
-  zoneId: null 
 };
 
 export const useQrTablesManagement = () => {
@@ -27,13 +26,14 @@ export const useQrTablesManagement = () => {
   const restaurantSlug = activeRestaurant?.slug || (userRestaurants || []).find((r) => Number(r.id) === restaurantId)?.slug;
 
   const [errorMsg, setErrorMsg] = useState('');
-  const [newZoneName, setNewZoneName] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [printingDataUrls, setPrintingDataUrls] = useState<Record<string, string>>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTable, setEditingTable] = useState<Table | null>(null);
   const [formData, setFormData] = useState<CreateTableDTO>(INITIAL_FORM_DATA);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  
+  const [showTypeSuggestions, setShowTypeSuggestions] = useState(false);
 
   const printTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -43,11 +43,21 @@ export const useQrTablesManagement = () => {
     enabled: !!restaurantId,
   });
 
-  const { data: zones = [], isLoading: isZonesLoading } = useQuery({
-    queryKey: ['zones', restaurantId],
-    queryFn: () => tablesApi.getAllZones(restaurantId!),
-    enabled: !!restaurantId,
-  });
+  const existingTypes = useMemo<string[]>(() => {
+    const typesSet = new Set<string>();
+    tables.forEach((t) => {
+      if (t.type && t.type.trim()) {
+        typesSet.add(t.type.trim());
+      }
+    });
+    return Array.from(typesSet);
+  }, [tables]);
+
+  const filteredTypes = useMemo<string[]>(() => {
+    const query = (formData.type || '').trim().toLowerCase();
+    if (!query) return existingTypes;
+    return existingTypes.filter((z) => z.toLowerCase().includes(query));
+  }, [formData.type, existingTypes]);
 
   const createTableMutation = useMutation<Table, Error, CreateTableDTO>({
     mutationFn: (data: CreateTableDTO) => tablesApi.create(restaurantId!, data, restaurantSlug),
@@ -88,19 +98,6 @@ export const useQrTablesManagement = () => {
     }
   });
 
-  const createZoneMutation = useMutation<Zone, Error, string>({
-    mutationFn: (name: string) => tablesApi.createZone(restaurantId!, name),
-    onSuccess: (createdZone) => {
-      queryClient.invalidateQueries({ queryKey: ['zones', restaurantId] });
-      setFormData(prev => ({ ...prev, zoneId: createdZone.id, type: createdZone.name }));
-      setNewZoneName('');
-      toast.success(t('qr.notifications.zoneCreateSuccess'));
-    },
-    onError: (error: Error) => {
-      toast.error(error.message);
-    }
-  });
-
   useEffect(() => {
     return () => {
       if (printTimeoutRef.current) clearTimeout(printTimeoutRef.current);
@@ -113,7 +110,6 @@ export const useQrTablesManagement = () => {
 
   const onOpenCreate = () => {
     setErrorMsg('');
-    setNewZoneName('');
     setEditingTable(null);
     setFormData(INITIAL_FORM_DATA);
     setIsModalOpen(true);
@@ -121,20 +117,13 @@ export const useQrTablesManagement = () => {
 
   const onOpenEdit = (table: Table) => {
     setErrorMsg('');
-    setNewZoneName('');
     setEditingTable(table);
     setFormData({
       tableNumber: table.tableNumber,
       type: table.type,
       isActive: table.isActive,
-      zoneId: table.zoneId || null
     });
     setIsModalOpen(true);
-  };
-
-  const handleAddZone = async () => {
-    if (!newZoneName.trim()) return;
-    await createZoneMutation.mutateAsync(newZoneName.trim());
   };
 
   const onSave = async () => {
@@ -182,6 +171,7 @@ export const useQrTablesManagement = () => {
       try {
         urls[table.id] = await QRCode.toDataURL(table.qrUrl, { margin: 0, width: 300 });
       } catch {
+        // Safe context
       }
     }
     setPrintingDataUrls(urls);
@@ -199,17 +189,14 @@ export const useQrTablesManagement = () => {
     setErrorMsg('');
   };
 
-  const isMutationPending = createTableMutation.isPending || updateTableMutation.isPending || deleteTableMutation.isPending || createZoneMutation.isPending;
+  const isMutationPending = createTableMutation.isPending || updateTableMutation.isPending || deleteTableMutation.isPending;
 
   return {
     t,
     tables,
-    zones,
-    isLoading: isTablesLoading || isZonesLoading || isMutationPending,
+    isLoading: isTablesLoading || isMutationPending,
     isSubmitting: isMutationPending,
     errorMsg,
-    newZoneName,
-    setNewZoneName,
     selectedIds,
     printingDataUrls,
     isModalOpen,
@@ -220,7 +207,6 @@ export const useQrTablesManagement = () => {
     setDeleteId,
     onOpenCreate,
     onOpenEdit,
-    handleAddZone,
     onSave,
     onDeleteConfirm,
     handleToggleSelect,
@@ -228,5 +214,8 @@ export const useQrTablesManagement = () => {
     handlePrint,
     handleStatusChange,
     handleFormDataChange,
+    filteredTypes,
+    showTypeSuggestions,
+    setShowTypeSuggestions,
   };
 };

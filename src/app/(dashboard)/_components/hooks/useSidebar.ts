@@ -3,67 +3,74 @@
 import { useState, useEffect, useMemo } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslation } from '@/shared/hooks/useTranslation';
-// 🔄 ВИПРАВЛЕНО: Імпортуємо інтерфейс RestaurantSummary для ліквідації всіх "any"
-import { useUserStore, RestaurantSummary } from '@/shared/store/useUserStore';
+import { useUserStore } from '@/shared/store/useUserStore';
 import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 import { useAccessStore } from '@/shared/store/useAccessStore';
 import { useNavigation } from '@/shared/hooks/useNavigation';
 import { apiClient } from '@/shared/api/client';
 import toast from 'react-hot-toast';
+import type { SidebarRestaurant, SidebarUserProfile, RestaurantStoreState } from '../types/sidebar.types';
 
 export const useSidebarLogic = () => {
   const { t } = useTranslation();
   const pathname = usePathname();
   const router = useRouter();
 
-  const user = useUserStore((state) => state.user);
+  const user = useUserStore((state) => state.user) as SidebarUserProfile | null;
   const logout = useUserStore((state) => state.logout);
   const fetchUser = useUserStore((state) => state.fetchUser);
 
-  const activeRestaurant = useRestaurantStore((state) => state.activeRestaurant);
-  const setActiveRestaurant = useRestaurantStore((state) => state.setActiveRestaurant);
-  // 💡 ВИПРАВЛЕНО: Дістаємо метод очищення ресторану, щоб замінити брудний "undefined as any"
-  const clearActiveRestaurant = useRestaurantStore((state) => state.clearActiveRestaurant);
-  
+  const rawActiveRestaurant = useRestaurantStore((state) => state.activeRestaurant) as unknown as SidebarRestaurant | null;
+  const setActiveRestaurant = useRestaurantStore((state) => state.setActiveRestaurant) as unknown as (restaurant: SidebarRestaurant | null) => void;
+
   const activeModules = useAccessStore((state) => state.activeModules);
   const purchasedModules = useAccessStore((state) => state.purchasedModules);
   const toggleModule = useAccessStore((state) => state.toggleModule);
   const fetchAccessData = useAccessStore((state) => state.fetchAccessData);
-  const clearAccessData = useAccessStore((state) => state.clearAccessData);
 
   const hasModule = (moduleKey: string) => activeModules.includes(moduleKey);
   const isPurchased = (moduleKey: string) => purchasedModules.includes(moduleKey);
-  const { menuGroups } = useNavigation();
 
+  const { menuGroups } = useNavigation();
+  
   const [isOrgDropdownOpen, setIsOrgDropdownOpen] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({});
   const [isLockModalOpen, setIsLockModalOpen] = useState(false);
-  const [lockedModule, setLockedModule] = useState<{ name: string; key: string; } | null>(null);
+  const [lockedModule, setLockedModule] = useState<{ name: string; key: string } | null>(null);
   
-  // 🔄 ВИПРАВЛЕНО: Замінено any на строгий тип RestaurantSummary
-  const [restaurantToDelete, setRestaurantToDelete] = useState<RestaurantSummary | null>(null);
+  const [restaurantToDelete, setRestaurantToDelete] = useState<SidebarRestaurant | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  // 🔄 ВИПРАВЛЕНО: Загортаємо масив у useMemo, щоб посилання не змінювалось при кожному рендері.
-  // Це повністю вирішує проблему з попередженням лінтера react-hooks/exhaustive-deps.
-  const restaurants = useMemo(() => user?.restaurants || [], [user?.restaurants]);
+  const hasMultiModule = activeModules.includes('multi-restaurant');
+  const maxAllowed = hasMultiModule ? 3 : 1;
+
+  const restaurants = useMemo<SidebarRestaurant[]>(() => {
+    if (!user || !user.restaurants) return [];
+    return user.restaurants.map((res: SidebarRestaurant) => ({
+      id: res.id,
+      name: res.name || res.title || '',
+      slug: res.slug,
+      imageUrl: res.imageUrl
+    }));
+  }, [user]);
+
+  const activeRestaurant = useMemo<SidebarRestaurant | null>(() => {
+    if (!rawActiveRestaurant) return null;
+    const freshData = restaurants.find((r) => String(r.id) === String(rawActiveRestaurant.id));
+    return freshData ? { ...rawActiveRestaurant, ...freshData } : rawActiveRestaurant;
+  }, [rawActiveRestaurant, restaurants]);
 
   useEffect(() => {
     if (restaurants.length > 0 && !activeRestaurant) {
-      setActiveRestaurant({
-        ...restaurants[0],
-        id: Number(restaurants[0].id),
-      });
+      setActiveRestaurant(restaurants[0]);
     }
   }, [restaurants, activeRestaurant, setActiveRestaurant]);
 
   useEffect(() => {
-    if (!activeRestaurant?.id) {
-      clearAccessData();
-      return;
+    if (activeRestaurant?.id) {
+      fetchAccessData(String(activeRestaurant.id)).catch(() => {});
     }
-    fetchAccessData(String(activeRestaurant.id)).catch(() => {});
-  }, [activeRestaurant?.id, fetchAccessData, clearAccessData]);
+  }, [activeRestaurant?.id, fetchAccessData]);
 
   const currentOrgName = useMemo(() => {
     return activeRestaurant?.name || t('sidebar.orgSelector.current');
@@ -73,18 +80,19 @@ export const useSidebarLogic = () => {
     return currentOrgName ? currentOrgName[0].toUpperCase() : 'G';
   }, [currentOrgName]);
 
-  // 🔄 ВИПРАВЛЕНО: Замінено type any на RestaurantSummary
-  const handleRestaurantSwitch = (res: RestaurantSummary) => {
-    clearAccessData();
-    setActiveRestaurant({
-      ...res,
-      id: Number(res.id),
-    });
+  const handleRestaurantSwitch = (res: SidebarRestaurant, isLocked: boolean) => {
+    if (isLocked) {
+      toast.error(t('sidebar.locked.title'));
+      setIsOrgDropdownOpen(false);
+      router.push('/dashboard/marketplace');
+      return;
+    }
+    setActiveRestaurant(res);
     setIsOrgDropdownOpen(false);
+    router.refresh();
   };
 
-  // 🔄 ВИПРАВЛЕНО: Замінено type any на RestaurantSummary
-  const handleDeleteRestaurantClick = (e: React.MouseEvent, res: RestaurantSummary) => {
+  const handleDeleteRestaurantClick = (e: React.MouseEvent, res: SidebarRestaurant) => {
     e.preventDefault();
     e.stopPropagation();
     setRestaurantToDelete(res);
@@ -93,25 +101,25 @@ export const useSidebarLogic = () => {
   const handleConfirmDeleteRestaurant = async () => {
     if (!restaurantToDelete) return;
     setIsDeleting(true);
-    try {
-      const idToDelete = Number(restaurantToDelete.id);
-      const updatedRestaurants = restaurants.filter((r) => Number(r.id) !== idToDelete);
-      
-      await apiClient.delete(`/restaurants/${idToDelete}`);
-      
-      if (Number(activeRestaurant?.id) === idToDelete) {
-        clearAccessData();
-        if (updatedRestaurants.length > 0) {
-          setActiveRestaurant({
-            ...updatedRestaurants[0],
-            id: Number(updatedRestaurants[0].id),
-          });
+    
+    const idToDelete = restaurantToDelete.id;
+    const updatedRestaurants = restaurants.filter(r => String(r.id) !== String(idToDelete));
+    
+    if (activeRestaurant && String(activeRestaurant.id) === String(idToDelete)) {
+      if (updatedRestaurants.length > 0) {
+        setActiveRestaurant(updatedRestaurants[0]);
+      } else {
+        const store = useRestaurantStore.getState() as unknown as RestaurantStoreState;
+        if (store.clearActiveRestaurant) {
+          store.clearActiveRestaurant();
         } else {
-          // 🔄 ВИПРАВЛЕНО: Замість брудного та небезпечного "undefined as any" викликаємо штатний метод очищення
-          clearActiveRestaurant();
+          setActiveRestaurant(null);
         }
       }
+    }
 
+    try {
+      await apiClient.delete(`/restaurants/${idToDelete}`);
       await fetchUser(true);
       setIsOrgDropdownOpen(false);
       router.refresh();
@@ -129,18 +137,15 @@ export const useSidebarLogic = () => {
     setIsLockModalOpen(true);
   };
 
-  const handleActivateLocked = async () => {
-    if (!lockedModule) return;
-    try {
-      await toggleModule(lockedModule.key, true);
+  const handleActivateLocked = () => {
+    if (lockedModule) {
+      toggleModule(lockedModule.key, true);
       setIsLockModalOpen(false);
-    } catch {
-      toast.error(t('auth.errors.defaultError'));
     }
   };
 
   const toggleSubMenu = (id: string) => {
-    setExpandedMenus((prev) => ({ ...prev, [id]: !prev[id] }));
+    setExpandedMenus(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
   return {
@@ -162,6 +167,7 @@ export const useSidebarLogic = () => {
     isDeleting,
     orgInitial,
     currentOrgName,
+    maxAllowed,
     handleRestaurantSwitch,
     handleDeleteRestaurantClick,
     handleConfirmDeleteRestaurant,
@@ -169,6 +175,6 @@ export const useSidebarLogic = () => {
     handleActivateLocked,
     toggleSubMenu,
     isPurchased,
-    hasModule,
+    hasModule
   };
 };

@@ -1,8 +1,12 @@
 import { apiClient } from '@/shared/api/client';
 import { MarketplaceModule } from '@/features/marketplace/types/marketplace.types';
-import { Utensils, QrCode, Users, BarChart3, BellRing, ArrowRightLeft, MessageSquareQuote, Palette } from 'lucide-react';
+import { Utensils, QrCode, Users, BarChart3, BellRing, ArrowRightLeft, MessageSquareQuote, Palette, Layers } from 'lucide-react';
 
-type AccessResponse = { purchasedModules: string[]; activeModules: string[]; permissions: string[]; };
+type AccessResponse = {
+  purchasedModules: string[];
+  activeModules: string[];
+  permissions: string[];
+};
 
 const MODULE_CATALOG: MarketplaceModule[] = [
   { key: 'menu-engine', icon: Utensils, price: 0 },
@@ -13,6 +17,7 @@ const MODULE_CATALOG: MarketplaceModule[] = [
   { key: 'pos-sync', icon: ArrowRightLeft, price: 39 },
   { key: 'feedback', icon: MessageSquareQuote, price: 19 },
   { key: 'visual', icon: Palette, price: 25 },
+  { key: 'multi-restaurant', icon: Layers, price: 49 },
 ];
 
 export const marketplaceApi = {
@@ -22,13 +27,16 @@ export const marketplaceApi = {
       ...(access.purchasedModules || []),
       ...(access.activeModules || []),
     ]);
+
     const dynamicModules = [...knownFromAccess]
       .filter((key) => !MODULE_CATALOG.some((moduleItem) => moduleItem.key === key))
       .map((key) => ({ key, icon: Utensils, price: 0 }));
+
     return [...MODULE_CATALOG, ...dynamicModules];
   },
+
   connectModule: async (restaurantId: number, moduleKey: string, activationCode?: string): Promise<boolean> => {
     await apiClient.post(`/restaurants/${restaurantId}/modules/connect`, { moduleKey, activationCode });
     return true;
-  }
+  },
 };

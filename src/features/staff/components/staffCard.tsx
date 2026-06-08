@@ -1,10 +1,11 @@
 'use client';
 
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import { Switch, Card } from '@/shared/ui';
+import { Switch } from '@/shared/ui/switch';
+import { Card } from '@/shared/ui/card';
 import { Pencil, Trash2, Mail, Phone } from 'lucide-react';
-import { StaffCardProps } from '@/features/staff/types/staff.types';
 import Image from 'next/image';
+import type { StaffCardProps } from '@/features/staff/types/staff.types';
 
 export const StaffCard = ({ member, onEdit, onDelete, onStatusChange }: StaffCardProps) => {
   const { t } = useTranslation();
@@ -46,12 +47,11 @@ export const StaffCard = ({ member, onEdit, onDelete, onStatusChange }: StaffCar
           </div>
         )}
         
-        {/* 🛠️ ВИПРАВЛЕНО: Додано min-w-0 та flex-1 для стабілізації текстового блоку у Flexbox */}
-        <div className="flex flex-col pr-12 min-w-0 flex-1">
+        <div className="min-w-0 flex-1">
           <h3 className="text-lg font-bold text-brand-espresso dark:text-brand-cream truncate">
             {member.firstName} {member.lastName}
           </h3>
-          <span className="text-xs font-semibold text-brand-copper mt-0.5 truncate">{member.role}</span>
+          <p className="text-xs font-semibold text-brand-copper mt-0.5 truncate">{member.role}</p>
         </div>
       </div>
 
@@ -75,7 +75,7 @@ export const StaffCard = ({ member, onEdit, onDelete, onStatusChange }: StaffCar
         <Switch 
           id={`status-switch-${member.id}`}
           checked={member.isActive} 
-          onChange={(val) => onStatusChange(member.id, val)} 
+          onChange={(val: boolean) => onStatusChange(member.id, val)} 
         />
       </div>
     </Card>

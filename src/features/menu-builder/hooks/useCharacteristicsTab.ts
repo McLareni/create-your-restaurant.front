@@ -2,17 +2,17 @@
 
 import { useState } from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import { useLookup } from './dishes/useDishesQueries';
-import { DishFormValues } from '../schemas/dishes.schema';
+import { useDishesLookups } from '@/features/menu-builder/hooks/dishes/useDishesQueries';
+import { DishFormValues } from '@/features/menu-builder/schemas/dishes.schema';
 import toast from 'react-hot-toast';
 
 export const useCharacteristicsTab = (
   dishForm: DishFormValues,
-  setDishForm: React.Dispatch<React.SetStateAction<any>>
+  setDishForm: React.Dispatch<React.SetStateAction<DishFormValues>>
 ) => {
   const { t } = useTranslation();
-  const { items: allergens, createItem: createAllergen, deleteItem: deleteAllergen } = useLookup('allergens');
-  const { items: tags, createItem: createTag, deleteItem: deleteTag } = useLookup('tags');
+  const { items: allergens, createItem: createAllergen, deleteItem: deleteAllergen } = useDishesLookups('allergens');
+  const { items: tags, createItem: createTag, deleteItem: deleteTag } = useDishesLookups('tags');
   
   const [newAllergen, setNewAllergen] = useState('');
   const [newTag, setNewTag] = useState('');
@@ -24,7 +24,7 @@ export const useCharacteristicsTab = (
       await createAllergen(formatted);
       const currentAllergens = dishForm.allergens || [];
       if (!currentAllergens.includes(formatted)) {
-        setDishForm({ ...dishForm, allergens: [...currentAllergens, formatted] });
+        setDishForm((prev) => ({ ...prev, allergens: [...(prev.allergens || []), formatted] }));
       }
       setNewAllergen('');
     } catch {
@@ -39,7 +39,7 @@ export const useCharacteristicsTab = (
       await createTag(formatted);
       const currentTags = dishForm.tags || [];
       if (!currentTags.includes(formatted)) {
-        setDishForm({ ...dishForm, tags: [...currentTags, formatted] });
+        setDishForm((prev) => ({ ...prev, tags: [...(prev.tags || []), formatted] }));
       }
       setNewTag('');
     } catch {
@@ -48,22 +48,28 @@ export const useCharacteristicsTab = (
   };
 
   const handleToggleAllergen = (item: string, checked: boolean) => {
-    const current = dishForm.allergens || [];
-    const next = checked ? [...current, item] : current.filter((a: string) => a !== item);
-    setDishForm({ ...dishForm, allergens: next });
+    setDishForm((prev) => {
+      const current = prev.allergens || [];
+      const next = checked ? [...current, item] : current.filter((a) => a !== item);
+      return { ...prev, allergens: next };
+    });
   };
 
   const handleToggleTag = (item: string, checked: boolean) => {
-    const current = dishForm.tags || [];
-    const next = checked ? [...current, item] : current.filter((t: string) => t !== item);
-    setDishForm({ ...dishForm, tags: next });
+    setDishForm((prev) => {
+      const current = prev.tags || [];
+      const next = checked ? [...current, item] : current.filter((t) => t !== item);
+      return { ...prev, tags: next };
+    });
   };
 
   const handleRemoveAllergenFromDb = async (item: string) => {
     try {
       await deleteAllergen(item);
-      const current = dishForm.allergens || [];
-      setDishForm({ ...dishForm, allergens: current.filter((a: string) => a !== item) });
+      setDishForm((prev) => ({
+        ...prev,
+        allergens: (prev.allergens || []).filter((a) => a !== item)
+      }));
     } catch {
       toast.error(t('menu.constructor.dishes.modal.errors.allergenDeleteFailed'));
     }
@@ -72,15 +78,16 @@ export const useCharacteristicsTab = (
   const handleRemoveTagFromDb = async (item: string) => {
     try {
       await deleteTag(item);
-      const current = dishForm.tags || [];
-      setDishForm({ ...dishForm, tags: current.filter((t: string) => t !== item) });
+      setDishForm((prev) => ({
+        ...prev,
+        tags: (prev.tags || []).filter((t) => t !== item)
+      }));
     } catch {
       toast.error(t('menu.constructor.dishes.modal.errors.tagDeleteFailed'));
     }
   };
 
   return {
-    t,
     allergens,
     tags,
     newAllergen,
@@ -92,6 +99,6 @@ export const useCharacteristicsTab = (
     handleToggleAllergen,
     handleToggleTag,
     handleRemoveAllergenFromDb,
-    handleRemoveTagFromDb
+    handleRemoveTagFromDb,
   };
 };

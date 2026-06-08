@@ -4,6 +4,7 @@ interface MinimalRestaurant {
   id: number;
   name: string;
   slug?: string;
+  imageUrl?: string | null;
 }
 
 interface RestaurantStoreState {
@@ -12,7 +13,6 @@ interface RestaurantStoreState {
   clearActiveRestaurant: () => void;
 }
 
-// Повна відмова від клієнтського localStorage для безпеки
 export const useRestaurantStore = create<RestaurantStoreState>()((set) => ({
   activeRestaurant: null,
   setActiveRestaurant: (restaurant) => set({ activeRestaurant: restaurant }),

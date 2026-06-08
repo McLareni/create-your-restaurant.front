@@ -10,6 +10,6 @@
     "typescript",
     "typescriptreact"
   ],
-  "css.validate": true,
+  "css.validate": false,
   "scss.validate": true
 }

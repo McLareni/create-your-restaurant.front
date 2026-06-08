@@ -1,14 +1,25 @@
 'use client';
 
-import { useState, useMemo, useActionState, useEffect, ChangeEvent } from 'react';
+import { useState, useMemo, useTransition, useOptimistic, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { useStaff } from '@/features/staff/hooks/useStaff';
-import { validateStaffForm } from '@/features/staff/schemas/staff.schema';
+import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 import toast from 'react-hot-toast';
-import type { StaffMember, StaffFormFields } from '@/features/staff/types/staff.types';
+import type { StaffMember, CreateStaffDTO } from '@/features/staff/types/staff.types';
+
+type OptimisticAction =
+  | { type: 'CREATE'; payload: StaffMember }
+  | { type: 'UPDATE'; payload: StaffMember }
+  | { type: 'DELETE'; payload: string }
+  | { type: 'TOGGLE_STATUS'; payload: { id: string; isActive: boolean } };
 
 export const useStaffList = () => {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const activeRestaurantId = useRestaurantStore((state) => state.activeRestaurant?.id);
+  const restaurantId = activeRestaurantId ? Number(activeRestaurantId) : null;
+
   const {
     staff,
     roles,
@@ -19,171 +30,163 @@ export const useStaffList = () => {
     updateStaff,
   } = useStaff();
 
-  const [searchQuery, setSearchQuery] = useState('');
+  const [isPending, startTransition] = useTransition();
+  const [localSearch, setLocalSearch] = useState('');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<StaffMember | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [isActiveStatus, setIsActiveStatus] = useState(true);
-  const [photoPreview, setPhotoPreview] = useState('');
-  const [selectedPhotoFile, setSelectedPhotoFile] = useState<File | null>(null);
+  const [globalError, setGlobalError] = useState<string | null>(null);
 
-  const [fields, setFields] = useState<StaffFormFields>({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    role: '',
-    password: '',
-  });
+  const [optimisticStaff, setOptimisticStaff] = useOptimistic<StaffMember[], OptimisticAction>(
+    staff,
+    (state, action) => {
+      switch (action.type) {
+        case 'CREATE':
+          if (state.some((s) => s.email.toLowerCase() === action.payload.email.toLowerCase())) {
+            return state;
+          }
+          return [...state, action.payload];
+        case 'UPDATE':
+          return state.map((s) =>
+            s.id === action.payload.id || s.email.toLowerCase() === action.payload.email.toLowerCase()
+              ? action.payload
+              : s
+          );
+        case 'DELETE':
+          return state.filter((s) => s.id !== action.payload);
+        case 'TOGGLE_STATUS':
+          return state.map((s) =>
+            s.id === action.payload.id ? { ...s, isActive: action.payload.isActive } : s
+          );
+        default:
+          return state;
+      }
+    }
+  );
 
   useEffect(() => {
-    return () => {
-      if (photoPreview && photoPreview.startsWith('blob:')) {
-        URL.revokeObjectURL(photoPreview);
-      }
-    };
-  }, [photoPreview]);
-
-  const handleFieldChange = (name: keyof StaffFormFields, value: string) => {
-    setFields((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const clearPhotoPreviewSafely = () => {
-    if (photoPreview && photoPreview.startsWith('blob:')) {
-      URL.revokeObjectURL(photoPreview);
-    }
-    setPhotoPreview('');
-    setSelectedPhotoFile(null);
-  };
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(localSearch);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [localSearch]);
 
   const openCreateModal = () => {
-    clearPhotoPreviewSafely();
     setEditingMember(null);
-    setIsActiveStatus(true);
-    setFields({ firstName: '', lastName: '', email: '', phone: '', role: '', password: '' });
+    setGlobalError(null);
     setIsModalOpen(true);
   };
 
   const openEditModal = (item: StaffMember) => {
-    clearPhotoPreviewSafely();
     setEditingMember(item);
-    setIsActiveStatus(item.isActive);
-    setPhotoPreview(item.photo || '');
-    setFields({
-      firstName: item.firstName || '',
-      lastName: item.lastName || '',
-      email: item.email || '',
-      phone: item.phone || '',
-      role: item.role || '',
-      password: '',
-    });
+    setGlobalError(null);
     setIsModalOpen(true);
   };
 
-  const [formState, formAction, isFormPending] = useActionState(
-    async (prevState: Record<string, string> | null, incomingFormData: FormData) => {
-      const rawData = {
-        firstName: (incomingFormData.get('firstName') as string) || '',
-        lastName: (incomingFormData.get('lastName') as string) || '',
-        email: (incomingFormData.get('email') as string) || '',
-        phone: (incomingFormData.get('phone') as string) || '',
-        role: (incomingFormData.get('role') as string) || '',
-        password: (incomingFormData.get('password') as string) || '',
-        isActive: isActiveStatus,
+  const executeFormSubmit = (submitData: CreateStaffDTO, photoFile: File | null, previewUrl: string) => {
+    setGlobalError(null);
+    startTransition(async () => {
+      const temporaryId = Date.now().toString();
+      const mockStaffMember: StaffMember = {
+        id: editingMember?.id || temporaryId,
+        firstName: submitData.firstName,
+        lastName: submitData.lastName || '',
+        email: submitData.email,
+        phone: submitData.phone || '',
+        role: submitData.role || 'Працівник',
+        isActive: submitData.isActive ?? true,
+        photo: previewUrl || null,
+        avatarColor: 'bg-brand-copper',
       };
 
-      const validation = validateStaffForm(rawData, t);
-      if (!validation.success) {
-        return validation.errors || {};
+      if (editingMember) {
+        setOptimisticStaff({ type: 'UPDATE', payload: mockStaffMember });
+      } else {
+        setOptimisticStaff({ type: 'CREATE', payload: mockStaffMember });
       }
 
       try {
-        const { password, ...payload } = validation.data!;
-        
-        const submitData = {
-          ...payload,
-          ...(password && password.trim() !== '' ? { password } : {}),
-        };
-
         const savedStaff = editingMember
           ? await updateStaffAsync({ id: editingMember.id, data: submitData })
           : await createStaffAsync(submitData);
 
-        if (selectedPhotoFile && savedStaff?.id) {
-          await uploadStaffPhotoAsync({ staffId: savedStaff.id, file: selectedPhotoFile });
+        if (photoFile && savedStaff?.id) {
+          await uploadStaffPhotoAsync({ staffId: savedStaff.id, file: photoFile });
         }
 
-        clearPhotoPreviewSafely();
+        if (restaurantId) {
+          await queryClient.invalidateQueries({ queryKey: ['staffList', restaurantId] });
+        }
+
         setIsModalOpen(false);
         toast.success(editingMember ? t('staff.notifications.updateSuccess') : t('staff.notifications.createSuccess'));
-        return null;
       } catch (error: unknown) {
         const err = error as Error;
         const backendMessage = err.message || t('auth.errors.defaultError');
         toast.error(backendMessage);
-        return { global: backendMessage };
+        setGlobalError(backendMessage);
       }
-    },
-    null
-  );
+    });
+  };
 
   const confirmDelete = async () => {
     if (deleteId) {
-      try {
-        await deleteStaff(deleteId);
-        setDeleteId(null);
-        toast.success(t('staff.notifications.deleteSuccess'));
-      } catch {}
+      startTransition(async () => {
+        setOptimisticStaff({ type: 'DELETE', payload: deleteId });
+        try {
+          await deleteStaff(deleteId);
+          if (restaurantId) {
+            await queryClient.invalidateQueries({ queryKey: ['staffList', restaurantId] });
+          }
+          setDeleteId(null);
+          toast.success(t('staff.notifications.deleteSuccess'));
+        } catch {
+          toast.error(t('auth.errors.defaultError'));
+        }
+      });
     }
   };
 
-  const handlePhotoChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (photoPreview && photoPreview.startsWith('blob:')) {
-      URL.revokeObjectURL(photoPreview);
-    }
-    setPhotoPreview(URL.createObjectURL(file));
-    setSelectedPhotoFile(file);
-    toast.success(t('staff.modal.imageQueued'));
+  const toggleStaffStatus = (id: string, isActive: boolean) => {
+    startTransition(async () => {
+      setOptimisticStaff({ type: 'TOGGLE_STATUS', payload: { id, isActive } });
+      try {
+        await updateStaff({ id, data: { isActive } });
+        if (restaurantId) {
+          await queryClient.invalidateQueries({ queryKey: ['staffList', restaurantId] });
+        }
+      } catch {
+        toast.error(t('auth.errors.defaultError'));
+      }
+    });
   };
 
   const filteredStaff = useMemo(() => {
-    if (!searchQuery) return staff;
-    const lowerQuery = searchQuery.toLowerCase();
-    return staff.filter((s: StaffMember) =>
-      `${s.firstName} ${s.lastName || ''} ${s.email}`.toLowerCase().includes(lowerQuery)
+    const lowerQuery = debouncedSearchQuery.toLowerCase();
+    return optimisticStaff.filter((s: StaffMember) =>
+      `${s.firstName} ${s.lastName || ''} ${s.email} ${s.role}`.toLowerCase().includes(lowerQuery)
     );
-  }, [staff, searchQuery]);
+  }, [optimisticStaff, debouncedSearchQuery]);
 
   return {
     t,
     staff: filteredStaff,
     roles,
-    isLoading: isFormPending,
-    searchQuery,
-    setSearchQuery,
-    validationError: formState?.global || null,
-    errors: formState || {},
+    isLoading: isPending,
+    localSearch,
+    setLocalSearch,
+    validationError: globalError,
     isModalOpen,
-    setIsModalOpen: (open: boolean) => {
-      if (!open) clearPhotoPreviewSafely();
-      setIsModalOpen(open);
-    },
+    setIsModalOpen,
     editingMember,
     deleteId,
     setDeleteId,
-    isActiveStatus,
-    setIsActiveStatus,
-    photoPreview,
-    handlePhotoChange,
     openCreateModal,
     openEditModal,
     confirmDelete,
-    formAction,
-    isFormPending,
-    updateStaff,
-    fields,
-    handleFieldChange,
+    onFormSuccess: executeFormSubmit,
+    isFormPending: isPending,
+    updateStaffStatus: toggleStaffStatus,
   };
 };

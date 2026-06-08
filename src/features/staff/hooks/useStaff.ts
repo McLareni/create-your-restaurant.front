@@ -1,15 +1,16 @@
+// src/features/staff/hooks/useStaff.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { staffApi } from '@/features/staff/api/staff.api';
 import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import { StaffMember, CreateStaffDTO, UpdateStaffDTO, CustomStaffRole } from '@/features/staff/types/staff.types';
+import type { StaffMember, CustomStaffRole, CreateStaffDTO, UpdateStaffDTO } from '@/features/staff/types/staff.types';
 import toast from 'react-hot-toast';
 
 export const useStaff = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const activeRestaurant = useRestaurantStore((state) => state.activeRestaurant);
-  const restaurantId = activeRestaurant?.id ? Number(activeRestaurant.id) : null;
+  const activeRestaurantId = useRestaurantStore((state) => state.activeRestaurant?.id);
+  const restaurantId = activeRestaurantId ? Number(activeRestaurantId) : null;
 
   const { data: staff = [], isLoading: isStaffLoading } = useQuery({
     queryKey: ['staffList', restaurantId],
@@ -20,6 +21,12 @@ export const useStaff = () => {
   const { data: roles = [], isLoading: isRolesLoading } = useQuery({
     queryKey: ['staffRoles', restaurantId],
     queryFn: () => staffApi.getRoles(restaurantId!),
+    enabled: !!restaurantId,
+  });
+
+  const { data: permissions = [], isLoading: isPermissionsLoading } = useQuery({
+    queryKey: ['staffPermissions', restaurantId],
+    queryFn: () => staffApi.getPermissions(restaurantId!),
     enabled: !!restaurantId,
   });
 
@@ -48,11 +55,15 @@ export const useStaff = () => {
   });
 
   const uploadStaffPhotoMutation = useMutation<StaffMember, Error, { staffId: string; file: File }>({
-    mutationFn: ({ staffId, file }) => staffApi.uploadStaffPhoto(restaurantId!, staffId, file),
+    mutationFn: ({ staffId, file }) => staffPhotoUpload(restaurantId!, staffId, file),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staffList', restaurantId] });
     }
   });
+
+  const staffPhotoUpload = async (resId: number, stId: string, file: File) => {
+    return staffApi.uploadStaffPhoto(resId, stId, file);
+  };
 
   const deleteStaffMutation = useMutation<{ message: string }, Error, string>({
     mutationFn: (id: string) => staffApi.deleteStaff(restaurantId!, id),
@@ -61,8 +72,8 @@ export const useStaff = () => {
     }
   });
 
-  const createRoleMutation = useMutation<CustomStaffRole, Error, string>({
-    mutationFn: (name: string) => staffApi.createRole(restaurantId!, name),
+  const createRoleMutation = useMutation<CustomStaffRole, Error, { name: string; permissions: string[] }>({
+    mutationFn: ({ name, permissions }) => staffApi.createRole(restaurantId!, name, permissions),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staffRoles', restaurantId] });
     }
@@ -79,7 +90,8 @@ export const useStaff = () => {
   return {
     staff,
     roles,
-    isLoading: isStaffLoading || isRolesLoading || restaurantId === null,
+    permissions,
+    isLoading: isStaffLoading || isRolesLoading || isPermissionsLoading || restaurantId === null,
     createStaff: createStaffMutation.mutate,
     createStaffAsync: createStaffMutation.mutateAsync,
     updateStaff: updateStaffMutation.mutate,

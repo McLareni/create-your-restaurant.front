@@ -11,5 +11,4 @@ export const tableSchema = z.object({
     .min(1, 'qr.errors.typeRequired')
     .max(60, 'qr.errors.typeTooLong'),
   isActive: z.boolean().default(true),
-  zoneId: z.string().uuid().nullable().optional(),
 });

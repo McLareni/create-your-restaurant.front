@@ -3,18 +3,18 @@ import { InventoryItem, CreateInventoryItemDTO, UpdateInventoryItemDTO } from '.
 
 export const inventoryApi = {
   getAll: async (restaurantId: number): Promise<InventoryItem[]> => {
-    return apiClient.get<InventoryItem[]>(`/restaurants/${restaurantId}/inventory`);
+    return await apiClient.get<InventoryItem[]>(`/restaurants/${restaurantId}/inventory`);
   },
 
   create: async (restaurantId: number, data: CreateInventoryItemDTO): Promise<InventoryItem> => {
-    return apiClient.post<InventoryItem>(`/restaurants/${restaurantId}/inventory`, data);
+    return await apiClient.post<InventoryItem>(`/restaurants/${restaurantId}/inventory`, data);
   },
 
-  update: async (restaurantId: number, { id, ...data }: UpdateInventoryItemDTO): Promise<InventoryItem> => {
-    return apiClient.patch<InventoryItem>(`/restaurants/${restaurantId}/inventory/${id}`, data);
+  update: async (restaurantId: number, data: UpdateInventoryItemDTO): Promise<InventoryItem> => {
+    return await apiClient.patch<InventoryItem>(`/restaurants/${restaurantId}/inventory/${data.id}`, data);
   },
 
   delete: async (restaurantId: number, id: string): Promise<{ message: string }> => {
-    return apiClient.delete<{ message: string }>(`/restaurants/${restaurantId}/inventory/${id}`);
+    return await apiClient.delete<{ message: string }>(`/restaurants/${restaurantId}/inventory/${id}`);
   },
 };

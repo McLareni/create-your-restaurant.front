@@ -1,13 +1,15 @@
-export * from './button';
-export * from './input';
-export * from './checkbox';
-export * from './select';
-export * from './icons/googleIcon';
-export * from './icons/appleIcon';
-export * from './moduleGuard';
-export * from './modal';
-export * from './confirmModal';
-export * from './switch';
-export * from './emptyState';
-export * from './card';
-export * from './floatingPanel';
+export { Button } from './button';
+export { Input } from './input';
+export { Checkbox } from './checkbox';
+export { Select } from './select';
+export { Switch } from './switch';
+export { EmptyState } from './emptyState';
+export { Card } from './card';
+export { FloatingPanel } from './floatingPanel';
+export { Modal } from './modal';
+export { ConfirmModal } from './confirmModal';
+export { ModuleGuard } from './moduleGuard';
+
+// Іконки
+export { GoogleIcon } from './icons/googleIcon';
+export { AppleIcon } from './icons/appleIcon';

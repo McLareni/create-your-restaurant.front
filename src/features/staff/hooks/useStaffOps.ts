@@ -1,23 +1,22 @@
+'use client';
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { staffOpsApi } from '@/features/staff/api/staffOps.api';
+import { staffApi } from '@/features/staff/api/staff.api';
 import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import toast from 'react-hot-toast';
-
-interface ApiErrorResponse {
-  message?: string;
-}
+import type { ApiErrorResponse } from '@/features/staff/types/staff.types';
 
 export const useStaffOps = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const activeRestaurant = useRestaurantStore((state) => state.activeRestaurant);
-  const restaurantId = activeRestaurant?.id ? Number(activeRestaurant.id) : null;
+  const activeRestaurantId = useRestaurantStore((state) => state.activeRestaurant?.id);
+  const restaurantId = activeRestaurantId ? Number(activeRestaurantId) : null;
 
   const clockInMutation = useMutation({
     mutationFn: (pinCode: string) => {
       if (!restaurantId) throw new Error(t('auth.errors.defaultError'));
-      return staffOpsApi.clockIn(restaurantId, pinCode);
+      return staffApi.clockIn(restaurantId, pinCode);
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['staffList', restaurantId] });
@@ -26,13 +25,13 @@ export const useStaffOps = () => {
     onError: (error: unknown) => {
       const err = error as ApiErrorResponse;
       toast.error(err.message || t('auth.errors.defaultError'));
-    }
+    },
   });
 
   const clockOutMutation = useMutation({
     mutationFn: (pinCode: string) => {
       if (!restaurantId) throw new Error(t('auth.errors.defaultError'));
-      return staffOpsApi.clockOut(restaurantId, pinCode);
+      return staffApi.clockOut(restaurantId, pinCode);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staffList', restaurantId] });
@@ -41,13 +40,16 @@ export const useStaffOps = () => {
     onError: (error: unknown) => {
       const err = error as ApiErrorResponse;
       toast.error(err.message || t('auth.errors.defaultError'));
-    }
+    },
   });
 
   const authorizeVoidMutation = useMutation({
     mutationFn: ({ pinCode, orderId }: { pinCode: string; orderId: string }) => {
       if (!restaurantId) throw new Error(t('auth.errors.defaultError'));
-      return staffOpsApi.authorizeVoid(restaurantId, pinCode, orderId);
+      if (!pinCode || pinCode.trim().length < 4) {
+        throw new Error(t('staff.errors.passwordLength'));
+      }
+      return staffApi.authorizeVoid(restaurantId, pinCode, orderId);
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['orders', restaurantId] });
@@ -56,7 +58,7 @@ export const useStaffOps = () => {
     onError: (error: unknown) => {
       const err = error as ApiErrorResponse;
       toast.error(err.message || t('staff.ops.voidError'));
-    }
+    },
   });
 
   return {

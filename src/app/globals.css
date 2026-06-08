@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
-@variant dark (&:is(.dark *));
+/* Суворе сканування від кореня проєкту для Webpack */
+@source "src/**/*.{js,ts,jsx,tsx}";
 
 @theme {
   --color-brand-espresso: #2A211C;
@@ -39,8 +40,35 @@
 @layer base {
   html, body {
     height: 100%;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
+    background-color: var(--bg-main);
+    color: var(--text-main);
   }
+
+  /* Нативна сітка, яка захищає макет від багів компілятора Webpack */
+  .qr-tables-grid {
+    display: grid;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+  
+  @media (min-width: 640px) {
+    .qr-tables-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  
+  @media (min-width: 768px) {
+    .qr-tables-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  
+  @media (min-width: 1280px) {
+    .qr-tables-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
   .custom-scrollbar::-webkit-scrollbar {
     width: 4px;
   }
@@ -51,44 +79,56 @@
     background-color: var(--border-main);
     border-radius: 10px;
   }
-}
 
-@utility no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-  &::-webkit-scrollbar {
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
-}
 
-@utility print-isolate-canvas {
-  @media print {
-    body * {
-      visibility: hidden !important;
-      overflow: visible !important;
-    }
-    .print-canvas-target,
-    .print-canvas-target * {
-      visibility: visible !important;
-    }
-    .print-canvas-target {
-      position: absolute !important;
-      left: 0 !important;
-      top: 0 !important;
-      width: 100% !important;
-    }
+  .print-no-break {
+    page-break-inside: avoid;
+    break-inside: avoid;
   }
 }
 
-@utility print-no-break {
-  page-break-inside: avoid;
-  break-inside: avoid;
-}
+@variant dark (&:where(.dark, .dark *));
 
 @media print {
-  body, html, main, aside, nav, form, h1, p, button, .print\:hidden {
+  html, body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    height: auto !important;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+  
+  .print-canvas-target,
+  .print-canvas-target * {
+    visibility: visible !important;
+  }
+  
+  .print-canvas-target {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    display: block !important;
+  }
+
+  .print\:hidden,
+  aside,
+  nav,
+  header,
+  footer,
+  button,
+  .floating-panel,
+  form button {
     display: none !important;
-    background: transparent !important;
   }
 
   @page {
@@ -101,28 +141,19 @@
     print-color-adjust: exact !important;
   }
 
-  div[class*="perspective"], div[class*="transform-3d"] {
+  div[class*="perspective"], 
+  div[class*="transform-3d"] {
     perspective: none !important;
     transform: none !important;
     display: block !important;
-    width: 85mm !important;
-    height: 55mm !important;
   }
 
   .backface-hidden {
     backface-visibility: visible !important;
     position: relative !important;
     display: block !important;
-    width: 85mm !important;
-    height: 55mm !important;
-    page-break-after: always !important;
     border: none !important;
     border-radius: 0 !important;
     box-shadow: none !important;
-  }
-
-  div[class*="rotateY"] {
-    transform: none !important;
-    page-break-after: avoid !important;
   }
 }

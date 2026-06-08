@@ -17,7 +17,6 @@ export const useMarketplace = () => {
 
   const activeModules = useAccessStore((state) => state.activeModules);
   const purchasedModules = useAccessStore((state) => state.purchasedModules);
-  
   const toggleModuleState = useAccessStore((state) => state.toggleModule);
   const purchaseModuleState = useAccessStore((state) => state.purchaseModule);
   
@@ -36,6 +35,9 @@ export const useMarketplace = () => {
       marketplaceApi.connectModule(restaurantId!, moduleKey, activationCode),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['marketplace-modules', restaurantId] });
+      if (variables.moduleKey === 'multi-restaurant') {
+        queryClient.invalidateQueries({ queryKey: ['/users/me'] });
+      }
       purchaseModuleState(variables.moduleKey);
       toast.success(t('marketplace.status.active'));
     },
@@ -57,6 +59,7 @@ export const useMarketplace = () => {
 
   const handleConfirmConnectionAction = () => {
     if (!selectedModule || isPending) return;
+
     startTransition(async () => {
       try {
         await connectMutation.mutateAsync({
@@ -66,6 +69,7 @@ export const useMarketplace = () => {
         setSelectedModule(null);
         setActivationCode('');
       } catch {
+        // Error handling inside useMutation onError
       }
     });
   };
@@ -89,10 +93,10 @@ export const useMarketplace = () => {
   };
 
   const currentMod = modules.find(m => m.key === selectedModule);
-  const priceText = currentMod ?
+  const priceText = currentMod ? 
     (currentMod.price === 0 ? t('marketplace.price.free') : t('marketplace.price.monthly').replace('{{price}}', currentMod.price.toString())) : '';
   
-  const modalDescription = selectedModule ?
+  const modalDescription = selectedModule ? 
     t('marketplace.connectModal.description')
       .replace('{{module}}', t(`marketplace.modules.${selectedModule}.title`))
       .replace('{{price}}', priceText) : '';

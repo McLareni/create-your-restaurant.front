@@ -1,80 +1,68 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { io, Socket } from 'socket.io-client';
-import { useStaffOps } from '@/features/staff/hooks/useStaffOps';
-import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
-import type { WaiterZReport } from '@/features/staff/types/staff.types';
+import { useState, useEffect } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { staffApi } from '@/features/staff/api/staff.api';
+import type { ClockInResponse, WaiterZReport, ShiftMode } from '@/features/staff/types/staff.types';
 
-export const useStaffShiftManager = () => {
-  const { clockIn, clockOut, isClockingIn, isClockingOut } = useStaffOps();
-  const activeRestaurant = useRestaurantStore((state) => state.activeRestaurant);
-  const restaurantId = activeRestaurant?.id ? Number(activeRestaurant.id) : null;
-
-  const [mode, setMode] = useState<'SELECT' | 'IN' | 'OUT'>('SELECT');
+export const useStaffShiftManager = (restaurantId: number) => {
+  const queryClient = useQueryClient();
+  const [mode, setMode] = useState<ShiftMode>('SELECT');
   const [zReport, setZReport] = useState<WaiterZReport | null>(null);
-  const socketRef = useRef<Socket | null>(null);
+  const [activeShift, setActiveShift] = useState<{ startTime: string; waiterName: string } | null>(null);
+  const [elapsedTime, setElapsedTime] = useState('00:00:00');
 
   useEffect(() => {
-    if (!restaurantId) return;
+    if (!activeShift?.startTime) {
+      return;
+    }
 
-    const socket = io(process.env.NEXT_PUBLIC_API_URL || '', {
-      transports: ['websocket'],
-      autoConnect: true,
-    });
+    const start = new Date(activeShift.startTime).getTime();
+    if (isNaN(start)) return;
 
-    socketRef.current = socket;
-    socket.emit('join-restaurant-terminal', { restaurantId });
+    const intervalId = setInterval(() => {
+      const now = Date.now();
+      const diff = Math.max(0, now - start);
 
-    return () => {
-      if (socketRef.current) {
-        socketRef.current.emit('leave-restaurant-terminal', { restaurantId });
-        socketRef.current.off();
-        socketRef.current.disconnect();
-        socketRef.current = null;
-      }
-    };
-  }, [restaurantId]);
+      const hours = Math.floor(diff / 3600000).toString().padStart(2, '0');
+      const minutes = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
+      const seconds = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
 
-  const handleClockInConfirm = async (pin: string) => {
-    try {
-      const result = await clockIn(pin);
-      if (socketRef.current && restaurantId) {
-        socketRef.current.emit('staff-clock-in', {
-          restaurantId,
-          waiterName: result.firstName,
-          timestamp: new Date().toISOString(),
-        });
-      }
+      setElapsedTime(`${hours}:${minutes}:${seconds}`);
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [activeShift]);
+
+  const clockInMutation = useMutation({
+    mutationFn: async (pinCode: string) => staffApi.clockIn(restaurantId, pinCode),
+    onSuccess: (data: ClockInResponse) => {
+      setActiveShift({ startTime: new Date().toISOString(), waiterName: data.firstName });
       setMode('SELECT');
-    } catch {}
-  };
+    },
+  });
 
-  const handleClockOutConfirm = async (pin: string) => {
-    try {
-      const report = await clockOut(pin);
-      setZReport(report);
-      if (socketRef.current && restaurantId) {
-        socketRef.current.emit('staff-clock-out', {
-          restaurantId,
-          waiterId: report.waiterId,
-          waiterName: report.waiterName,
-          salesVolume: report.totalSalesVolume,
-          timestamp: new Date().toISOString(),
-        });
-      }
+  const clockOutMutation = useMutation({
+    mutationFn: async (pinCode: string) => staffApi.clockOut(restaurantId, pinCode),
+    onSuccess: (data: WaiterZReport) => {
+      setZReport(data);
+      setActiveShift(null);
+      setElapsedTime('00:00:00');
       setMode('SELECT');
-    } catch {}
-  };
+      queryClient.invalidateQueries({ queryKey: ['staffList', restaurantId] });
+    },
+  });
 
   return {
     mode,
     setMode,
     zReport,
     setZReport,
-    isClockingIn,
-    isClockingOut,
-    handleClockInConfirm,
-    handleClockOutConfirm,
+    activeShift,
+    elapsedTime,
+    isClockingIn: clockInMutation.isPending,
+    isClockingOut: clockOutMutation.isPending,
+    handleClockInConfirm: clockInMutation.mutate,
+    handleClockOutConfirm: clockOutMutation.mutate,
   };
 };

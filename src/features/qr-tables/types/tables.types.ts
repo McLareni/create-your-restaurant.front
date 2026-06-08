@@ -1,8 +1,4 @@
-export interface Zone {
-  id: string;
-  name: string;
-  restaurantId: number;
-}
+export type TableStatus = 'ACTIVE' | 'INACTIVE';
 
 export interface Table {
   id: string;
@@ -10,11 +6,7 @@ export interface Table {
   type: string;
   isActive: boolean;
   qrUrl: string;
-  zoneId?: string | null;
-  zone?: Zone | null;
 }
-
-export type TableStatus = 'ACTIVE' | 'INACTIVE' | 'RESERVED';
 
 export interface BackendTable {
   id: string;
@@ -22,8 +14,6 @@ export interface BackendTable {
   number: number;
   status: TableStatus;
   type: string;
-  zoneId?: string | null;
-  zone?: Zone | null;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -32,7 +22,6 @@ export interface CreateTableDTO {
   tableNumber: string;
   type: string;
   isActive: boolean;
-  zoneId?: string | null;
 }
 
 export type UpdateTableDTO = Partial<CreateTableDTO>;

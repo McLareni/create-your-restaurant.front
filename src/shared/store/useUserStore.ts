@@ -51,7 +51,8 @@ export const useUserStore = create<UserState>((set, get) => ({
       try {
         const response = await apiClient.get<{ user: User }>('/users/me');
         set({ user: response.user, isLoading: false });
-      } catch (error) {
+      } catch {
+        // FIX: Очищено невикористаний об'єкт 'error'
         if (!get().user) {
           set({ user: null, isLoading: false });
         }

@@ -1,23 +1,31 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { DragStartEvent, DragOverEvent, DragEndEvent, useSensors, useSensor, PointerSensor, KeyboardSensor } from '@dnd-kit/core';
+import { useState } from 'react';
+import { 
+  DragStartEvent, 
+  DragOverEvent, 
+  DragEndEvent, 
+  useSensors, 
+  useSensor, 
+  PointerSensor, 
+  KeyboardSensor 
+} from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { useQueryClient } from '@tanstack/react-query';
-import { useMenu } from './useMenu';
-import { useModifiersManagement } from '../modifiers/useModifiersManagement';
+import { useMenu } from '@/features/menu-builder/hooks/board/useMenu';
+import { useModifiersManagement } from '@/features/menu-builder/hooks/modifiers/useModifiersManagement';
 import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
-import { Dish } from '../../types/dishes.types';
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import { useCategoryModal } from '../categories/useCategoryModal';
-import { useDishModal } from '../dishes/useDishModal';
+import { useCategoryModal } from '@/features/menu-builder/hooks/categories/useCategoryModal';
+import { useDishModal } from '@/features/menu-builder/hooks/dishes/useDishModal';
+import type { Dish } from '@/features/menu-builder/types/dishes.types';
+import type { ReorderItem, FullCategory, FullMenuResponse } from '@/features/menu-builder/types/menu-board.types';
 
 export const useMenuBoard = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const activeRestaurant = useRestaurantStore((state) => state.activeRestaurant);
-  const restaurantId = activeRestaurant?.id ? Number(activeRestaurant.id) : null;
-
+  const restaurantId = useRestaurantStore((state) => state.activeRestaurant?.id ? Number(state.activeRestaurant.id) : null);
+  
   const {
     categories,
     isLoading: isMenuLoading,
@@ -31,7 +39,6 @@ export const useMenuBoard = () => {
     reorderCategories,
     reorderDishes,
   } = useMenu();
-
   const { groups: modifierGroups, isLoading: isModifiersLoading } = useModifiersManagement();
 
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -41,37 +48,31 @@ export const useMenuBoard = () => {
   const [dragTargetCategoryId, setDragTargetCategoryId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ type: 'category' | 'dish'; id: string } | null>(null);
 
-  const reorderTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   const categoryModal = useCategoryModal(createCategory, updateCategory);
   const dishModal = useDishModal({ createDishAsync, updateDishAsync });
-
+  
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor),
   );
 
-  useEffect(() => {
-    return () => {
-      if (reorderTimeoutRef.current) {
-        clearTimeout(reorderTimeoutRef.current);
-      }
-    };
-  }, []);
-
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     const id = String(active.id);
-    const type = active.data.current?.type;
+    const type = active.data.current?.type as 'Category' | 'Dish' | undefined;
     setActiveId(id);
-    setActiveType(type);
+    setActiveType(type || null);
+    
     if (type === 'Dish') {
-      const sourceCatId = active.data.current?.categoryId;
-      setDragSourceCategoryId(sourceCatId);
-      setDragTargetCategoryId(sourceCatId);
-      const cat = categories.find((c: any) => c.id === sourceCatId);
-      const dish = cat?.dishes?.find((d: any) => d.id === active.id);
-      if (dish) setActiveDishData(dish);
+      const sourceCatId = active.data.current?.categoryId as string | undefined;
+      if (sourceCatId) {
+        const strSourceCatId = String(sourceCatId);
+        setDragSourceCategoryId(strSourceCatId);
+        setDragTargetCategoryId(strSourceCatId);
+        const cat = categories.find((c: FullCategory) => String(c.id) === strSourceCatId);
+        const dish = cat?.dishes?.find((d: Dish) => String(d.id) === id);
+        if (dish) setActiveDishData(dish);
+      }
     }
   };
 
@@ -80,32 +81,41 @@ export const useMenuBoard = () => {
     if (!over || !restaurantId) return;
     const currentActiveType = active.data.current?.type;
     const currentOverType = over.data.current?.type;
+    
     if (currentActiveType === 'Dish') {
-      const activeDishId = active.id;
+      const activeDishId = String(active.id);
       const currentSourceCatId = dragTargetCategoryId;
-      let targetCatId = null;
+      let targetCatId: string | null = null;
+      
       if (currentOverType === 'Category') targetCatId = String(over.id);
-      else if (currentOverType === 'Dish') targetCatId = over.data.current?.categoryId;
-      if (!targetCatId || currentSourceCatId === targetCatId) return;
-      setDragTargetCategoryId(targetCatId);
-      queryClient.setQueryData(['fullMenu', restaurantId], (old: any) => {
+      else if (currentOverType === 'Dish') targetCatId = over.data.current?.categoryId as string || null;
+      
+      if (!targetCatId || currentSourceCatId === String(targetCatId)) return;
+      
+      const strTargetCatId = String(targetCatId);
+      setDragTargetCategoryId(strTargetCatId);
+      
+      queryClient.setQueryData<FullMenuResponse>(['fullMenu', restaurantId], (old) => {
         if (!old || !old.categories) return old;
         let draggedDishObj: Dish | null = null;
-        const updatedCategories = old.categories.map((cat: any) => {
-          if (cat.id === currentSourceCatId) {
-            draggedDishObj = cat.dishes.find((d: any) => d.id === activeDishId);
-            return { ...cat, dishes: cat.dishes.filter((d: any) => d.id !== activeDishId) };
+        
+        const updatedCategories = old.categories.map((cat: FullCategory): FullCategory => {
+          if (String(cat.id) === currentSourceCatId) {
+            draggedDishObj = cat.dishes.find((d: Dish) => String(d.id) === activeDishId) || null;
+            return { ...cat, dishes: cat.dishes.filter((d: Dish) => String(d.id) !== activeDishId) };
           }
           return cat;
         });
+        
         if (!draggedDishObj) return old;
+        
         return {
           ...old,
-          categories: updatedCategories.map((cat: any) => {
-            if (cat.id === targetCatId) {
+          categories: updatedCategories.map((cat: FullCategory): FullCategory => {
+            if (String(cat.id) === strTargetCatId) {
               const currentDishes = cat.dishes || [];
               if (currentOverType === 'Dish') {
-                const overIndex = currentDishes.findIndex((d: any) => d.id === over.id);
+                const overIndex = currentDishes.findIndex((d: Dish) => String(d.id) === String(over.id));
                 const newDishes = [...currentDishes];
                 newDishes.splice(overIndex >= 0 ? overIndex : 0, 0, draggedDishObj as Dish);
                 return { ...cat, dishes: newDishes };
@@ -124,59 +134,66 @@ export const useMenuBoard = () => {
     const currentActiveType = activeType;
     setActiveId(null);
     setActiveType(null);
+    
     if (!over || !restaurantId) {
-      if (restaurantId) queryClient.invalidateQueries({ queryKey: ['fullMenu', restaurantId] });
+      if (restaurantId) void queryClient.invalidateQueries({ queryKey: ['fullMenu', restaurantId] });
       setDragSourceCategoryId(null);
       setDragTargetCategoryId(null);
       setActiveDishData(null);
       return;
     }
+    
     if (currentActiveType === 'Category') {
       const currentOverType = over.data.current?.type;
       if (currentOverType === 'Category' && active.id !== over.id) {
-        const oldIndex = categories.findIndex((c: any) => c.id === active.id);
-        const newIndex = categories.findIndex((c: any) => c.id === over.id);
-        const newArray = arrayMove(categories, oldIndex, newIndex).map(
-          (item: any, index: number) => ({ id: item.id, sortOrder: index }),
-        );
-        reorderCategories(newArray);
+        const oldIndex = categories.findIndex((c: FullCategory) => String(c.id) === String(active.id));
+        const newIndex = categories.findIndex((c: FullCategory) => String(c.id) === String(over.id));
+        
+        if (oldIndex !== -1 && newIndex !== -1) {
+          const newArray = arrayMove(categories, oldIndex, newIndex).map(
+            (item, index): ReorderItem => ({ id: item.id, sortOrder: index }),
+          );
+          reorderCategories(newArray);
+        }
       }
     }
+    
     if (currentActiveType === 'Dish') {
       if (dragSourceCategoryId && dragTargetCategoryId) {
+        const strActiveId = String(active.id);
+        const strOverId = String(over.id);
+        
         if (dragSourceCategoryId !== dragTargetCategoryId) {
-          const targetCategory = categories.find((c: any) => c.id === dragTargetCategoryId);
+          const targetCategory = categories.find((c: FullCategory) => String(c.id) === dragTargetCategoryId);
           const targetDishes = targetCategory?.dishes ? [...targetCategory.dishes] : [];
           let insertIndex = targetDishes.length;
+          
           if (over.data.current?.type === 'Dish') {
-            const overIndex = targetDishes.findIndex((d: any) => d.id === over.id);
+            const overIndex = targetDishes.findIndex((d: Dish) => String(d.id) === strOverId);
             if (overIndex !== -1) insertIndex = overIndex;
           }
+          
           updateDish({
-            id: String(active.id),
+            id: strActiveId,
             data: { categoryId: dragTargetCategoryId, sortOrder: insertIndex },
           });
-          if (activeDishData) {
-            targetDishes.splice(insertIndex, 0, activeDishData);
-            const newArray = targetDishes.map((item: any, index: number) => ({ id: item.id, sortOrder: index }));
-            if (reorderTimeoutRef.current) clearTimeout(reorderTimeoutRef.current);
-            reorderTimeoutRef.current = setTimeout(() => {
-              reorderDishes(newArray);
-            }, 50);
-          }
         } else {
-          const category = categories.find((c: any) => c.id === dragSourceCategoryId);
+          const category = categories.find((c: FullCategory) => String(c.id) === dragSourceCategoryId);
           if (category && active.id !== over.id) {
-            const oldIndex = category.dishes.findIndex((d: any) => d.id === active.id);
-            const newIndex = category.dishes.findIndex((d: any) => d.id === over.id);
-            const newArray = arrayMove(category.dishes, oldIndex, newIndex).map(
-              (item: any, index: number) => ({ id: item.id, sortOrder: index }),
-            );
-            reorderDishes(newArray);
+            const oldIndex = category.dishes.findIndex((d: Dish) => String(d.id) === strActiveId);
+            const newIndex = category.dishes.findIndex((d: Dish) => String(d.id) === strOverId);
+            
+            if (oldIndex !== -1 && newIndex !== -1) {
+              const newArray = arrayMove(category.dishes, oldIndex, newIndex).map(
+                (item, index): ReorderItem => ({ id: item.id, sortOrder: index }),
+              );
+              reorderDishes(newArray);
+            }
           }
         }
       }
     }
+    
     setDragSourceCategoryId(null);
     setDragTargetCategoryId(null);
     setActiveDishData(null);

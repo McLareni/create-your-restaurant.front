@@ -1,48 +1,47 @@
 import { useState } from 'react';
 
-interface UseCrudModalProps<T, F> {
+interface UseCrudModalProps<F> {
   initialFormData: F;
-  createItem: (data: F) => Promise<any> | void;
-  updateItem: (params: { id: string; data: any }) => Promise<any> | void;
-  deleteItem: (id: string) => Promise<any> | void;
+  createItem: (data: F) => Promise<unknown> | void;
+  updateItem: (params: { id: string; data: F }) => Promise<unknown> | void;
+  deleteItem: (id: string) => Promise<unknown> | void;
 }
 
-export const useCrudModal = <T extends { id: string }, F>({
+export const useCrudModal = <F>({
   initialFormData,
   createItem,
   updateItem,
   deleteItem,
-}: UseCrudModalProps<T, F>) => {
+}: UseCrudModalProps<F>) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<T | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<F>(initialFormData);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const openCreateModal = () => {
-    setEditingItem(null);
+    setEditingId(null);
     setFormData(initialFormData);
     setIsModalOpen(true);
   };
 
-  const openEditModal = (item: T, formDataMapper: (item: T) => F) => {
-    setEditingItem(item);
-    setFormData(formDataMapper(item));
+  const openEditModal = (id: string, currentData: F) => {
+    setEditingId(id);
+    setFormData(currentData);
     setIsModalOpen(true);
   };
 
   const handleSave = async () => {
     setIsSubmitting(true);
     try {
-      if (editingItem) {
-        await updateItem({ id: editingItem.id, data: formData });
+      if (editingId) {
+        await updateItem({ id: editingId, data: formData });
       } else {
         await createItem(formData);
       }
       setIsModalOpen(false);
     } catch (error) {
       console.error('CRUD operation failed:', error);
-      throw error;
     } finally {
       setIsSubmitting(false);
     }
@@ -55,7 +54,6 @@ export const useCrudModal = <T extends { id: string }, F>({
         setDeleteId(null);
       } catch (error) {
         console.error('Delete operation failed:', error);
-        throw error;
       }
     }
   };
@@ -63,7 +61,7 @@ export const useCrudModal = <T extends { id: string }, F>({
   return {
     isModalOpen,
     setIsModalOpen,
-    editingItem,
+    editingId,
     formData,
     setFormData,
     deleteId,

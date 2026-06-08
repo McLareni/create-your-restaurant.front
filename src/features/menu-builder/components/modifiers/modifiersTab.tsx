@@ -1,27 +1,28 @@
 'use client';
 
-import { useModifiersManagement } from '../../hooks/modifiers/useModifiersManagement';
+import React from 'react';
+import { useModifiersManagement } from '@/features/menu-builder/hooks/modifiers/useModifiersManagement';
 import { Button, ConfirmModal } from '@/shared/ui';
 import { Plus, Layers } from 'lucide-react';
-import { ModifierGroupModal } from './modifierGroupModal';
-import { ModifierOptionModal } from './modifierOptionModal';
-import { ModifierCard } from './modifierCard';
-import { ModifierGroup } from '../../types/modifiers.types';
+import { ModifierGroupModal } from '@/features/menu-builder/components/modifiers/modifierGroupModal';
+import { ModifierOptionModal } from '@/features/menu-builder/components/modifiers/modifierOptionModal';
+import { ModifierCard } from '@/features/menu-builder/components/modifiers/modifierCard';
+import type { ModifierGroup, ModifierOption } from '@/features/menu-builder/types/modifiers.types';
 
 export const ModifiersTab = () => {
   const state = useModifiersManagement();
 
   if (state.isLoading && state.groups.length === 0) {
     return (
-      <div className="flex flex-col gap-4 py-2 w-full">
-        <div className="h-16 w-full rounded-xl bg-brand-gray/10 animate-pulse" />
-        <div className="h-48 w-full rounded-xl bg-brand-gray/5 animate-pulse mt-4" />
+      <div className="flex flex-col gap-4 py-2 w-full animate-pulse">
+        <div className="h-16 w-full rounded-xl bg-brand-gray/10" />
+        <div className="h-48 w-full rounded-xl bg-brand-gray/5 mt-4" />
       </div>
     );
   }
 
   return (
-    <div className="flex h-full flex-col pb-10">
+    <div className="flex h-full flex-col pb-10 select-none">
       <div className="sticky top-0 z-30 flex flex-col sm:flex-row sm:items-center justify-between mb-6 bg-brand-cream/80 dark:bg-brand-espresso/80 backdrop-blur-md py-3 border-b border-brand-gray/10 -mx-2 px-2 sm:-mx-6 sm:px-6">
         <div className="mb-3 sm:mb-0">
           <h2 className="text-xl font-bold text-brand-espresso dark:text-brand-cream tracking-tight flex items-center gap-2">
@@ -57,15 +58,15 @@ export const ModifiersTab = () => {
               onEditGroup={() => state.handleOpenGroupModal(group)}
               onDeleteGroup={() => state.setDeleteTarget({ type: 'group', id: group.id })}
               onOpenOptionModal={() => state.handleOpenOptionModal(group.id)}
-              onEditOption={(option) => state.handleOpenOptionModal(group.id, option)}
-              onDeleteOption={(optionId) => state.setDeleteTarget({ type: 'option', id: optionId, groupId: group.id })}
+              onEditOption={(option: ModifierOption) => state.handleOpenOptionModal(group.id, option)}
+              onDeleteOption={(optionId: string) => state.setDeleteTarget({ type: 'option', id: optionId, groupId: group.id })}
             />
           ))}
         </div>
       )}
 
       <ModifierGroupModal isOpen={state.isGroupModalOpen} onClose={() => state.setIsGroupModalOpen(false)} isEditing={!!state.editingGroup} form={state.groupForm} setForm={state.setGroupForm} onSave={state.handleSaveGroup} errors={state.groupErrors} />
-      <ModifierOptionModal isOpen={state.isOptionModalOpen} onClose={() => state.setIsOptionModalOpen(false)} isEditing={!!state.editingOption} form={state.optionForm} setForm={state.setOptionForm} onSave={state.handleSaveOption} />
+      <ModifierOptionModal isOpen={state.isOptionModalOpen} onClose={() => state.setIsOptionModalOpen(false)} isEditing={!!state.editingOption} form={state.optionForm} setForm={state.setFormData} onSave={state.handleSaveOption} />
       <ConfirmModal isOpen={!!state.deleteTarget} onClose={() => state.setDeleteTarget(null)} onConfirm={state.handleConfirmDelete} description={state.deleteTarget?.type === 'group' ? state.t('menu.constructor.modifiers.deleteConfirm') : state.t('menu.constructor.modifiers.deleteOptionConfirm')} />
     </div>
   );

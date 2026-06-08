@@ -1,31 +1,19 @@
 import { z } from 'zod';
 
-export const dishVariantSchema = z.object({
-  id: z.string().optional(),
-  name: z.string().min(1, 'menu.constructor.dishes.modal.errors.variantNameRequired'),
-  price: z.number().min(0, 'menu.constructor.dishes.modal.errors.priceNegative'),
-  sku: z.string().optional()
-});
+const safeNumberPreprocess = z.preprocess(
+  (val) => (val === '' || val === null || val === undefined ? null : Number(val)),
+  z.number().min(0, 'menu.constructor.dishes.modal.errors.valueMin').nullable()
+);
 
-export const ingredientItemSchema = z.object({
-  name: z.string().min(1, 'menu.constructor.dishes.modal.errors.ingredientNameRequired'),
-  quantity: z.number().min(0, 'menu.constructor.dishes.modal.errors.ingredientQtyNegative'),
-  unit: z.enum(['kg', 'g', 'l', 'ml', 'pcs']),
-  inventoryItemId: z.string().nullable().optional()
-});
-
-const safeNumberPreprocess = z.preprocess((val) => {
-  if (val === '' || val === undefined || val === null) return null;
-  const parsed = Number(val);
-  return isNaN(parsed) ? null : parsed;
-}, z.number().nullable().optional());
+const pricePreprocess = z.preprocess(
+  (val) => (val === '' || val === null || val === undefined ? 0 : Number(val)),
+  z.number().min(0, 'menu.constructor.dishes.modal.errors.priceNegative')
+);
 
 export const dishSchema = z.object({
   name: z.string().min(1, 'menu.constructor.dishes.modal.errors.nameRequired'),
-  description: z.string().default('').transform(val => val || ''),
-  price: z.number().min(0, 'menu.constructor.dishes.modal.errors.priceNegative'),
-  variants: z.array(dishVariantSchema).default([]),
-  taxRate: z.number().min(0).max(100).default(20),
+  description: z.string().default(''),
+  price: pricePreprocess,
   weight: safeNumberPreprocess,
   cookingTime: safeNumberPreprocess,
   calories: safeNumberPreprocess,
@@ -37,8 +25,14 @@ export const dishSchema = z.object({
   tags: z.array(z.string()).default([]),
   modifierIds: z.array(z.string()).default([]),
   isAvailable: z.boolean().default(true),
-  ingredients: z.array(ingredientItemSchema).default([]),
-  upsellDishIds: z.array(z.string()).default([])
+  ingredients: z.array(
+    z.object({
+      name: z.string(),
+      quantity: z.number().min(0),
+      unit: z.string(),
+      inventoryItemId: z.string().nullable(),
+    })
+  ).default([]),
 });
 
 export type DishFormValues = z.infer<typeof dishSchema>;
@@ -47,8 +41,6 @@ export const INITIAL_DISH_FORM: DishFormValues = {
   name: '',
   description: '',
   price: 0,
-  variants: [],
-  taxRate: 20,
   weight: null,
   cookingTime: null,
   calories: null,
@@ -61,5 +53,4 @@ export const INITIAL_DISH_FORM: DishFormValues = {
   modifierIds: [],
   isAvailable: true,
   ingredients: [],
-  upsellDishIds: [],
 };

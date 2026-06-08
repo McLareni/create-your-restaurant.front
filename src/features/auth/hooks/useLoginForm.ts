@@ -79,12 +79,13 @@ export const useLoginForm = (): LoginFormState => {
           setStep(2);
           setTimeLeft(60);
         } else {
-          const validation = verifySchema.safeParse({ email, code });
+          const cleanCode = code.replace(/\D/g, '');
+          const validation = verifySchema.safeParse({ email, code: cleanCode });
           if (!validation.success) {
             setCodeError(t(validation.error.issues[0].message));
             return;
           }
-          await authApi.verifyLoginCode(email, code);
+          await authApi.verifyLoginCode(email, cleanCode);
           await fetchUser(true);
           toast.success(t('dashboard.successMessage'));
           router.push('/dashboard');

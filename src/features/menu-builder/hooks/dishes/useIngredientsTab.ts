@@ -3,11 +3,14 @@
 import { useState } from 'react';
 import { useInventory } from '../inventory/useInventory';
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import { InventoryItem } from '../../types/inventory.types';
-import { DishFormValues } from '../../schemas/dishes.schema';
+import { InventoryItem } from '@/features/menu-builder/types/inventory.types';
+import { DishFormValues } from '@/features/menu-builder/schemas/dishes.schema';
 import toast from 'react-hot-toast';
 
-export const useIngredientsTabLogic = (dishForm: DishFormValues, setDishForm: React.Dispatch<React.SetStateAction<any>>) => {
+export const useIngredientsTabLogic = (
+  dishForm: DishFormValues,
+  setDishForm: React.Dispatch<React.SetStateAction<DishFormValues>>
+) => {
   const { t } = useTranslation();
   const { inventoryItems, isLoading } = useInventory();
 
@@ -21,7 +24,7 @@ export const useIngredientsTabLogic = (dishForm: DishFormValues, setDishForm: Re
 
     const current = dishForm.ingredients || [];
     
-    if (current.some((ing: any) => ing.inventoryItemId === selectedItemId)) {
+    if (current.some((ing) => ing.inventoryItemId === selectedItemId)) {
       toast.error(t('menu.constructor.dishes.modal.ingredients.errors.alreadyAdded'));
       return;
     }
@@ -33,27 +36,27 @@ export const useIngredientsTabLogic = (dishForm: DishFormValues, setDishForm: Re
       inventoryItemId: selectedItemId,
     };
 
-    setDishForm({ ...dishForm, ingredients: [...current, newItem] });
+    setDishForm((prev) => ({ ...prev, ingredients: [...(prev.ingredients || []), newItem] }));
     setSelectedItemId('');
     setQuantity('');
   };
 
   const handleRemove = (index: number) => {
-    const current = [...(dishForm.ingredients || [])];
-    current.splice(index, 1);
-    setDishForm({ ...dishForm, ingredients: current });
+    setDishForm((prev) => {
+      const current = [...(prev.ingredients || [])];
+      current.splice(index, 1);
+      return { ...prev, ingredients: current };
+    });
   };
 
   return {
-    t,
     inventoryItems,
     isLoading,
     selectedItemId,
     setSelectedItemId,
     quantity,
     setQuantity,
-    currentInventoryItem,
     handleAdd,
-    handleRemove
+    handleRemove,
   };
 };

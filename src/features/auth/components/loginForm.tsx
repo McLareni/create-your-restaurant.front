@@ -8,7 +8,7 @@ export const LoginForm = () => {
   const login = useLoginForm();
 
   return (
-    <div className="w-full max-w-105 rounded-3xl bg-white dark:bg-brand-mocha p-8 shadow-2xl border border-brand-gray/20 dark:border-brand-gray/20 transition-colors"> 
+    <div className="w-full max-w-md rounded-3xl bg-white dark:bg-brand-mocha p-8 shadow-2xl border border-brand-gray/20 dark:border-brand-gray/20 transition-colors"> 
       <div className="mb-8 text-center lg:text-left">
         <h2 className="text-[32px] font-serif font-medium leading-tight text-brand-espresso dark:text-brand-cream">
           {login.t('auth.login.title')}
@@ -42,7 +42,7 @@ export const LoginForm = () => {
               id="code"
               type="text"
               inputMode="numeric"
-              pattern="[0-9]*"
+              pattern="[0-9\s]*"
               label={login.t('auth.login.codeLabel')}
               placeholder={login.t('auth.login.codePlaceholder')}
               leftIcon={<Key className="h-5 w-5" />}

@@ -1,22 +1,20 @@
 'use client';
 
+import * as React from 'react';
 import { ThemeProvider as NextThemesProvider } from 'next-themes';
-import { ReactNode, useEffect, useState } from 'react';
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [mounted, setMounted] = useState(false);
+interface ThemeProviderProps {
+  children: React.ReactNode;
+}
 
-  // Уникаємо помилки гідратації (React не знає про тему сервера)
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) {
-    return <div className="invisible">{children}</div>;
-  }
-
+export function ThemeProvider({ children }: ThemeProviderProps) {
   return (
-    <NextThemesProvider attribute="class" defaultTheme="light" enableSystem>
+    <NextThemesProvider 
+      attribute="class" 
+      defaultTheme="light" 
+      enableSystem
+      disableTransitionOnChange
+    >
       {children}
     </NextThemesProvider>
   );

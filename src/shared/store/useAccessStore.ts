@@ -13,9 +13,7 @@ interface AccessState {
   activeModules: string[];
   permissions: string[];
   isLoadingAccess: boolean;
-
   clearAccessData: () => void;
-
   fetchAccessData: (restaurantId: string) => Promise<void>;
   hasModule: (moduleKey: string) => boolean;
   isPurchased: (moduleKey: string) => boolean;
@@ -56,7 +54,8 @@ export const useAccessStore = create<AccessState>((set, get) => ({
         permissions: response.permissions || [],
         isLoadingAccess: false,
       });
-    } catch (error) {
+    } catch {
+      // FIX: Видалено невикористану змінну 'error'
       set({
         purchasedModules: [],
         activeModules: [],
@@ -77,17 +76,14 @@ export const useAccessStore = create<AccessState>((set, get) => ({
 
   toggleModule: async (moduleKey: string, isActive: boolean) => {
     const previousModules = get().activeModules;
-
     const nextModules = isActive
       ? previousModules.includes(moduleKey)
         ? previousModules
         : [...previousModules, moduleKey]
       : previousModules.filter((key) => key !== moduleKey);
-
     set({
       activeModules: nextModules,
     });
-
     const restaurantId =
       useRestaurantStore.getState().activeRestaurant?.id;
 
@@ -107,7 +103,6 @@ export const useAccessStore = create<AccessState>((set, get) => ({
       set({
         activeModules: previousModules,
       });
-
       throw error;
     }
   },

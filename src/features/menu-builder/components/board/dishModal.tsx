@@ -1,280 +1,249 @@
 'use client';
 
-import { useTranslation } from '@/shared/hooks/useTranslation';
-import { Button, FloatingPanel, Input, Switch, Checkbox } from '@/shared/ui';
-import { IngredientsTab } from './tabs/IngredientsTab';
-import { UpsellTab } from './tabs/UpsellTab';
-import { DishLivePreview } from './preview/DishLivePreview';
-import { CharacteristicsTab } from './tabs/CharacteristicsTab';
-import { ChevronLeft, ChevronRight, Plus, Trash2 } from 'lucide-react';
-import { DishModalProps } from '../../types/dishes.types';
+import React, { ChangeEvent } from 'react';
 import Image from 'next/image';
+import { FloatingPanel, Input, Button, Select, Switch } from '@/shared/ui';
+import { CharacteristicsTab } from '@/features/menu-builder/components/board/tabs/CharacteristicsTab';
+import { IngredientsTab } from '@/features/menu-builder/components/board/tabs/IngredientsTab';
+import { DishLivePreview } from '@/features/menu-builder/components/board/preview/DishLivePreview';
+import { useTranslation } from '@/shared/hooks/useTranslation';
+import type { DishModalProps, ModifierGroupLookup } from '@/features/menu-builder/types/dishes.types';
 
-export const DishModal = ({
-  isOpen,
-  onClose,
-  isEditing,
-  dishForm,
-  setDishForm,
-  onSave,
-  handleLocalImageUploadWrapper,
-  imageUrls,
-  activeImageIndex,
-  onPrevImage,
-  onNextImage,
-  onSelectImage,
-  handleAddVariant,
-  handleRemoveVariant,
-  handleVariantChange,
-  activeTab,
-  setActiveTab,
-  modifierGroups,
-  currentDishId,
-  isLoading = false,
-  errors
-}: DishModalProps) => {
+export const DishModal = ({ isOpen, onClose, dish, state }: DishModalProps) => {
   const { t } = useTranslation();
 
+  if (!isOpen) return null;
+
+  const handleFormAction = () => {
+    void state.handleSaveDish();
+  };
+
+  const currentPreviewUrl = state.dishImageUrls[state.activeDishImageIndex] || null;
+
   return (
-    <FloatingPanel 
-      panelId="dish-modal"
-      isOpen={isOpen} 
-      onClose={onClose} 
-      title={isEditing ? t('menu.constructor.dishes.modal.editTitle') : t('menu.constructor.dishes.modal.createTitle')}
-      className="w-240 max-w-6xl border-brand-copper/20 max-h-[calc(100vh-40px)] flex flex-col animate-none"
+    <FloatingPanel
+      panelId="dish-builder-panel"
+      isOpen={isOpen}
+      onClose={onClose}
+      title={dish ? t('menu.constructor.dishes.modal.editTitle') : t('menu.constructor.dishes.modal.createTitle')}
+      className="w-full max-w-5xl border-brand-copper/20"
     >
-      <div className="flex flex-col text-brand-espresso dark:text-brand-cream w-full h-162.5 max-h-[calc(100vh-140px)] justify-start gap-5 overflow-hidden">
+      {/* Фіксована висота внутрішньої сітки (h-150) запобігає стрибкам модалки */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start h-150 overflow-hidden">
         
-        <div className="flex border-b border-brand-gray/10 dark:border-brand-gray/20 pb-0.5 gap-1 overflow-x-auto no-scrollbar shrink-0">
-          {[
-            { id: 'general', label: t('menu.constructor.dishes.modal.basicInfo'), hasError: !!(errors.name || errors.description) },
-            { id: 'pricing', label: t('menu.constructor.dishes.modal.tabs.pricing'), hasError: !!(errors.price || errors.taxRate || errors.variants) },
-            { id: 'characteristics', label: t('menu.constructor.dishes.modal.tabs.characteristics'), hasError: !!(errors.allergens || errors.tags) },
-            { id: 'ingredients', label: t('menu.constructor.dishes.modal.ingredients.title'), hasError: !!errors.ingredients },
-            { id: 'modifiers', label: t('menu.constructor.tabs.modifiers'), hasError: !!errors.modifierIds },
-            { id: 'upsell', label: t('menu.constructor.tabs.combos'), hasError: !!errors.upsellDishIds },
-            { id: 'media', label: t('menu.constructor.dishes.modal.media'), hasError: false }
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id as any)}
-              disabled={isLoading}
-              className={`relative pb-1.5 px-3 text-[11px] uppercase tracking-wider font-bold border-b-2 transition-all whitespace-nowrap outline-none rounded-t-lg hover:bg-brand-cream/30 dark:hover:bg-brand-gray/5 ${
-                activeTab === tab.id
-                  ? 'border-brand-copper text-brand-copper bg-brand-cream/10 dark:bg-brand-gray/5'
-                  : 'border-transparent text-brand-gray hover:text-brand-espresso dark:hover:text-brand-cream'
-                } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              {tab.label}
-              {tab.hasError && (
-                <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500 animate-pulse" />
-              )}
-            </button>
-          ))}
-        </div>
+        {/* ЛІВА ЧАСТИНА: Форма та робочі вкладки */}
+        <div className="md:col-span-2 flex flex-col h-full overflow-hidden">
+          
+          {/* Навігація по табах згідно з menu.constructor.dishes.modal.tabs */}
+          <div className="flex gap-4 border-b border-zinc-200 mb-4 pb-2 select-none shrink-0 overflow-x-auto custom-scrollbar">
+            {(['pricing', 'characteristics', 'ingredients', 'modifiers', 'media'] as const).map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => state.setActiveTab(tab === 'pricing' ? 'general' : tab)}
+                className={`pb-2 text-sm font-semibold cursor-pointer transition-colors relative whitespace-nowrap ${
+                  (state.activeTab === 'general' && tab === 'pricing') || state.activeTab === tab
+                    ? 'border-b-2 border-brand-copper text-brand-copper font-bold'
+                    : 'text-zinc-500 hover:text-brand-espresso dark:hover:text-brand-cream'
+                }`}
+              >
+                {t(`menu.constructor.dishes.modal.tabs.${tab}`)}
+              </button>
+            ))}
+          </div>
 
-        <div className="flex gap-5 items-start flex-1 overflow-hidden h-full py-1">
-          <div className="flex-1 h-full overflow-y-auto custom-scrollbar pr-1">
-            
-            {activeTab === 'general' && (
-              <div className="flex flex-col gap-4 animate-in fade-in duration-100">
-                <Input
-                  id="dishName"
-                  label={t('menu.constructor.dishes.modal.nameLabel')}
-                  placeholder={t('menu.constructor.dishes.modal.namePlaceholder')}
-                  value={dishForm.name}
-                  onChange={(e) => setDishForm({ ...dishForm, name: e.target.value })}
-                  disabled={isLoading}
-                  error={errors.name ? t(errors.name) : undefined}
-                />
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-sm font-semibold text-brand-espresso dark:text-brand-cream">{t('menu.constructor.dishes.modal.descLabel')}</label>
-                  <textarea
-                    className={`w-full rounded-xl border bg-white dark:bg-brand-mocha px-3 py-2 text-sm text-brand-espresso dark:text-brand-cream outline-none focus:border-brand-copper focus:ring-1 focus:ring-brand-copper transition-all h-28 resize-none shadow-xs ${errors.description ? 'border-red-500' : 'border-brand-gray/20 dark:border-brand-gray/40'}`}
-                    placeholder={t('menu.constructor.dishes.modal.descPlaceholder')}
-                    value={dishForm.description}
-                    onChange={(e) => setDishForm({ ...dishForm, description: e.target.value })}
-                    disabled={isLoading}
+          <form action={handleFormAction} className="flex flex-col flex-1 overflow-hidden">
+            {/* Область контенту з індивідуальним вертикальним скролом */}
+            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar pb-4 space-y-4">
+              
+              {state.activeTab === 'general' && (
+                <div className="space-y-4 animate-in fade-in duration-100">
+                  <Input
+                    id="dish-name"
+                    label={t('menu.constructor.dishes.modal.nameLabel')}
+                    placeholder={t('menu.constructor.dishes.modal.namePlaceholder')}
+                    value={state.dishForm.name}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => state.setDishForm((prev) => ({ ...prev, name: e.target.value }))}
+                    error={state.formErrors.name ? t(state.formErrors.name) : undefined}
+                    disabled={state.isSaving}
                   />
-                  {errors.description && <span className="text-xs text-red-500">{t(errors.description)}</span>}
-                </div>
-                <div className="flex items-center justify-between p-3 rounded-xl border border-brand-gray/10 bg-brand-cream/5">
-                  <span className="text-xs font-bold">{t('menu.constructor.dishes.modal.availabilityLabel')}</span>
-                  <Switch checked={dishForm.isAvailable} onChange={(val) => setDishForm({ ...dishForm, isAvailable: val })} disabled={isLoading} />
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'pricing' && (
-              <div className="flex flex-col gap-4 animate-in fade-in duration-100">
-                <div className="grid grid-cols-2 gap-3">
-                  <Input 
-                    id="dishPrice" 
-                    type="number" 
-                    label={t('menu.constructor.dishes.modal.priceLabel')} 
-                    value={dishForm.price || ''} 
-                    onChange={(e) => setDishForm({ ...dishForm, price: Math.max(0, parseFloat(e.target.value) || 0) })} 
-                    disabled={isLoading}
-                    className="h-10 text-xs" 
-                    error={errors.price ? t(errors.price) : undefined}
-                  />
-                  <Input 
-                    id="dishTaxInput" 
-                    type="number" 
-                    label={t('menu.constructor.dishes.modal.taxRateLabel')} 
-                    placeholder="20" 
-                    value={dishForm.taxRate === 0 ? '' : dishForm.taxRate} 
-                    onChange={(e) => setDishForm({ ...dishForm, taxRate: Math.max(0, parseFloat(e.target.value) || 0) })} 
-                    disabled={isLoading}
-                    className="h-10 text-xs" 
-                    error={errors.taxRate ? t(errors.taxRate) : undefined}
-                  />
-                </div>
-                
-                <div className="border border-brand-gray/10 rounded-2xl p-3 bg-brand-cream/10">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-bold">{t('menu.constructor.dishes.modal.variantsTitle')}</span>
-                    <Button variant="outline" type="button" onClick={handleAddVariant} disabled={isLoading} className="h-6 text-[10px] px-2 border-brand-copper text-brand-copper rounded-lg" icon={<Plus className="h-3 w-3" />}>{t('menu.constructor.dishes.modal.addVariantBtn')}</Button>
+                  
+                  <div className="flex flex-col gap-1.5">
+                    <label htmlFor="dish-desc" className="text-xs font-bold text-brand-espresso dark:text-brand-cream uppercase tracking-wider">
+                      {t('menu.constructor.dishes.modal.descLabel')}
+                    </label>
+                    <textarea
+                      id="dish-desc"
+                      rows={3}
+                      placeholder={t('menu.constructor.dishes.modal.descPlaceholder')}
+                      value={state.dishForm.description || ''}
+                      onChange={(e: ChangeEvent<HTMLTextAreaElement>) => state.setDishForm((prev) => ({ ...prev, description: e.target.value }))}
+                      disabled={state.isSaving}
+                      className="w-full text-xs font-semibold p-3 border rounded-xl bg-white dark:bg-brand-espresso border-brand-gray/30 focus:border-brand-copper outline-none transition-colors dark:text-brand-cream resize-none"
+                    />
                   </div>
-                  {errors.variants && <p className="text-xs text-red-500 mb-2">{t(errors.variants)}</p>}
-                  {dishForm.variants && dishForm.variants.length > 0 && (
-                    <div className="flex flex-col gap-1.5 max-h-48 overflow-y-auto custom-scrollbar pr-1">
-                      {dishForm.variants.map((variant, idx) => (
-                        <div key={idx} className="flex gap-2 items-end bg-white dark:bg-brand-mocha p-2 rounded-xl border border-brand-gray/10 shadow-xs">
-                          <div className="flex-1"><Input id={`v-name-${idx}`} label={t('menu.constructor.dishes.modal.variantName')} value={variant.name} onChange={(e) => handleVariantChange(idx, 'name', e.target.value)} disabled={isLoading} className="h-8 text-xs" /></div>
-                          <div className="w-20"><Input id={`v-price-${idx}`} type="number" label={t('menu.constructor.dishes.modal.variantPrice')} value={variant.price || ''} onChange={(e) => handleVariantChange(idx, 'price', Math.max(0, parseFloat(e.target.value) || 0))} disabled={isLoading} className="h-8 text-xs" /></div>
-                          <div className="w-28"><Input id={`v-sku-${idx}`} label={t('menu.constructor.dishes.modal.variantSku')} placeholder="XL-1" value={variant.sku || ''} onChange={(e) => handleVariantChange(idx, 'sku', e.target.value)} disabled={isLoading} className="h-8 text-xs" /></div>
-                          <button type="button" onClick={() => handleRemoveVariant(idx)} disabled={isLoading} className="p-1.5 text-brand-gray hover:text-red-500 rounded-lg outline-none disabled:opacity-50"><Trash2 className="h-4 w-4" /></button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+
+                  <Input
+                    id="dish-price"
+                    type="number"
+                    label={t('menu.constructor.dishes.modal.priceLabel')}
+                    placeholder="0"
+                    value={state.dishForm.price || ''}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) => state.setDishForm((prev) => ({ ...prev, price: parseFloat(e.target.value) || 0 }))}
+                    error={state.formErrors.price ? t(state.formErrors.price) : undefined}
+                    disabled={state.isSaving}
+                  />
+                  
+                  {/* Стабільна триколонкова числова сітка параметрів */}
+                  <div className="grid grid-cols-3 gap-4">
+                    <Input
+                      id="dish-weight"
+                      type="number"
+                      label={t('menu.constructor.dishes.modal.weightLabel')}
+                      placeholder="0"
+                      value={state.dishForm.weight || ''}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => state.setDishForm((prev) => ({ ...prev, weight: e.target.value ? Number(e.target.value) : null }))}
+                      error={state.formErrors.weight ? t(state.formErrors.weight) : undefined}
+                      disabled={state.isSaving}
+                    />
+                    <Input
+                      id="dish-cooking-time"
+                      type="number"
+                      label={t('menu.constructor.dishes.modal.timeLabel')}
+                      placeholder="0"
+                      value={state.dishForm.cookingTime || ''}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => state.setDishForm((prev) => ({ ...prev, cookingTime: e.target.value ? Number(e.target.value) : null }))}
+                      error={state.formErrors.cookingTime ? t(state.formErrors.cookingTime) : undefined}
+                      disabled={state.isSaving}
+                    />
+                    <Input
+                      id="dish-calories"
+                      type="number"
+                      label={t('menu.constructor.dishes.modal.caloriesLabel')}
+                      placeholder="0"
+                      value={state.dishForm.calories || ''}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => state.setDishForm((prev) => ({ ...prev, calories: e.target.value ? Number(e.target.value) : null }))}
+                      error={state.formErrors.calories ? t(state.formErrors.calories) : undefined}
+                      disabled={state.isSaving}
+                    />
+                  </div>
+
+                  <Select
+                    id="dish-badge"
+                    label={t('menu.constructor.dishes.modal.badgeLabel')}
+                    value={state.dishForm.badge}
+                    onChange={(e: ChangeEvent<HTMLSelectElement>) => state.setDishForm((prev) => ({ ...prev, badge: e.target.value }))}
+                    disabled={state.isSaving}
+                  >
+                    <option value="NONE">{t('menu.constructor.badges.NONE')}</option>
+                    <option value="NEW">{t('menu.constructor.badges.NEW')}</option>
+                    <option value="HIT">{t('menu.constructor.badges.HIT')}</option>
+                    <option value="CHEF_CHOICE">{t('menu.constructor.badges.CHEF_CHOICE')}</option>
+                    <option value="TOP_RATED">{t('menu.constructor.badges.TOP_RATED')}</option>
+                  </Select>
+
+                  <div className="flex items-center justify-between pt-2">
+                    <span className="text-xs font-bold text-brand-espresso dark:text-brand-cream uppercase tracking-wider">
+                      {t('menu.constructor.dishes.modal.availabilityLabel')}
+                    </span>
+                    <Switch
+                      id="dish-available"
+                      checked={state.dishForm.isAvailable}
+                      onChange={(checked: boolean) => state.setDishForm((prev) => ({ ...prev, isAvailable: checked }))}
+                      disabled={state.isSaving}
+                    />
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {activeTab === 'characteristics' && <CharacteristicsTab dishForm={dishForm} setDishForm={setDishForm} />}
-            {activeTab === 'ingredients' && <IngredientsTab dishForm={dishForm} setDishForm={setDishForm} />}
-            {activeTab === 'upsell' && <UpsellTab dishForm={dishForm} setDishForm={setDishForm} currentDishId={currentDishId} />}
+              {state.activeTab === 'characteristics' && (
+                <CharacteristicsTab dishForm={state.dishForm} setDishForm={state.setDishForm} />
+              )}
 
-            {activeTab === 'modifiers' && (
-              <div className="grid grid-cols-2 gap-2 p-2 rounded-xl border border-brand-gray/10 bg-brand-cream/10 max-h-64 overflow-y-auto custom-scrollbar animate-in fade-in duration-100">
-                {modifierGroups.length === 0 ? (
-                  <div className="col-span-2 text-center p-4 text-xs text-brand-gray">{t('menu.constructor.dishes.modal.noModifiers')}</div>
-                ) : (
-                  modifierGroups.map(group => (
-                    <div key={group.id} className="bg-white dark:bg-brand-mocha border border-brand-gray/10 p-2 rounded-lg shadow-xs">
-                      <Checkbox
-                        id={`mod-${group.id}`}
-                        label={<span className="text-xs font-bold">{group.name}</span>}
-                        checked={dishForm.modifierIds?.includes(group.id)}
-                        disabled={isLoading}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                          const currentIds = dishForm.modifierIds || [];
-                          if (e.target.checked) {
-                            setDishForm({ ...dishForm, modifierIds: [...currentIds, group.id] });
-                          } else {
-                            setDishForm({ ...dishForm, modifierIds: currentIds.filter(id => id !== group.id) });
-                          }
-                        }}
+              {state.activeTab === 'ingredients' && (
+                <IngredientsTab dishForm={state.dishForm} setDishForm={state.setDishForm} />
+              )}
+
+              {state.activeTab === 'modifiers' && (
+                <div className="space-y-3 animate-in fade-in duration-100">
+                  <span className="text-xs font-bold block text-brand-espresso dark:text-brand-cream uppercase tracking-wider">
+                    {t('menu.constructor.modifiers.title')}
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto custom-scrollbar p-1">
+                    {state.modifierGroups?.length === 0 ? (
+                      <span className="text-xs text-brand-gray italic p-2">{t('menu.constructor.dishes.modal.noModifiers')}</span>
+                    ) : (
+                      state.modifierGroups?.map((group: ModifierGroupLookup) => (
+                        <div key={group.id} className="flex items-center gap-2.5 p-3 border border-zinc-200 dark:border-brand-gray/30 rounded-xl bg-white dark:bg-brand-mocha shadow-xs transition-colors hover:border-brand-copper/30">
+                          <input
+                            type="checkbox"
+                            id={`mod-group-${group.id}`}
+                            checked={state.dishForm.modifierIds?.includes(group.id)}
+                            disabled={state.isSaving}
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => {
+                              const currentIds = state.dishForm.modifierIds || [];
+                              const nextIds = e.target.checked
+                                ? [...currentIds, group.id]
+                                : currentIds.filter((id: string) => id !== group.id);
+                              state.setDishForm((prev) => ({ ...prev, modifierIds: nextIds }));
+                            }}
+                            className="rounded border-zinc-300 text-brand-copper focus:ring-brand-copper cursor-pointer h-4 w-4 shrink-0"
+                          />
+                          <label htmlFor={`mod-group-${group.id}`} className="text-xs font-semibold text-brand-espresso dark:text-brand-cream cursor-pointer select-none truncate">
+                            {group.name}
+                          </label>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {state.activeTab === 'media' && (
+                <div className="space-y-4 animate-in fade-in duration-100">
+                  <div className="border-2 border-dashed border-zinc-300 dark:border-brand-gray/40 rounded-xl p-6 text-center bg-zinc-50 dark:bg-brand-mocha/20 hover:border-brand-copper/40 transition-colors">
+                    <input
+                      type="file"
+                      id="dish-photo-upload"
+                      multiple
+                      accept="image/*"
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => { void state.handleLocalImageUploadWrapper(e); }}
+                      className="hidden"
+                    />
+                    <label htmlFor="dish-photo-upload" className="cursor-pointer text-xs text-brand-copper font-bold uppercase tracking-wider select-none block w-full h-full py-2">
+                      {t('menu.constructor.dishes.modal.mediaHint')}
+                    </label>
+                  </div>
+                  {state.dishImageUrls.length > 0 && (
+                    <div className="relative aspect-video w-full max-w-md mx-auto rounded-xl overflow-hidden border border-zinc-200 dark:border-brand-gray/30 shadow-md bg-white dark:bg-brand-mocha">
+                      <Image
+                        src={state.dishImageUrls[state.activeDishImageIndex]}
+                        alt={state.dishForm.name || t('menu.constructor.dishes.modal.tabs.media')}
+                        fill
+                        unoptimized
+                        className="object-cover"
                       />
                     </div>
-                  ))
-                )}
-              </div>
-            )}
-
-            {activeTab === 'media' && (
-              <div className="animate-in fade-in duration-100 flex flex-col gap-3">
-                <div className="relative w-full h-52 rounded-2xl border border-brand-gray/20 overflow-hidden bg-brand-cream/20">
-                  {imageUrls.length > 0 ? (
-                    <Image
-                      src={imageUrls[activeImageIndex]}
-                      alt={t('menu.constructor.dishes.modal.media')}
-                      fill
-                      unoptimized
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-brand-gray px-4 text-center">
-                      {t('menu.constructor.dishes.modal.mediaHint')}
-                    </div>
-                  )}
-
-                  {imageUrls.length > 1 && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={onPrevImage}
-                        className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/45 p-1.5 text-white z-10"
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={onNextImage}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/45 p-1.5 text-white z-10"
-                      >
-                        <ChevronRight className="h-4 w-4" />
-                      </button>
-                    </>
                   )}
                 </div>
+              )}
+            </div>
 
-                {imageUrls.length > 1 && (
-                  <div className="flex gap-2 overflow-x-auto pb-1">
-                    {imageUrls.map((url, index) => (
-                      <button
-                        key={`${url}-${index}`}
-                        type="button"
-                        onClick={() => onSelectImage(index)}
-                        className={`h-14 w-14 shrink-0 rounded-lg overflow-hidden border-2 relative ${
-                          index === activeImageIndex ? 'border-brand-copper' : 'border-transparent'
-                        }`}
-                      >
-                        <Image 
-                          src={url} 
-                          alt={t('menu.constructor.dishes.modal.media')} 
-                          fill 
-                          unoptimized 
-                          className="object-cover" 
-                        />
-                      </button>
-                    ))}
-                  </div>
-                )}
-
-                <div className="relative w-full h-18 rounded-2xl border-2 border-dashed border-brand-gray/30 hover:border-brand-copper hover:bg-brand-copper/5 transition-all overflow-hidden group">
-                  <input
-                    type="file"
-                    id="dish-image"
-                    accept=".jpg,.jpeg,.png,.webp,.avif"
-                    multiple
-                    className="hidden"
-                    onChange={handleLocalImageUploadWrapper}
-                    disabled={isLoading}
-                  />
-                  <label htmlFor="dish-image" className={`absolute inset-0 flex flex-col items-center justify-center bg-brand-cream/10 ${isLoading ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
-                    <span className="font-bold text-xs">{t('menu.constructor.dishes.modal.mediaHint')}</span>
-                  </label>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="h-auto self-start shrink-0">
-            <DishLivePreview form={dishForm} imageUrl={imageUrls[0]} />
-          </div>
+            {/* СПІЛЬНИЙ ПІДВАЛ: Кнопки надійно зафіксовані тут */}
+            <div className="flex justify-end gap-3 pt-4 border-t border-zinc-200 dark:border-brand-gray/20 shrink-0 bg-white dark:bg-brand-mocha mt-auto">
+              <Button type="button" variant="ghost" onClick={onClose} disabled={state.isSaving} className="h-10 text-xs font-semibold">
+                {t('menu.constructor.dishes.modal.cancel')}
+              </Button>
+              <Button type="submit" variant="brand" isLoading={state.isSaving} className="h-10 text-xs font-bold px-6">
+                {t('menu.constructor.dishes.modal.save')}
+              </Button>
+            </div>
+          </form>
         </div>
 
-        <div className="flex justify-end gap-3 pt-3 mt-auto border-t border-brand-gray/10 dark:border-brand-gray/20 shrink-0">
-          <Button variant="ghost" onClick={onClose} disabled={isLoading} className="h-9 text-xs font-semibold">
-            {t('menu.constructor.dishes.modal.cancel')}
-          </Button>
-          <Button variant="brand" className="px-5 h-9 text-xs font-bold shadow-md shadow-brand-copper/10" onClick={onSave} isLoading={isLoading} disabled={isLoading}>
-            {t('menu.constructor.dishes.modal.save')}
-          </Button>
+        {/* ПРАВА ЧАСТИНА: Live Preview */}
+        <div className="hidden md:block border-l border-zinc-100 dark:border-brand-gray/10 pl-6 h-full overflow-hidden">
+          <DishLivePreview form={state.dishForm} imageUrl={currentPreviewUrl} />
         </div>
       </div>
     </FloatingPanel>

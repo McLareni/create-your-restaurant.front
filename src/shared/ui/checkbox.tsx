@@ -1,29 +1,41 @@
-import { InputHTMLAttributes } from 'react';
+'use client';
 
-interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
-  label?: string;
+import { ComponentPropsWithoutRef, ReactNode } from 'react';
+
+export interface CheckboxProps extends Omit<ComponentPropsWithoutRef<'input'>, 'children'> {
+  id: string;
   error?: string;
+  children?: ReactNode;
 }
 
 export const Checkbox = ({
-  label,
-  error,
-  className = '',
   id,
+  error,
+  children,
+  className = '',
+  disabled,
   ...props
 }: CheckboxProps) => {
   return (
     <div className="flex flex-col gap-1">
-      <label className="flex items-center gap-2 cursor-pointer select-none text-sm text-brand-espresso dark:text-brand-cream">
+      <div className="flex items-start gap-2.5">
         <input
           id={id}
           type="checkbox"
-          className={`h-4 w-4 rounded border-brand-gray/40 text-brand-copper focus:ring-brand-copper/30 disabled:opacity-50 cursor-pointer ${className}`}
+          disabled={disabled}
+          className={`h-4 w-4 rounded border-brand-gray/30 text-brand-copper focus:ring-brand-copper/30 disabled:opacity-50 cursor-pointer ${className}`}
           {...props}
         />
-        {label && <span>{label}</span>}
-      </label>
-      {error && <span className="text-xs text-red-500">{error}</span>}
+        {children && (
+          <label
+            htmlFor={id}
+            className="text-sm font-medium text-brand-espresso dark:text-brand-cream select-none cursor-pointer disabled:opacity-50"
+          >
+            {children}
+          </label>
+        )}
+      </div>
+      {error && <span className="text-xs text-red-500 mt-0.5">{error}</span>}
     </div>
   );
 };

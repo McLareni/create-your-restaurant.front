@@ -1,24 +1,21 @@
 'use client';
 
-import { useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useState, ChangeEvent } from 'react';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
-import { dishSchema, DishFormValues, INITIAL_DISH_FORM } from '../../schemas/dishes.schema';
-import { Dish } from '../../types/dishes.types';
-import { menuApi } from '../../api/menu.api';
+import { dishSchema, INITIAL_DISH_FORM } from '@/features/menu-builder/schemas/dishes.schema';
+import { modifiersApi } from '@/features/menu-builder/api/modifiers.api';
+import { menuApi } from '@/features/menu-builder/api/menu.api';
+import type { DishFormValues } from '@/features/menu-builder/schemas/dishes.schema';
+import type { Dish, UseDishModalProps, ModifierGroupLookup, UseDishModalReturn } from '@/features/menu-builder/types/dishes.types';
+import type { ModifierGroup } from '@/features/menu-builder/types/modifiers.types';
 import toast from 'react-hot-toast';
 
-interface UseDishModalProps {
-  createDishAsync: (variables: { categoryId: string; data: DishFormValues }) => Promise<any>;
-  updateDishAsync: (variables: { id: string; data: DishFormValues }) => Promise<any>;
-}
-
-export const useDishModal = ({ createDishAsync, updateDishAsync }: UseDishModalProps) => {
+export const useDishModal = ({ createDishAsync, updateDishAsync }: UseDishModalProps): UseDishModalReturn => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const activeRestaurant = useRestaurantStore((state) => state.activeRestaurant);
-  const restaurantId = activeRestaurant?.id ? Number(activeRestaurant.id) : null;
+  const restaurantId = useRestaurantStore((state) => state.activeRestaurant?.id ? Number(state.activeRestaurant.id) : null);
 
   const [isDishModalOpen, setIsDishModalOpen] = useState(false);
   const [editingDish, setEditingDish] = useState<Dish | null>(null);
@@ -29,42 +26,38 @@ export const useDishModal = ({ createDishAsync, updateDishAsync }: UseDishModalP
   const [dishImageUrls, setDishImageUrls] = useState<string[]>([]);
   const [activeDishImageIndex, setActiveDishImageIndex] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<'general' | 'pricing' | 'characteristics' | 'ingredients' | 'modifiers' | 'upsell' | 'media'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'characteristics' | 'ingredients' | 'modifiers' | 'media'>('general');
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const { data: groups = [] } = useQuery<ModifierGroup[]>({
+    queryKey: ['modifierGroups', restaurantId],
+    queryFn: () => modifiersApi.getGroups(restaurantId!),
+    enabled: !!restaurantId,
+  });
+
+  const modifierGroups: ModifierGroupLookup[] = groups.map((g) => ({
+    id: g.id,
+    name: g.name,
+  }));
+
+  const revokeLocalUrls = (urls: string[]): void => {
+    urls.forEach((url) => {
+      if (url.startsWith('blob:')) {
+        URL.revokeObjectURL(url);
+      }
+    });
+  };
+
+  const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>): Promise<void> => {
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
-
-    const tiffFiles = files.filter((file) => {
-      const fileName = file.name.toLowerCase();
-      const mimeType = file.type.toLowerCase();
-      return (
-        fileName.endsWith('.tif') ||
-        fileName.endsWith('.tiff') ||
-        mimeType === 'image/tif' ||
-        mimeType === 'image/tiff'
-      );
-    });
-
-    const validFiles = files.filter((file) => !tiffFiles.includes(file));
-
-    if (tiffFiles.length > 0) {
-      toast.error(t('menu.constructor.dishes.modal.errors.tiffNotSupported'));
-    }
-
-    if (validFiles.length === 0) {
-      e.target.value = '';
-      return;
-    }
-
-    const previewUrls = validFiles.map((file) => URL.createObjectURL(file));
-    setDishPhotoFiles((prev) => [...prev, ...validFiles]);
+    const previewUrls = files.map((file) => URL.createObjectURL(file));
+    setDishPhotoFiles((prev) => [...prev, ...files]);
     setDishImageUrls((prev) => [...prev, ...previewUrls]);
     setActiveDishImageIndex(dishImageUrls.length);
     e.target.value = '';
   };
 
-  const handleLocalImageUploadWrapper = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLocalImageUploadWrapper = async (e: ChangeEvent<HTMLInputElement>): Promise<void> => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
     try {
@@ -76,45 +69,27 @@ export const useDishModal = ({ createDishAsync, updateDishAsync }: UseDishModalP
     }
   };
 
-  const handlePrevDishImage = () => {
+  const handlePrevDishImage = (): void => {
     if (dishImageUrls.length === 0) return;
     setActiveDishImageIndex((prev) => (prev === 0 ? dishImageUrls.length - 1 : prev - 1));
   };
 
-  const handleNextDishImage = () => {
+  const handleNextDishImage = (): void => {
     if (dishImageUrls.length === 0) return;
     setActiveDishImageIndex((prev) => (prev === dishImageUrls.length - 1 ? 0 : prev + 1));
   };
 
-  const handleSelectDishImage = (index: number) => {
+  const handleSelectDishImage = (index: number): void => {
     setActiveDishImageIndex(index);
   };
 
-  const handleAddVariant = () => {
-    const currentVariants = dishForm.variants || [];
-    setDishForm({ ...dishForm, variants: [...currentVariants, { name: '', price: 0, sku: '' }] });
-  };
-
-  const handleRemoveVariant = (index: number) => {
-    const currentVariants = [...(dishForm.variants || [])];
-    currentVariants.splice(index, 1);
-    setDishForm({ ...dishForm, variants: currentVariants });
-  };
-
-  const handleVariantChange = (index: number, field: string, value: any) => {
-    const currentVariants = [...(dishForm.variants || [])];
-    currentVariants[index] = { ...currentVariants[index], [field]: value };
-    setDishForm({ ...dishForm, variants: currentVariants });
-  };
-
-  const handleOpenDishModal = (categoryId: string, dish?: Dish) => {
-    dishImageUrls.forEach(url => { if (url.startsWith('blob:')) URL.revokeObjectURL(url); });
+  const handleOpenDishModal = (categoryId: string, dish?: Dish | null) => {
+    revokeLocalUrls(dishImageUrls);
     setActiveCategoryId(categoryId);
     setFormErrors({});
     setDishPhotoFiles([]);
     setIsSaving(false);
     setActiveTab('general');
-    
     if (dish) {
       setEditingDish(dish);
       const existingImageUrls = dish.images?.map((image) => image.url) || (dish.imageUrl ? [dish.imageUrl] : []);
@@ -124,11 +99,9 @@ export const useDishModal = ({ createDishAsync, updateDishAsync }: UseDishModalP
         name: dish.name,
         description: dish.description || '',
         price: dish.price,
-        variants: dish.variants || [],
-        taxRate: dish.taxRate || 20,
-        weight: dish.weight,
-        cookingTime: dish.cookingTime,
-        calories: dish.calories,
+        weight: dish.weight ?? null,
+        cookingTime: dish.cookingTime ?? null,
+        calories: dish.calories ?? null,
         isVegan: dish.isVegan ?? false,
         isSpicy: dish.isSpicy ?? false,
         isLactoseFree: dish.isLactoseFree ?? false,
@@ -138,7 +111,6 @@ export const useDishModal = ({ createDishAsync, updateDishAsync }: UseDishModalP
         modifierIds: dish.modifierIds || [],
         isAvailable: dish.isAvailable ?? true,
         ingredients: dish.ingredients || [],
-        upsellDishIds: dish.upsellDishIds || [],
       });
     } else {
       setEditingDish(null);
@@ -149,10 +121,9 @@ export const useDishModal = ({ createDishAsync, updateDishAsync }: UseDishModalP
     setIsDishModalOpen(true);
   };
 
-  const handleSaveDish = async () => {
+  const handleSaveDish = async (): Promise<void> => {
     if (isSaving || !restaurantId) return;
     setFormErrors({});
-
     const validation = dishSchema.safeParse(dishForm);
     if (!validation.success) {
       const errorsMap: Record<string, string> = {};
@@ -168,7 +139,6 @@ export const useDishModal = ({ createDishAsync, updateDishAsync }: UseDishModalP
     setIsSaving(true);
     try {
       let savedDishId = editingDish?.id;
-
       if (editingDish) {
         await updateDishAsync({ id: editingDish.id, data: validation.data });
       } else {
@@ -180,15 +150,15 @@ export const useDishModal = ({ createDishAsync, updateDishAsync }: UseDishModalP
       }
 
       if (dishPhotoFiles.length > 0 && savedDishId) {
-        await Promise.all(dishPhotoFiles.map((file) => menuApi.uploadDishPhoto(savedDishId, file)));
+        for (const file of dishPhotoFiles) {
+          await menuApi.uploadDishPhoto(savedDishId, file);
+        }
       }
 
       await queryClient.invalidateQueries({ queryKey: ['fullMenu', restaurantId] });
       await queryClient.invalidateQueries({ queryKey: ['dishes', restaurantId] });
-      await queryClient.invalidateQueries({ queryKey: ['dishes-lookup', restaurantId] });
 
-      dishImageUrls.forEach(url => { if (url.startsWith('blob:')) URL.revokeObjectURL(url); });
-
+      revokeLocalUrls(dishImageUrls);
       setDishPhotoFiles([]);
       setDishImageUrls([]);
       setActiveDishImageIndex(0);
@@ -203,7 +173,7 @@ export const useDishModal = ({ createDishAsync, updateDishAsync }: UseDishModalP
   return {
     isDishModalOpen,
     setIsDishModalOpen: (open: boolean) => {
-      if (!open) dishImageUrls.forEach(url => { if (url.startsWith('blob:')) URL.revokeObjectURL(url); });
+      if (!open) revokeLocalUrls(dishImageUrls);
       setIsDishModalOpen(open);
     },
     dishForm,
@@ -219,10 +189,8 @@ export const useDishModal = ({ createDishAsync, updateDishAsync }: UseDishModalP
     handlePrevDishImage,
     handleNextDishImage,
     handleSelectDishImage,
-    handleAddVariant,
-    handleRemoveVariant,
-    handleVariantChange,
     handleOpenDishModal,
     handleSaveDish,
+    modifierGroups,
   };
 };

@@ -58,14 +58,16 @@ export const menu = {
       descTitle: "Опис страви",
       moreBtn: "Детальніше...",
       deleteConfirm: "Ви впевнені, що хочете видалити цю страву? Вона зникне з меню для всіх гостей.",
+      statusAvailable: "В меню",
+      statusStopped: "У стоп-листі",
       notifications: {
         imageUploading: "Завантаження зображення...",
         imageUploadSuccess: "Зображення завантажено успішно!",
         imageUploadError: "Помилка завантаження файлу"
       },
       modal: {
-        createTitle: "Нова страва", // Виправлено: прибрали "XML"
-        editTitle: "Редагування страви", // Виправлено: видалили китайський ієрогліф 装
+        createTitle: "Нова страва",
+        editTitle: "Редагування страви",
         basicInfo: "Основна інформація",
         nameLabel: "Назва страви",
         namePlaceholder: "Наприклад: Паста Карбонара",
@@ -74,17 +76,14 @@ export const menu = {
         descLabel: "Опис страви",
         descPlaceholder: "Склад, секрети приготування та смакові особливості...",
         priceLabel: "Базова ціна (₴)",
-        taxRateLabel: "Ставка ПДВ (%)",
-        taxText: "ПДВ",
         hasModifiers: "Має активні модифікатори",
-        variantsTitle: "Розміри порцій / Варіанти",
-        addVariantBtn: "Додати варіант",
-        variantName: "Назва варіанту",
-        variantPrice: "Ціна",
-        variantSku: "Артикул (SKU)",
         tabs: {
+          general: "Основне",
           pricing: "Ціноутворення",
-          characteristics: "Характеристики"
+          characteristics: "Характеристики",
+          ingredients: "Складники",
+          modifiers: "Модифікатори",
+          media: "Медіа"
         },
         weightLabel: "Вага / Об'єм одиниці",
         weightPlaceholder: "350 г",
@@ -94,12 +93,16 @@ export const menu = {
         timePlaceholder: "15",
         caloriesLabel: "Калорійність",
         caloriesPlaceholder: "450 ккал",
-        media: "Галерея медіа",
+        mediaTitle: "Галерея медіа",
         mediaHint: "Перетягніть фото сюди або клікніть для завантаження. Перше фото буде головним в гостьовому меню.",
         changeImage: "Змінити фото",
         availabilityLabel: "Активна позиція (показувати в QR-меню)",
         stockLabel: "Кількість за замовчуванням (для стоп-листів)",
         properties: {
+          /* ІНТЕГРОВАНО: Додано відсутні ключі, які викликаються у CharacteristicsTab */
+          vegan: "Веганська",
+          spicy: "Гостра",
+          lactoseFree: "Без лактози",
           allergensTitle: "Харчові алергени",
           addAllergenPlaceholder: "Додати новий алерген",
           tagsTitle: "Особливості та Теги",
@@ -119,11 +122,7 @@ export const menu = {
             g: "г",
             ml: "мл",
             pcs: "шт",
-            kg: "кг",
-            "г": "г",
-            "мл": "мл",
-            "шт": "шт",
-            "кг": "кг"
+            kg: "кг"
           },
           errors: {
             alreadyAdded: "Цей інгредієнт вже додано до страви"
@@ -132,7 +131,6 @@ export const menu = {
         errors: {
           nameRequired: "Назва страви обов'язкова для заповнення",
           priceNegative: "Ціна не може бути від'ємною",
-          variantNameRequired: "Назва порції/розміру обов'язкова",
           ingredientNameRequired: "Назва складника обов'язана",
           ingredientQtyNegative: "Кількість складника не може бути менше 0",
           allergenSaveFailed: "Не вдалося зберегти алерген у базу даних",
@@ -166,8 +164,8 @@ export const menu = {
       errors: {
         nameMin: "Назва групи модифікаторів має містити мінімум 2 символи",
         nameMax: "Назва групи занадто довга (макс. 50 символів)",
-        minSelectionsNegative: "Мінімум виборів не може бути менше 0", // Виправлено "быть"
-        maxSelectionsNegative: "Максимум виборів не може бути менше 0", // Виправлено "быть"
+        minSelectionsNegative: "Мінімум виборів не може бути менше 0",
+        maxSelectionsNegative: "Максимум виборів не може бути менше 0",
         valueMin: "Значення додаткової вартості не може бути менше 0"
       },
       modal: {
@@ -178,7 +176,7 @@ export const menu = {
           minLabel: "Мінімум виборів",
           maxLabel: "Максимум виборів",
           unlimited: "Безліміт",
-          requiredLabel: "Обов'язковий вибір (Клієнт не зможе замовити без вибору)" // Виправлено "Клієйн"
+          requiredLabel: "Обов'язковий вибір (Клієнт не зможе замовити без вибору)"
         },
         option: {
           createTitle: "Додати опцію",
@@ -200,7 +198,7 @@ export const menu = {
       deleteBtn: "Видалити",
       deleteConfirm: "Ви впевнені, що хочете видалити цей набір? Він зникне з меню для всіх гостей.",
       notifications: {
-        createSuccess: "Комбо успішно створено",
+        createSuccess: "Комбо успешно створено",
         createError: "Помилка при створенні комбо",
         updateSuccess: "Комбо оновлено",
         updateError: "Помилка при оновленні комбо",
@@ -210,7 +208,7 @@ export const menu = {
       errors: {
         dishIdRequired: "ID страви обовʼязковий",
         dishNameRequired: "Назва страви обовʼязкова",
-        dishPriceNegative: "Ціна не може быть відʼємною",
+        dishPriceNegative: "Ціна не може бути відʼємною",
         nameMin: "Назва комбо має містити мінімум 2 символи",
         valueMin: "Значення ціни або знижки не може бути менше 0",
         dishesMin: "Оберіть принаймні одну страву для комбо",

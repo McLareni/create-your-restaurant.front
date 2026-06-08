@@ -1,11 +1,11 @@
-import { InputHTMLAttributes } from 'react';
+import { InputHTMLAttributes, ReactNode } from 'react';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
   hint?: string;
-  leftIcon?: React.ReactNode;
-  rightElement?: React.ReactNode;
+  leftIcon?: ReactNode;
+  rightElement?: ReactNode;
 }
 
 export const Input = ({

@@ -1,25 +1,29 @@
 'use client';
 
+import React, { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactNode, useRef } from 'react';
 
-export const QueryProvider = ({ children }: { children: ReactNode }) => {
-  const queryClientRef = useRef<QueryClient | null>(null);
+interface QueryProviderProps {
+  children: React.ReactNode;
+}
 
-  if (!queryClientRef.current) {
-    queryClientRef.current = new QueryClient({
-      defaultOptions: {
-        queries: {
-          staleTime: 1000 * 60 * 5,
-          refetchOnWindowFocus: false,
-          retry: 1,
+export const QueryProvider = ({ children }: QueryProviderProps) => {
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: 5 * 60 * 1000,
+            gcTime: 10 * 60 * 1000,
+            retry: 1,
+            refetchOnWindowFocus: false,
+          },
         },
-      },
-    });
-  }
+      })
+  );
 
   return (
-    <QueryClientProvider client={queryClientRef.current}>
+    <QueryClientProvider client={queryClient}>
       {children}
     </QueryClientProvider>
   );

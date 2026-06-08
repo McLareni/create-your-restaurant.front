@@ -5,14 +5,26 @@ import { useTranslation } from '@/shared/hooks/useTranslation';
 import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 import { useInventory } from '@/features/menu-builder/hooks/inventory/useInventory';
 import { inventoryItemSchema } from '@/features/menu-builder/schemas/inventory.schema';
-import { InventoryItem, InventoryFormValues, ApiErrorResponse, InventoryUnit } from '@/features/menu-builder/types/inventory.types';
 import { ZodError } from 'zod';
 import toast from 'react-hot-toast';
 
-export const useInventoryTab = () => {
+// Імпортуємо інтерфейси з єдиного файлу типів
+import type { 
+  InventoryItem, 
+  InventoryFormValues, 
+  ApiErrorResponse, 
+  InventoryUnit, 
+  UseInventoryTabReturn 
+} from '@/features/menu-builder/types/inventory.types';
+
+export const useInventoryTab = (): UseInventoryTabReturn => {
   const { t } = useTranslation();
   const { inventoryItems, isLoading, createItem, updateItem, deleteItem } = useInventory();
-  const restaurantId = useRestaurantStore((state) => state.activeRestaurant?.id);
+  
+  // Безпечний селектор примітиву для Zustand стору
+  const restaurantId = useRestaurantStore((state) => 
+    state.activeRestaurant?.id ? Number(state.activeRestaurant.id) : null
+  );
   
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -21,7 +33,7 @@ export const useInventoryTab = () => {
   
   const [formData, setFormData] = useState<InventoryFormValues>({ name: '', stock: 0, unit: 'kg' });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
   const filteredItems = useMemo(() => {
     if (!searchQuery) return inventoryItems;
@@ -69,7 +81,6 @@ export const useInventoryTab = () => {
 
   const handleFormAction = () => {
     setValidationErrors({});
-
     startTransition(async () => {
       try {
         const validatedData = inventoryItemSchema.parse({
@@ -85,6 +96,7 @@ export const useInventoryTab = () => {
             setFormData({ name: '', stock: 0, unit: 'kg' });
             toast.success(t('common.success'));
           },
+          // ВИПРАВЛЕНО: Замість 'any' використовуємо строго типізований інтерфейс помилки з бекенду NestJS
           onError: (err: unknown) => {
             const errorWrapper = err as ApiErrorResponse;
             const apiError = errorWrapper?.response?.data?.message || t('auth.errors.defaultError');
@@ -111,6 +123,7 @@ export const useInventoryTab = () => {
     });
   };
 
+  // ВИПРАВЛЕНО: Явно типізуємо подію і приводимо рядок до суворого літерального типу InventoryUnit
   const handleUnitChange = (e: ChangeEvent<HTMLSelectElement>) => {
     setFormData({ ...formData, unit: e.target.value as InventoryUnit });
   };
@@ -128,8 +141,7 @@ export const useInventoryTab = () => {
     setFormData,
     validationErrors,
     filteredItems,
-    isLoading: isLoading || restaurantId === undefined,
-    isSubmitting: isPending,
+    isLoading: isLoading || restaurantId === null,
     handleStockBlur,
     startEdit,
     openCreateModal,
