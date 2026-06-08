@@ -61,14 +61,14 @@ next-env.d.ts
 # # src/app/(dashboard)/dashboard/staff/
 # src/app/(dashboard)/dashboard/pos/
 
-!/src/
-/src/*
+# !/src/
+# /src/*
 
-!/src/shared/
-!/src/features/
+# !/src/shared/
+# !/src/features/
 
-/src/features/*
-!/src/features/menu-builder/
+# /src/features/*
+# !/src/features/menu-builder/
 
 
 
