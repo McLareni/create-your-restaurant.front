@@ -46,9 +46,31 @@ export interface CreateOrderInput {
   }>;
 }
 
+export interface PublicOrderItemSummary {
+  id: string;
+  dishName: string;
+  quantity: number;
+  unitPrice: number;
+  lineTotal: number;
+}
+
+export interface PublicOrderSummary {
+  id: string;
+  status?: string;
+  totalAmount: number;
+  createdAt?: string;
+  items: PublicOrderItemSummary[];
+}
+
+export interface PublicOrderResponse {
+  message: string;
+  order: PublicOrderSummary;
+}
+
 export interface PublicMenuClientProps {
   restaurantSlug: string;
   tableId?: string;
+  orderId?: string;
 }
 
 export interface UsePublicMenuClientReturn {
@@ -64,6 +86,8 @@ export interface UsePublicMenuClientReturn {
   totalItems: number;
   totalAmount: number;
   dishesById: Record<string, PublicMenuDish>;
+  activeOrder: PublicOrderSummary | null;
+  activeOrderId?: string;
   addDish: (dishId: string) => void;
   removeDish: (dishId: string) => void;
   placeOrder: () => void;

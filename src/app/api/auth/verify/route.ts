@@ -1,9 +1,14 @@
 import { NextResponse } from 'next/server';
+import { getApiBaseUrl } from '@/shared/api/base-url';
 
 export async function POST(request: Request) {
   try {
     const { email, code } = await request.json();
-    const API_URL = process.env.NEXT_PUBLIC_API_URL;
+    const API_URL = getApiBaseUrl();
+
+    if (!API_URL) {
+      return NextResponse.json({ errorCode: 'serverError' }, { status: 500 });
+    }
 
     const response = await fetch(`${API_URL}/users/verify-login-code`, {
       method: 'POST',
@@ -28,6 +33,6 @@ export async function POST(request: Request) {
 
     return nextResponse;
   } catch {
-    return NextResponse.json({ errorCode: 'verifyFailed' }, { status: 500 });
+    return NextResponse.json({ errorCode: 'serverError' }, { status: 500 });
   }
 }
