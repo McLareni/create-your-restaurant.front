@@ -100,7 +100,7 @@ export default function LiveMonitorPage() {
         </div>
       ) : monitor.tables.length === 0 ? (
         <div className="rounded-xl border border-brand-gray/10 bg-white p-6 text-brand-gray shadow-sm dark:border-brand-gray/20 dark:bg-brand-mocha">
-          No active tables with orders right now.
+          No active tables, orders, or waiter calls right now.
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-[repeat(auto-fit,minmax(330px,1fr))]">
@@ -113,6 +113,11 @@ export default function LiveMonitorPage() {
                 table={table}
                 isExpanded={isExpanded}
                 onToggleDetails={toggleTableDetails}
+                onResolveWaiterCall={monitor.resolveWaiterCall}
+                isResolvingWaiterCall={
+                  monitor.isResolvingWaiterCall &&
+                  monitor.resolvingWaiterTableId === table.id
+                }
               />
             );
           })}
