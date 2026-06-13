@@ -55,46 +55,75 @@ export const useLiveMonitor = () => {
     if (!Number.isFinite(restaurantId) || !socketUrl) {
       return;
     }
+    let isCancelled = false;
+    let socket: Socket | null = null;
 
-    const socket: Socket = io(`${socketUrl}/live-monitor`, {
-      path: '/socket.io',
-      transports: ['websocket'],
-      withCredentials: true,
-      auth: { restaurantId },
-      reconnection: true,
-      reconnectionAttempts: Infinity,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 8000,
-    });
+    const initSocket = async () => {
+      try {
+        const tokenResponse = await fetch('/api/auth/socket-session', {
+          method: 'GET',
+          cache: 'no-store',
+        });
 
-    const handleConnect = () => {
-      setIsSocketConnected(true);
-    };
+        if (!tokenResponse.ok) {
+          return;
+        }
 
-    const handleDisconnect = () => {
-      setIsSocketConnected(false);
-    };
+        const tokenPayload = (await tokenResponse.json()) as { token?: string };
+        const sessionToken = tokenPayload.token;
 
-    const handleOrdersChanged = (payload: OrdersChangedPayload) => {
-      if (Number(payload.restaurantId) !== restaurantId) {
-        return;
+        if (isCancelled || !sessionToken) {
+          return;
+        }
+
+        socket = io(`${socketUrl}/live-monitor`, {
+          path: '/socket.io',
+          transports: ['websocket', 'polling'],
+          withCredentials: true,
+          auth: { restaurantId, token: sessionToken },
+          reconnection: true,
+          reconnectionAttempts: Infinity,
+          reconnectionDelay: 1000,
+          reconnectionDelayMax: 8000,
+        });
+
+        const handleConnect = () => {
+          setIsSocketConnected(true);
+        };
+
+        const handleDisconnect = () => {
+          setIsSocketConnected(false);
+        };
+
+        const handleOrdersChanged = (payload: OrdersChangedPayload) => {
+          if (Number(payload.restaurantId) !== restaurantId) {
+            return;
+          }
+
+          queryClient.setQueryData<LiveMonitorSnapshot>(
+            [LIVE_MONITOR_QUERY_KEY, restaurantId],
+            payload.snapshot,
+          );
+        };
+
+        socket.on('connect', handleConnect);
+        socket.on('disconnect', handleDisconnect);
+        socket.on('live-monitor:orders-changed', handleOrdersChanged);
+      } catch {
+        setIsSocketConnected(false);
       }
-
-      queryClient.setQueryData<LiveMonitorSnapshot>(
-        [LIVE_MONITOR_QUERY_KEY, restaurantId],
-        payload.snapshot,
-      );
     };
 
-    socket.on('connect', handleConnect);
-    socket.on('disconnect', handleDisconnect);
-    socket.on('live-monitor:orders-changed', handleOrdersChanged);
+    void initSocket();
 
     return () => {
-      socket.off('connect', handleConnect);
-      socket.off('disconnect', handleDisconnect);
-      socket.off('live-monitor:orders-changed', handleOrdersChanged);
-      socket.disconnect();
+      isCancelled = true;
+      setIsSocketConnected(false);
+
+      if (socket) {
+        socket.removeAllListeners();
+        socket.disconnect();
+      }
     };
   }, [queryClient, restaurantId, socketUrl]);
 
