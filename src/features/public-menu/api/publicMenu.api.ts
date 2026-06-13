@@ -24,4 +24,27 @@ export const publicMenuApi = {
       `/restaurants/${restaurantId}/orders/public/${orderId}/items`,
       data,
     ),
+
+  callWaiter: (restaurantId: number, tableId: string) =>
+    apiClient.post<{ message: string; tableId: string }>(
+      `/restaurants/${restaurantId}/orders/public/tables/${tableId}/call-waiter`,
+    ),
+
+  findOrderByCode: (
+    restaurantId: number,
+    tableId: string,
+    code: string,
+  ) =>
+    apiClient.get<{ orderId: string }>(
+      `/restaurants/${restaurantId}/orders/public/tables/${tableId}/by-code/${encodeURIComponent(code)}`,
+    ),
+
+  getOrderById: (
+    restaurantId: number,
+    tableId: string,
+    orderId: string,
+  ) =>
+    apiClient.get<PublicOrderResponse>(
+      `/restaurants/${restaurantId}/orders/public/tables/${tableId}/${orderId}`,
+    ),
 };

@@ -7,4 +7,10 @@ export const liveMonitorApi = {
       `/restaurants/${restaurantId}/live-monitor/tables`,
       { cache: 'no-store' },
     ),
+
+  resolveWaiterCall: (restaurantId: number, tableId: string) =>
+    apiClient.patch<{ message: string; tableId: string }>(
+      `/restaurants/${restaurantId}/live-monitor/tables/${tableId}/waiter-call/resolve`,
+      {},
+    ),
 };

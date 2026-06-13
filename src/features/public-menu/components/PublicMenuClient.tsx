@@ -1,7 +1,11 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { BellRing } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 import { useTranslation } from '@/shared/hooks/useTranslation';
+import { publicMenuApi } from '../api/publicMenu.api';
 import { usePublicMenuClient } from '../hooks/usePublicMenuClient';
 import { PublicMenuClientProps, PublicMenuDish } from '../types/publicMenu.types';
 import { PublicMenuHeader } from './PublicMenuHeader';
@@ -12,6 +16,7 @@ const ALL_DISHES_TAB_ID = 'all-dishes';
 
 export const PublicMenuClient = ({ restaurantSlug, tableId, orderId }: PublicMenuClientProps) => {
   const { t } = useTranslation();
+  const router = useRouter();
   const {
     menuData,
     isMenuLoading,
@@ -31,6 +36,8 @@ export const PublicMenuClient = ({ restaurantSlug, tableId, orderId }: PublicMen
     removeDish,
     placeOrder,
     isPlacingOrder,
+    callWaiter,
+    isCallingWaiter,
   } = usePublicMenuClient(restaurantSlug, tableId, orderId);
 
   const categories = useMemo(
@@ -39,6 +46,7 @@ export const PublicMenuClient = ({ restaurantSlug, tableId, orderId }: PublicMen
   );
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
   const [selectedDish, setSelectedDish] = useState<PublicMenuDish | null>(null);
+  const [isOrderLookupLoading, setIsOrderLookupLoading] = useState(false);
 
   const activeCategory = useMemo(() => {
     if (!categories.length) return null;
@@ -52,6 +60,7 @@ export const PublicMenuClient = ({ restaurantSlug, tableId, orderId }: PublicMen
 
   const isAllDishesTabActive = activeCategory === null;
   const activeTabId = activeCategory?.id ?? ALL_DISHES_TAB_ID;
+  const resolvedRestaurantId = menuData?.restaurantId;
   const restaurantName = (menuData?.restaurantName?.trim() || restaurantSlug)
     .replace(/[-_]+/g, ' ')
     .replace(/\b\w/g, (char) => char.toUpperCase());
@@ -62,6 +71,42 @@ export const PublicMenuClient = ({ restaurantSlug, tableId, orderId }: PublicMen
 
   const closeDishDetails = () => {
     setSelectedDish(null);
+  };
+
+  const handleGoToOrder = async (rawOrderNumber: string) => {
+    if (!resolvedRestaurantId || !tableId) {
+      return;
+    }
+
+    const normalizedInput = rawOrderNumber.trim().replace(/^#/, '');
+    if (!normalizedInput) {
+      return;
+    }
+
+    setIsOrderLookupLoading(true);
+
+    try {
+      const lookupResponse = await publicMenuApi.findOrderByCode(
+        resolvedRestaurantId,
+        tableId,
+        normalizedInput,
+      );
+
+      router.push(
+        `/menu/${encodeURIComponent(restaurantSlug)}/${encodeURIComponent(tableId)}/${encodeURIComponent(lookupResponse.orderId)}`,
+      );
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : '';
+      if (message === 'Order not found') {
+        toast.error(t('menu.public.orderNotFound'));
+      } else if (message === 'Order code is ambiguous') {
+        toast.error(t('menu.public.orderCodeAmbiguous'));
+      } else {
+        toast.error(t('menu.public.orderLookupFailed'));
+      }
+    } finally {
+      setIsOrderLookupLoading(false);
+    }
   };
 
   if (isMenuLoading) {
@@ -119,6 +164,9 @@ export const PublicMenuClient = ({ restaurantSlug, tableId, orderId }: PublicMen
         activeTabId={activeTabId}
         allDishesTabId={ALL_DISHES_TAB_ID}
         onSelectTab={setActiveCategoryId}
+        showOrderLookup={hasTableId}
+        onGoToOrder={handleGoToOrder}
+        isOrderLookupLoading={isOrderLookupLoading}
       />
 
       <div className="mx-auto max-w-6xl px-4 py-2 md:px-6 md:py-4">
@@ -238,6 +286,20 @@ export const PublicMenuClient = ({ restaurantSlug, tableId, orderId }: PublicMen
           dish={selectedDish}
           onClose={closeDishDetails}
         />
+      ) : null}
+
+      {canUseCart ? (
+        <button
+          type="button"
+          onClick={callWaiter}
+          disabled={isCallingWaiter}
+          className="fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-full bg-brand-copper px-5 py-3 text-sm font-semibold text-white shadow-xl transition-transform hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          <BellRing className="h-4 w-4" />
+          {isCallingWaiter
+            ? t('menu.public.waiterCalling')
+            : t('menu.public.callWaiter')}
+        </button>
       ) : null}
     </div>
   );

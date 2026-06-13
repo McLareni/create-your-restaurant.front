@@ -16,7 +16,16 @@ export const menu = {
     total: "Разом до сплати",
     submitOrder: "Підтвердити замовлення",
     addMore: "Дозамовити страви",
-    placing: "Надсилаємо замовлення на кухню..."
+    placing: "Надсилаємо замовлення на кухню...",
+    callWaiter: "Викликати офіціанта",
+    waiterCalling: "Викликаємо офіціанта...",
+    waiterCallSuccess: "Офіціанта викликано",
+    findOrderPlaceholder: "Впишіть номер замовлення",
+    goToOrder: "Перейти",
+    findingOrder: "Шукаємо...",
+    orderNotFound: "Замовлення не знайдено",
+    orderCodeAmbiguous: "Знайдено кілька замовлень, уточніть код",
+    orderLookupFailed: "Не вдалося знайти замовлення"
   },
   errors: {
     unavailable: "Цифрове меню цього закладу тимчасово недоступне. Зверніться до персоналу закладу.",

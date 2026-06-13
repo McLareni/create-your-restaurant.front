@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { io, Socket } from 'socket.io-client';
+import toast from 'react-hot-toast';
 import { liveMonitorApi } from '../api/liveMonitor.api';
 import { getApiBaseUrl } from '@/shared/api/base-url';
 import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
@@ -29,6 +30,23 @@ export const useLiveMonitor = () => {
     queryFn: () => liveMonitorApi.getTablesWithActiveOrders(restaurantId),
     enabled: Number.isFinite(restaurantId),
     refetchOnWindowFocus: false,
+  });
+
+  const resolveWaiterCallMutation = useMutation({
+    mutationFn: (tableId: string) => {
+      if (!Number.isFinite(restaurantId)) {
+        throw new Error('Restaurant is not selected');
+      }
+
+      return liveMonitorApi.resolveWaiterCall(restaurantId, tableId);
+    },
+    onSuccess: () => {
+      toast.success('Статус столу оновлено');
+    },
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : 'serverError';
+      toast.error(message);
+    },
   });
 
   const socketUrl = useMemo(() => getApiBaseUrl(), []);
@@ -87,5 +105,9 @@ export const useLiveMonitor = () => {
     isFetching: query.isFetching,
     isSocketConnected,
     refetch: query.refetch,
+    resolveWaiterCall: (tableId: string) =>
+      resolveWaiterCallMutation.mutate(tableId),
+    resolvingWaiterTableId: resolveWaiterCallMutation.variables,
+    isResolvingWaiterCall: resolveWaiterCallMutation.isPending,
   };
 };
