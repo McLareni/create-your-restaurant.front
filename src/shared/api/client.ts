@@ -5,7 +5,6 @@ interface RequestOptions extends RequestInit {
 
 async function fetchClient<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
   const { params, headers, timeout = 10000, ...customConfig } = options;
-  
   const isLocalAuth = endpoint.startsWith('/api/auth');
   
   let urlStr = endpoint;
@@ -21,10 +20,8 @@ async function fetchClient<T>(endpoint: string, options: RequestOptions = {}): P
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
-
   const isFormData = customConfig.body instanceof FormData;
   const finalHeaders: HeadersInit = { ...headers };
-  
   if (!isFormData) {
     (finalHeaders as Record<string, string>)['Content-Type'] = 'application/json';
   }
@@ -38,7 +35,6 @@ async function fetchClient<T>(endpoint: string, options: RequestOptions = {}): P
   try {
     const response = await fetch(urlStr, config);
     clearTimeout(timeoutId);
-
     if (response.status === 401) {
       if (typeof window !== 'undefined') {
         window.location.href = '/login';
@@ -51,7 +47,9 @@ async function fetchClient<T>(endpoint: string, options: RequestOptions = {}): P
       try {
         const errorData = await response.json();
         errorMessage = errorData.message || errorData.errorCode || errorMessage;
-      } catch (e) {}
+      } catch {
+        // ВИПРАВЛЕНО: Видалено невикористану змінну 'e'
+      }
       throw new Error(errorMessage);
     }
 
@@ -60,11 +58,11 @@ async function fetchClient<T>(endpoint: string, options: RequestOptions = {}): P
     }
 
     return await response.json();
-  } catch (error: any) {
+  } catch (error: unknown) {
+    // ВИПРАВЛЕНО: Переведено з 'any' на 'unknown' з валідацією типу
     clearTimeout(timeoutId);
-    
-    if (error.name === 'AbortError') {
-      throw new Error('serverError'); 
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('serverError');
     }
     
     throw error;

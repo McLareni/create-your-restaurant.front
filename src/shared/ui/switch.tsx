@@ -1,10 +1,11 @@
-import { InputHTMLAttributes, Ref } from 'react';
+'use client';
 
-interface SwitchProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
+import { ButtonHTMLAttributes } from 'react';
+
+interface SwitchProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'onChange'> {
   checked: boolean;
   onChange: (checked: boolean) => void;
   label?: string;
-  ref?: Ref<HTMLButtonElement>;
 }
 
 export const Switch = ({
@@ -14,7 +15,6 @@ export const Switch = ({
   label,
   id,
   className = '',
-  ref,
   ...props
 }: SwitchProps) => {
   return (
@@ -25,7 +25,6 @@ export const Switch = ({
         </label>
       )}
       <button
-        ref={ref}
         type="button"
         role="switch"
         id={id}
@@ -35,6 +34,7 @@ export const Switch = ({
         className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-copper focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-brand-espresso ${
           checked ? 'bg-brand-copper' : 'bg-brand-gray/30 dark:bg-brand-gray/50'
         } ${className}`}
+        {...props}
       >
         <span className="sr-only">Toggle {label}</span>
         <span

@@ -3,7 +3,7 @@ import { apiClient } from '@/shared/api/client';
 import { authApi } from '@/features/auth/api/auth.api';
 
 export interface RestaurantSummary {
-  id: number | string; 
+  id: number; 
   name: string;
   slug?: string;
 }
@@ -51,7 +51,8 @@ export const useUserStore = create<UserState>((set, get) => ({
       try {
         const response = await apiClient.get<{ user: User }>('/users/me');
         set({ user: response.user, isLoading: false });
-      } catch (error) {
+      } catch {
+        // FIX: Очищено невикористаний об'єкт 'error'
         if (!get().user) {
           set({ user: null, isLoading: false });
         }

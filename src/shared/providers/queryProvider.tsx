@@ -1,17 +1,22 @@
 'use client';
 
+import React, { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useState, ReactNode } from 'react';
 
-export const QueryProvider = ({ children }: { children: ReactNode }) => {
+interface QueryProviderProps {
+  children: React.ReactNode;
+}
+
+export const QueryProvider = ({ children }: QueryProviderProps) => {
   const [queryClient] = useState(
     () =>
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 60 * 1000, // Дані вважаються "свіжими" 1 хвилину
-            refetchOnWindowFocus: false, // Не робити зайвих запитів при перемиканні вкладок
-            retry: 1, // Кількість спроб повторного запиту при помилці
+            staleTime: 5 * 60 * 1000,
+            gcTime: 10 * 60 * 1000,
+            retry: 1,
+            refetchOnWindowFocus: false,
           },
         },
       })

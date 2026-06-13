@@ -1,90 +1,94 @@
 'use client';
 
-import { useState } from 'react';
-import { useTranslation } from '@/shared/hooks/useTranslation';
-import { ConfirmModal } from '@/shared/ui';
-import { Zap } from 'lucide-react';
-import { useMarketplace } from '../hooks/useMarketplace';
-import { ModuleCard } from './moduleCard';
-import { useAccessStore } from '@/shared/store/useAccessStore';
-import toast from 'react-hot-toast';
+import { FloatingPanel, Input } from '@/shared/ui';
+import { Zap, Info } from 'lucide-react';
+import { useMarketplace } from '@/features/marketplace/hooks/useMarketplace';
+import { ModuleCard } from '@/features/marketplace/components/moduleCard';
 
 export const MarketplaceList = () => {
-  const { t } = useTranslation();
-  const { modules, connectModule } = useMarketplace();
-  
-  const hasModule = useAccessStore((state) => state.hasModule);
-  const isPurchased = useAccessStore((state) => state.isPurchased);
-  const toggleModule = useAccessStore((state) => state.toggleModule);
-  const purchaseModule = useAccessStore((state) => state.purchaseModule);
-
-  const [selectedModule, setSelectedModule] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleConfirmConnection = async () => {
-    if (!selectedModule) return;
-    
-    setIsSubmitting(true);
-    try {
-      await connectModule(selectedModule);
-      purchaseModule(selectedModule);
-      toast.success(t('marketplace.status.active'));
-    } catch (error) {
-      toast.error(t('auth.errors.defaultError'));
-    } finally {
-      setIsSubmitting(false);
-      setSelectedModule(null);
-    }
-  };
-
-  const getModalDescription = () => {
-    if (!selectedModule) return '';
-    const mod = modules.find(m => m.key === selectedModule);
-    if (!mod) return '';
-    
-    const priceText = mod.price === 0 ? t('marketplace.price.free') : t('marketplace.price.monthly').replace('{{price}}', mod.price.toString());
-    
-    return t('marketplace.connectModal.description')
-      .replace('{{module}}', t(`marketplace.modules.${selectedModule}.title`))
-      .replace('{{price}}', priceText);
-  };
+  const state = useMarketplace();
 
   return (
-    <div className="flex h-full flex-col p-6">
-      <div className="mb-8 flex items-center justify-between">
+    <div className="flex min-h-screen w-full flex-col p-8 bg-bg-main text-text-main overflow-x-hidden transition-colors">
+      
+      <div className="mb-8 flex items-center justify-between w-full">
         <div>
-          <h1 className="text-3xl font-serif font-bold text-brand-espresso dark:text-brand-cream flex items-center gap-3">
-            <Zap className="h-8 w-8 text-brand-copper" />
-            {t('marketplace.title')}
+          <h1 className="text-2xl font-bold tracking-tight text-text-main flex items-center gap-2.5">
+            <div className="h-9 w-9 rounded-lg bg-brand-emerald flex items-center justify-center text-white">
+              <Zap className="h-4 w-4 fill-white text-white" />
+            </div>
+            {state.t('marketplace.title')}
           </h1>
-          <p className="mt-2 text-brand-gray dark:text-brand-gray/80 max-w-2xl">
-            {t('marketplace.subtitle')}
+          <p className="mt-1 text-xs text-text-muted max-w-2xl font-light">
+            {state.t('marketplace.subtitle')}
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-8">
-        {modules.map((mod) => (
+      <div 
+        className="grid gap-6 pb-12 w-full"
+        style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}
+      >
+        {state.modules.map((mod) => (
           <ModuleCard 
             key={mod.key} 
             moduleData={mod} 
-            isPurchased={isPurchased(mod.key)}
-            isActive={hasModule(mod.key)} 
-            onConnect={setSelectedModule}
-            onToggle={toggleModule}
+            isPurchased={state.isModulePurchased(mod.key)}
+            isActive={state.isModuleActive(mod.key)} 
+            onConnect={state.handleOpenConnectModal}
+            onToggle={state.handleToggleModule}
+            onSettingsClick={state.handleSettingsClick}
+            isDisabled={state.isPending}
           />
         ))}
       </div>
 
-      <ConfirmModal 
-        isOpen={!!selectedModule} 
-        onClose={() => !isSubmitting && setSelectedModule(null)} 
-        onConfirm={handleConfirmConnection} 
-        title={t('marketplace.connectModal.title')}
-        description={getModalDescription()}
-        confirmLabel={isSubmitting ? t('pos.connectChecking') : t('marketplace.connectModal.confirmBtn')}
-        isDestructive={false}
-      />
+      {!!state.selectedModule && (
+        <FloatingPanel
+          panelId="marketplace-connect-panel"
+          isOpen={!!state.selectedModule}
+          onClose={state.handleCloseConnectModal}
+          title={state.t('marketplace.connectModal.title')}
+          className="w-full max-w-md border border-border-main bg-bg-surface shadow-md rounded-2xl"
+        >
+          <form action={state.handleConfirmConnectionAction} className="space-y-4 text-text-main">
+            <div className="bg-bg-element border border-border-main p-4 rounded-xl flex gap-2.5 text-xs leading-relaxed font-medium">
+              <Info className="h-4 w-4 text-brand-emerald shrink-0 mt-0.5" />
+              <p className="text-text-main/90">{state.modalDescription}</p>
+            </div>
+
+            <div className="p-0.5">
+              <Input
+                id="activation-code-input"
+                label={state.t('marketplace.connectModal.activationCodeLabel')}
+                placeholder={state.t('marketplace.connectModal.activationCodePlaceholder')}
+                value={state.activationCode}
+                onChange={(e) => state.setActivationCode(e.target.value)}
+                disabled={state.isPending}
+                className="rounded-lg h-11 border-border-main bg-bg-element text-text-main placeholder:text-text-muted/40"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2.5 pt-4 border-t border-border-main">
+              <button
+                type="button"
+                onClick={state.handleCloseConnectModal}
+                disabled={state.isPending}
+                className="px-3.5 h-9 text-xs font-semibold text-text-muted hover:text-text-main hover:bg-bg-element rounded-lg transition-all cursor-pointer"
+              >
+                {state.t('confirmModal.cancel')}
+              </button>
+              <button
+                type="submit"
+                disabled={state.isPending}
+                className="px-4 h-9 text-xs font-bold text-white bg-brand-emerald hover:bg-brand-emerald-hover active:scale-98 rounded-lg transition-all cursor-pointer"
+              >
+                {state.t('marketplace.connectModal.confirmBtn')}
+              </button>
+            </div>
+          </form>
+        </FloatingPanel>
+      )}
     </div>
   );
 };

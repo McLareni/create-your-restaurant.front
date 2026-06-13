@@ -1,97 +1,97 @@
+// src/features/staff/hooks/useStaff.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { staffApi } from '../api/staff.api';
+import { staffApi } from '@/features/staff/api/staff.api';
 import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 import { useTranslation } from '@/shared/hooks/useTranslation';
+import type { StaffMember, CustomStaffRole, CreateStaffDTO, UpdateStaffDTO } from '@/features/staff/types/staff.types';
 import toast from 'react-hot-toast';
 
 export const useStaff = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const activeRestaurant = useRestaurantStore((state) => state.activeRestaurant);
-  const restaurantId = Number(activeRestaurant?.id || 1);
+  const activeRestaurantId = useRestaurantStore((state) => state.activeRestaurant?.id);
+  const restaurantId = activeRestaurantId ? Number(activeRestaurantId) : null;
 
-  const { data: staff = [], isLoading } = useQuery({
+  const { data: staff = [], isLoading: isStaffLoading } = useQuery({
     queryKey: ['staffList', restaurantId],
-    queryFn: () => staffApi.getStaff(restaurantId),
+    queryFn: () => staffApi.getStaff(restaurantId!),
     enabled: !!restaurantId,
   });
 
-  const { data: roles = [] } = useQuery({
+  const { data: roles = [], isLoading: isRolesLoading } = useQuery({
     queryKey: ['staffRoles', restaurantId],
-    queryFn: () => staffApi.getRoles(restaurantId),
+    queryFn: () => staffApi.getRoles(restaurantId!),
     enabled: !!restaurantId,
   });
 
-  const createStaffMutation = useMutation({
-    mutationFn: (data: any) => staffApi.createStaff(restaurantId, data),
+  const { data: permissions = [], isLoading: isPermissionsLoading } = useQuery({
+    queryKey: ['staffPermissions', restaurantId],
+    queryFn: () => staffApi.getPermissions(restaurantId!),
+    enabled: !!restaurantId,
+  });
+
+  const createStaffMutation = useMutation<StaffMember, Error, CreateStaffDTO>({
+    mutationFn: (data: CreateStaffDTO) => staffApi.createStaff(restaurantId!, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staffList', restaurantId] });
       toast.success(t('staff.notifications.createSuccess'));
     },
-    onError: (error: any) => {
-      toast.error(error.message || t('staff.notifications.createError'));
+    onError: (error: unknown) => {
+      const err = error as { message?: string };
+      toast.error(err.message || t('staff.notifications.createError'));
     }
   });
 
-  const updateStaffMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: any }) => staffApi.updateStaff(restaurantId, id, data),
+  const updateStaffMutation = useMutation<StaffMember, Error, { id: string; data: UpdateStaffDTO }>({
+    mutationFn: ({ id, data }) => staffApi.updateStaff(restaurantId!, id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staffList', restaurantId] });
       toast.success(t('staff.notifications.updateSuccess'));
     },
-    onError: (error: any) => {
-      toast.error(error.message || t('staff.notifications.updateError'));
+    onError: (error: unknown) => {
+      const err = error as { message?: string };
+      toast.error(err.message || t('staff.notifications.updateError'));
     }
   });
 
-  const deleteStaffMutation = useMutation({
-    mutationFn: (id: string) => staffApi.deleteStaff(restaurantId, id),
+  const uploadStaffPhotoMutation = useMutation<StaffMember, Error, { staffId: string; file: File }>({
+    mutationFn: ({ staffId, file }) => staffPhotoUpload(restaurantId!, staffId, file),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staffList', restaurantId] });
-      toast.success(t('staff.notifications.deleteSuccess'));
-    },
-    onError: (error: any) => {
-      toast.error(error.message || t('staff.notifications.deleteError'));
     }
   });
 
-  const uploadStaffPhotoMutation = useMutation({
-    mutationFn: ({ staffId, file }: { staffId: string; file: File }) =>
-      staffApi.uploadStaffPhoto(restaurantId, staffId, file),
+  const staffPhotoUpload = async (resId: number, stId: string, file: File) => {
+    return staffApi.uploadStaffPhoto(resId, stId, file);
+  };
+
+  const deleteStaffMutation = useMutation<{ message: string }, Error, string>({
+    mutationFn: (id: string) => staffApi.deleteStaff(restaurantId!, id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staffList', restaurantId] });
-    },
-    onError: (error: any) => {
-      toast.error(error.message || t('staff.notifications.updateError'));
     }
   });
 
-  const createRoleMutation = useMutation({
-    mutationFn: (name: string) => staffApi.createRole(restaurantId, name),
+  const createRoleMutation = useMutation<CustomStaffRole, Error, { name: string; permissions: string[] }>({
+    mutationFn: ({ name, permissions }) => staffApi.createRole(restaurantId!, name, permissions),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staffRoles', restaurantId] });
-      toast.success(t('staff.notifications.roleCreateSuccess'));
-    },
-    onError: (error: any) => {
-      toast.error(error.message || t('staff.notifications.roleCreateError'));
     }
   });
 
-  const deleteRoleMutation = useMutation({
-    mutationFn: (roleId: string) => staffApi.deleteRole(restaurantId, roleId),
+  const deleteRoleMutation = useMutation<{ message: string }, Error, string>({
+    mutationFn: (id: string) => staffApi.deleteRole(restaurantId!, id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staffRoles', restaurantId] });
-      toast.success(t('staff.notifications.roleDeleteSuccess'));
-    },
-    onError: (error: any) => {
-      toast.error(error.message || t('staff.notifications.roleDeleteError'));
+      queryClient.invalidateQueries({ queryKey: ['staffList', restaurantId] });
     }
   });
 
   return {
     staff,
     roles,
-    isLoading,
+    permissions,
+    isLoading: isStaffLoading || isRolesLoading || isPermissionsLoading || restaurantId === null,
     createStaff: createStaffMutation.mutate,
     createStaffAsync: createStaffMutation.mutateAsync,
     updateStaff: updateStaffMutation.mutate,

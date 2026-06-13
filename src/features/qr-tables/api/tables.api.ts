@@ -1,4 +1,3 @@
-// src/features/qr-tables/api/tables.api.ts
 import { apiClient } from '@/shared/api/client';
 import {
   Table,
@@ -6,8 +5,7 @@ import {
   UpdateTableDTO,
   BackendTable,
   TableStatus,
-  Zone,
-} from '../types/tables.types';
+} from '@/features/qr-tables/types/tables.types';
 
 type TableEnvelope = {
   table: BackendTable;
@@ -16,53 +14,49 @@ type TableEnvelope = {
 const toStatus = (isActive: boolean): TableStatus =>
   isActive ? 'ACTIVE' : 'INACTIVE';
 
-const getPublicMenuBaseUrl = () => {
-  if (process.env.NEXT_PUBLIC_APP_URL) {
-    return process.env.NEXT_PUBLIC_APP_URL;
-  }
-  if (typeof window !== 'undefined') {
-    return window.location.origin;
-  }
-  return '';
+const getPublicMenuBaseUrl = (): string => {
+  return process.env.NEXT_PUBLIC_MENU_BASE_URL || 'https://gustio.menu';
 };
 
 const toUiTable = (
   restaurantId: number,
   table: BackendTable,
   restaurantSlug?: string,
-): Table => ({
-  id: table.id,
-  tableNumber: String(table.number),
-  type: table.type,
-  isActive: table.status === 'ACTIVE',
-  zoneId: table.zoneId,
-  zone: table.zone,
-  qrUrl: restaurantSlug
-    ? `${getPublicMenuBaseUrl()}/menu/${encodeURIComponent(restaurantSlug)}/${table.id}`
-    : '',
-});
+): Table => {
+  void restaurantId;
+  const baseUrl = getPublicMenuBaseUrl();
+  return {
+    id: table.id,
+    tableNumber: String(table.number),
+    type: table.type,
+    isActive: table.status === 'ACTIVE',
+    qrUrl: restaurantSlug
+      ? `${baseUrl}/menu/${encodeURIComponent(restaurantSlug)}/${table.id}`
+      : '',
+  };
+};
 
 const toBackendPayload = (data: CreateTableDTO) => ({
   number: Number(data.tableNumber),
-  type: data.type,
+  type: data.type.trim(),
   status: toStatus(data.isActive),
-  zoneId: data.zoneId,
 });
 
 const toBackendPatchPayload = (data: UpdateTableDTO) => {
-  const payload: { number?: number; type?: string; status?: TableStatus; zoneId?: string | null } = {};
+  const payload: {
+    number?: number;
+    type?: string;
+    status?: TableStatus;
+  } = {};
 
   if (data.tableNumber !== undefined) {
     payload.number = Number(data.tableNumber);
   }
   if (data.type !== undefined) {
-    payload.type = data.type;
+    payload.type = data.type.trim();
   }
   if (data.isActive !== undefined) {
     payload.status = toStatus(data.isActive);
-  }
-  if (data.zoneId !== undefined) {
-    payload.zoneId = data.zoneId;
   }
 
   return payload;
@@ -94,13 +88,5 @@ export const tablesApi = {
 
   delete: async (restaurantId: number, id: string): Promise<void> => {
     await apiClient.delete(`/restaurants/${restaurantId}/dining-table/${id}`);
-  },
-
-  getAllZones: async (restaurantId: number): Promise<Zone[]> => {
-    return apiClient.get<Zone[]>(`/restaurants/${restaurantId}/dining-table/zones`);
-  },
-
-  createZone: async (restaurantId: number, name: string): Promise<Zone> => {
-    return apiClient.post<Zone>(`/restaurants/${restaurantId}/dining-table/zones`, { name });
   },
 };

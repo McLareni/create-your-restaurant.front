@@ -5,7 +5,7 @@ import { ThemeProvider } from "@/shared/providers/themeProvider";
 import "./globals.css";
 
 const geist = Geist({
-  subsets: ["latin"],
+  subsets: ["latin", "cyrillic"],
 });
 
 export const metadata: Metadata = {
@@ -20,7 +20,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="uk" className={geist.className} suppressHydrationWarning>
-      <body className="min-h-screen antialiased bg-brand-cream text-brand-espresso dark:bg-brand-espresso dark:text-brand-cream transition-colors duration-300">
+      <body 
+        suppressHydrationWarning 
+        className="min-h-screen antialiased bg-brand-cream text-brand-espresso dark:bg-brand-espresso dark:text-brand-cream transition-colors duration-300"
+      >
         <QueryProvider>
           <ThemeProvider>
             {children}

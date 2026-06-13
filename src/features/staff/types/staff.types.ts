@@ -1,13 +1,47 @@
-import { ChangeEvent, MouseEvent, Dispatch, SetStateAction } from 'react';
+import { ChangeEvent } from 'react';
+
+export type ShiftMode = 'SELECT' | 'IN' | 'OUT';
+
+export interface Permission {
+  id: string;
+  label: string;
+}
+
+export interface CreateStaffDTO {
+  firstName: string;
+  lastName?: string;
+  email: string;
+  phone?: string;
+  role: string;
+  isActive?: boolean;
+  photo?: string;
+  password?: string;
+}
+
+export type UpdateStaffDTO = Partial<CreateStaffDTO>;
 
 export interface CustomStaffRole {
   id: string;
+  restaurantId: number;
   name: string;
+  createdAt: string;
+}
+
+export interface BackendStaff {
+  id: string;
+  firstName: string | null;
+  lastName: string | null;
+  email: string;
+  phone: string | null;
+  role: 'OWNER' | 'STAFF' | 'CUSTOMER';
+  isActive: boolean;
+  photo: string | null;
+  pinCode: string | null;
 }
 
 export interface StaffMember {
   id: string;
-  photo?: string;
+  photo?: string | null;
   firstName: string;
   lastName: string;
   email: string;
@@ -15,20 +49,6 @@ export interface StaffMember {
   role: string;
   isActive: boolean;
   avatarColor: string;
-  password?: string;
-}
-
-export type CreateStaffDTO = Omit<StaffMember, 'id' | 'avatarColor'>;
-export type UpdateStaffDTO = Partial<CreateStaffDTO>;
-
-export interface UseStaffModalProps {
-  formData: CreateStaffDTO;
-  setFormData: Dispatch<SetStateAction<CreateStaffDTO>>;
-  onPhotoFileChange: (file: File) => void;
-  onCreateRole: (name: string) => Promise<any>;
-  onDeleteRole: (id: string) => Promise<any>;
-  onClose: () => void;
-  isLoading: boolean;
 }
 
 export interface StaffCardProps {
@@ -40,66 +60,57 @@ export interface StaffCardProps {
 
 export interface StaffModalViewProps {
   isOpen: boolean;
-  isEditing: boolean;
-  formData: CreateStaffDTO;
-  roles: CustomStaffRole[];
-  hasPassword?: boolean;
-  errors?: Record<string, string>;
-  validationError: string | null;
-  isLoading?: boolean;
-  onSave: () => void;
-  t: (key: string) => string;
-  newRoleName: string;
-  setNewRoleName: (value: string) => void;
-  isCreatingRole: boolean;
-  showPassword: boolean;
-  setShowPassword: (value: boolean) => void;
-  handlePhotoChange: (e: ChangeEvent<HTMLInputElement>) => void;
-  handleCleanClose: () => void;
-  handleAddRole: () => void;
-  handleRemoveRole: (e: MouseEvent, id: string, name: string) => void;
-  onFieldChange: (field: keyof CreateStaffDTO, value: any) => void;
-}
-
-export interface StaffModalProps {
-  isOpen: boolean;
   onClose: () => void;
-  isEditing: boolean;
-  formData: CreateStaffDTO;
-  setFormData: Dispatch<SetStateAction<CreateStaffDTO>>;
-  onPhotoFileChange: (file: File) => void;
-  onSave: () => void;
+  editingMember: StaffMember | null;
   roles: CustomStaffRole[];
-  onCreateRole: (name: string) => Promise<any>;
-  onDeleteRole: (id: string) => Promise<any>;
-  hasPassword?: boolean;
-  errors?: Record<string, string>;
   validationError: string | null;
-  isLoading?: boolean;
+  isFormPending: boolean;
+  onFormSuccess: (submitData: CreateStaffDTO, photoFile: File | null, previewUrl: string) => void;
 }
 
-export interface StaffListViewProps {
-  t: (key: string) => string;
-  staff: StaffMember[];
-  roles: CustomStaffRole[];
+export interface UseStaffFormReturn {
+  fields: Record<string, string>;
+  handleFieldChange: (name: string, value: string) => void;
+  isActiveStatus: boolean;
+  setIsActiveStatus: (value: boolean) => void;
+  photoPreview: string;
+  handlePhotoChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  errors: Record<string, string>;
+  formAction: (formData: FormData) => void;
+}
+
+export interface ClockInResponse {
+  status: string;
+  firstName: string;
+}
+
+export interface WaiterZReport {
+  waiterId: number;
+  waiterName: string;
+  shiftStart: string;
+  shiftEnd: string;
+  totalHours: number;
+  totalOrdersClosed: number;
+  totalSalesVolume: number;
+  baseHourlyEarnings: number;
+  percentageEarnings: number;
+  finalTotalEarnings: number;
+}
+
+export interface AuthorizeVoidResponse {
+  success: boolean;
+  voidedBy: string;
+}
+
+export interface StaffShiftManagerProps {
+  restaurantId: number;
+}
+
+export interface ApiErrorResponse {
+  message?: string;
+}
+
+export interface PinPadProps {
+  onConfirm: (pin: string) => void;
   isLoading: boolean;
-  searchQuery: string;
-  setSearchQuery: (value: string) => void;
-  validationError: string | null;
-  setValidationError: (value: string | null) => void;
-  isModalOpen: boolean;
-  setIsModalOpen: (value: boolean) => void;
-  editingMember: StaffMember | null;
-  formData: CreateStaffDTO;
-  setFormData: Dispatch<SetStateAction<CreateStaffDTO>>;
-  deleteId: string | null;
-  setDeleteId: (value: string | null) => void;
-  openCreateModal: () => void;
-  openEditModal: (member: StaffMember) => void;
-  confirmDelete: () => Promise<void>;
-  onSave: () => Promise<void>;
-  setSelectedPhotoFile: (file: File | null) => void;
-  createRole: (name: string) => Promise<any>;
-  deleteRole: (id: string) => Promise<any>;
-  updateStaff: (params: { id: string; data: any }) => void;
 }

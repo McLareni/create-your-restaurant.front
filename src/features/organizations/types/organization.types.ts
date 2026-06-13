@@ -1,17 +1,7 @@
-import { CreateOrganizationValues } from '../schemas/organization.schema';
+import { CreateOrganizationValues } from '@/features/organizations/schemas/organization.schema';
 
 export interface CheckSlugResponse {
   isAvailable: boolean;
-}
-
-export interface CreateRestaurantPayload {
-  title: string;
-  slug: string;
-  type: string;
-  currency: string;
-  language: string;
-  city?: string;
-  phoneNumber?: string;
 }
 
 export interface UseCreateOrganizationReturn {
@@ -20,9 +10,11 @@ export interface UseCreateOrganizationReturn {
   isCheckingSlug: boolean;
   slugAvailable: boolean | null;
   animationStep: number;
-  isLoading: boolean;
+  isPending: boolean;
   handleChange: (field: keyof CreateOrganizationValues, value: string) => void;
-  handleSubmit: (e: React.FormEvent) => Promise<void>;
+  handleDaysChange: (days: string[]) => void;
+  handleImageChange: (file: File) => Promise<void>;
+  formAction: (payload: FormData) => void;
 }
 
 export interface CreateOrgFormProps {
@@ -37,4 +29,8 @@ export interface CreateOrgAnimationProps {
       slug: string;
     };
   };
+}
+
+export interface CreateOrgCardProps {
+  formData: Partial<CreateOrganizationValues>;
 }

@@ -1,26 +1,41 @@
-import { InputHTMLAttributes, ReactNode, Ref } from 'react';
+'use client';
 
-interface CheckboxProps extends InputHTMLAttributes<HTMLInputElement> {
-  label: ReactNode;
+import { ComponentPropsWithoutRef, ReactNode } from 'react';
+
+export interface CheckboxProps extends Omit<ComponentPropsWithoutRef<'input'>, 'children'> {
   id: string;
-  ref?: Ref<HTMLInputElement>;
+  error?: string;
+  children?: ReactNode;
 }
 
-export const Checkbox = ({ label, id, className = '', ref, ...props }: CheckboxProps) => {
+export const Checkbox = ({
+  id,
+  error,
+  children,
+  className = '',
+  disabled,
+  ...props
+}: CheckboxProps) => {
   return (
-    <div className="flex items-start gap-3">
-      <div className="flex h-5 items-center">
+    <div className="flex flex-col gap-1">
+      <div className="flex items-start gap-2.5">
         <input
           id={id}
           type="checkbox"
-          ref={ref}
-          className={`h-4 w-4 rounded border-stone-500 dark:border-brand-gray/70 bg-transparent text-brand-copper focus:ring-brand-copper focus:ring-offset-0 ${className}`}
+          disabled={disabled}
+          className={`h-4 w-4 appearance-none rounded border border-solid bg-bg-surface dark:bg-bg-element border-neutral-300 dark:border-neutral-700 relative cursor-pointer outline-none transition-all disabled:opacity-50 checked:border-emerald-500 checked:dark:border-emerald-400 checked:after:content-[''] checked:after:absolute checked:after:left-[5px] checked:after:top-[1px] checked:after:w-[4px] checked:after:h-[8px] checked:after:border-r-2 checked:after:border-b-2 checked:after:border-emerald-500 checked:dark:after:border-emerald-400 checked:after:rotate-45 ${className}`}
           {...props}
         />
+        {children && (
+          <label
+            htmlFor={id}
+            className="text-sm font-medium text-text-main select-none cursor-pointer disabled:opacity-50"
+          >
+            {children}
+          </label>
+        )}
       </div>
-      <label htmlFor={id} className="text-sm text-stone-400 dark:text-brand-gray">
-        {label}
-      </label>
+      {error && <span className="text-xs text-red-500 mt-0.5">{error}</span>}
     </div>
   );
 };

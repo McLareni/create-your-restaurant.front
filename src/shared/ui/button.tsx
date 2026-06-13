@@ -17,14 +17,14 @@ export const Button = ({
   icon,
   ...props
 }: ButtonProps) => {
-  const baseStyles = 'inline-flex h-12 items-center justify-center gap-2 rounded-md px-4 py-2 text-[15px] font-medium transition-colors outline-none disabled:pointer-events-none disabled:opacity-50';
+  const baseStyles = 'inline-flex h-12 items-center justify-center gap-2 rounded-xl px-5 text-sm font-bold transition-all outline-none disabled:pointer-events-none disabled:opacity-50 active:scale-98 cursor-pointer border-0';
   
   const variants = {
-    primary: 'bg-zinc-900 text-brand-cream hover:bg-zinc-800 dark:bg-brand-cream dark:text-brand-espresso dark:hover:bg-white',
-    brand: 'bg-brand-copper text-white hover:bg-brand-gold',
-    outline: 'border border-zinc-200 bg-transparent text-zinc-900 hover:bg-zinc-100 dark:border-brand-gray/40 dark:text-brand-cream dark:hover:bg-brand-gray/20',
-    outlineDark: 'border border-brand-gray/30 bg-transparent text-brand-cream hover:bg-brand-gray/10 hover:border-brand-gray/50',
-    ghost: 'bg-transparent text-zinc-900 hover:bg-zinc-100 dark:text-brand-cream dark:hover:bg-brand-gray/20',
+    primary: 'bg-text-main text-bg-surface hover:opacity-90 dark:bg-bg-surface dark:text-text-main',
+    brand: 'bg-brand-gold text-white hover:bg-brand-gold-hover shadow-sm',
+    outline: 'border border-solid border-neutral-200 dark:border-border-main bg-transparent text-text-main hover:bg-bg-element',
+    outlineDark: 'border border-solid border-border-main bg-transparent text-text-main hover:bg-bg-element/50',
+    ghost: 'bg-transparent text-text-main hover:bg-bg-element',
   };
 
   return (
@@ -34,14 +34,14 @@ export const Button = ({
       {...props}
     >
       {isLoading ? (
-        <Loader2 className="h-5 w-5 animate-spin" />
+        <Loader2 className="h-4 w-4 animate-spin" />
       ) : icon ? (
-        <span className="flex items-center gap-2">
+        <span className="flex items-center justify-center gap-2">
           {icon}
           {children}
         </span>
       ) : (
-        children
+        className.includes('flex') ? children : <span className="flex items-center justify-center">{children}</span>
       )}
     </button>
   );

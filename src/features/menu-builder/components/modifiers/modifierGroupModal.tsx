@@ -1,8 +1,9 @@
 'use client';
 
+import React from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { Button, FloatingPanel, Input, Switch } from '@/shared/ui';
-import { ModifierGroupModalProps } from '../../types/modifiers.types';
+import type { ModifierGroupModalProps } from '@/features/menu-builder/types/modifiers.types';
 
 export const ModifierGroupModal = ({
   isOpen,
@@ -12,9 +13,16 @@ export const ModifierGroupModal = ({
   setForm,
   onSave,
   errors = {},
-  isLoading = false
+  isLoading = false,
 }: ModifierGroupModalProps) => {
   const { t } = useTranslation();
+
+  if (!isOpen) return null;
+
+  const handleSubmitAction = () => {
+    if (isLoading) return;
+    onSave();
+  };
 
   return (
     <FloatingPanel
@@ -24,7 +32,7 @@ export const ModifierGroupModal = ({
       title={isEditing ? t('menu.constructor.modifiers.modal.group.editTitle') : t('menu.constructor.modifiers.modal.group.createTitle')}
       className="w-132 border-brand-copper/20"
     >
-      <div className="flex flex-col gap-4 text-brand-espresso dark:text-brand-cream">
+      <form action={handleSubmitAction} className="flex flex-col gap-4 text-brand-espresso dark:text-brand-cream">
         <Input
           id="groupName"
           label={t('menu.constructor.modifiers.modal.group.nameLabel')}
@@ -73,12 +81,18 @@ export const ModifierGroupModal = ({
         </div>
 
         <div className="flex justify-end gap-3 pt-4 mt-2 border-t border-brand-gray/10">
-          <Button variant="ghost" onClick={onClose} className="h-9 text-xs font-semibold" disabled={isLoading}>
+          <Button 
+            type="button"
+            variant="ghost" 
+            onClick={onClose} 
+            className="h-9 text-xs font-semibold" 
+            disabled={isLoading}
+          >
             {t('menu.constructor.modifiers.modal.cancel')}
           </Button>
           <Button
+            type="submit"
             variant="brand"
-            onClick={onSave}
             className="px-5 h-9 text-xs font-bold shadow-md"
             disabled={!form.name.trim() || isLoading}
             isLoading={isLoading}
@@ -86,7 +100,7 @@ export const ModifierGroupModal = ({
             {t('menu.constructor.modifiers.modal.save')}
           </Button>
         </div>
-      </div>
+      </form>
     </FloatingPanel>
   );
 };

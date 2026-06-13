@@ -1,38 +1,158 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:is(.dark *));
+@variant dark (&:where(.dark, .dark *));
 
 @theme {
-  --color-brand-espresso: #2A211C;
-  --color-brand-mocha: #342923;
-  --color-brand-cream: #F4EDE4;
-  --color-brand-copper: #B87333;
-  --color-brand-gray: #A89B90;
-  --color-brand-gold: #D6B37A;
+  --color-brand-espresso: var(--brand-espresso);
+  --color-brand-mocha: var(--brand-mocha);
+  --color-brand-cream: var(--brand-cream);
+  --color-brand-copper: var(--brand-brown);
+  --color-brand-gray: var(--brand-gray);
+  --color-brand-emerald: var(--brand-emerald);
+  --color-brand-emerald-hover: var(--brand-emerald-hover);
+
+  --color-bg-main: var(--bg-main);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-element: var(--bg-element);
+
+  --color-text-main: var(--text-main);
+  --color-text-muted: var(--text-muted);
+  --color-border-main: var(--border-main);
+  --color-bg-hover: var(--bg-hover);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-premium: var(--shadow-premium);
+  --shadow-table: var(--shadow-table);
+  --shadow-table-selected: var(--shadow-table-selected);
+}
+
+:root {
+  --bg-main: #FDFDFB;        
+  --bg-surface: #FFFFFF;     
+  --bg-element: #F4F1EC;     
+
+  --text-main: #1C1917;      
+  --text-muted: #78716C;     
+
+  --border-main: #E7E5E4;
+  --bg-hover: rgba(0, 164, 108, 0.05);
+
+  --brand-espresso: #0A0A0A;
+  --brand-mocha: #1A1A1A;    
+  --brand-cream: #F4F1EC;
+  --brand-gray: #78716C;
+  --brand-brown: #00A46C;
+  --brand-emerald: #00A46C;
+  --brand-emerald-hover: #008F5D;
+
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+
+  --shadow-sm: 0 2px 8px rgba(28, 25, 23, 0.03);
+  --shadow-md: 0 12px 32px rgba(28, 25, 23, 0.06);
+  --shadow-lg: 0 20px 48px rgba(28, 25, 23, 0.1);
+  --shadow-premium: 0 30px 60px rgba(0, 0, 0, 0.08);
+
+  --shadow-table: 0 4px 16px rgba(28, 25, 23, 0.05);
+  --shadow-table-selected: 0 10px 28px rgba(28, 25, 23, 0.12);
+
+  --gradient-emerald: linear-gradient(135deg, #00A46C 0%, #008F5D 100%);
+  --gradient-surface: linear-gradient(180deg, #FFFFFF 0%, #FDFDFB 100%);
+}
+
+.dark {
+  --bg-main: #0B0A09;        
+  --bg-surface: #181615;     
+  --bg-element: #262220;     
+
+  --text-main: #F5F5F4;      
+  --text-muted: #A8A29E;     
+
+  --border-main: rgba(245, 245, 244, 0.08);
+  --bg-hover: rgba(0, 164, 108, 0.06); 
+
+  --brand-espresso: #0B0A09;
+  --brand-mocha: #1C1917;
+  --brand-cream: #262220;
+  --brand-gray: #A8A29E;
+  --brand-brown: #00A46C;
+  --brand-emerald: #00A46C;
+  --brand-emerald-hover: #008F5D;
+
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 16px 40px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 32px 64px rgba(0, 0, 0, 0.7);
+  --shadow-premium: 0 12px 32px rgba(0, 0, 0, 0.3);
+  --shadow-table: 0 6px 20px rgba(0, 0, 0, 0.45);
+  --shadow-table-selected: 0 12px 28px rgba(0, 0, 0, 0.55);
+
+  --gradient-surface: linear-gradient(180deg, #181615 0%, #110F0E 100%);
+  --gradient-emerald: linear-gradient(135deg, #00A46C 0%, #008F5D 100%);
 }
 
 @layer base {
   html, body {
     height: 100%;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 4px;
+  *, *::before, *::after {
+    box-sizing: border-box;
   }
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
+
+  .qr-tables-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.5rem;
   }
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: var(--color-brand-gray);
-    border-radius: 10px;
-    opacity: 0.5;
-  }
+
+  .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0, 164, 108, 0.2); border-radius: 99px; }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--brand-emerald); }
 }
 
-@utility no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-  &::-webkit-scrollbar {
-    display: none;
-  }
+.btn-primary {
+  position: relative;
+  background: var(--gradient-emerald);
+  color: white; 
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  overflow: hidden;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-premium);
+}
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+@media print {
+  html, body { background: white !important; color: black !important; }
+  body * { visibility: hidden !important; }
+  .print-canvas-target, .print-canvas-target * { visibility: visible !important; }
+  .print-canvas-target { position: absolute !important; inset: 0 !important; width: 100% !important; display: block !important; }
+  aside, nav, header, footer, button, form { display: none !important; }
 }

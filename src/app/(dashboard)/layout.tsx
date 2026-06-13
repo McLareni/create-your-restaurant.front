@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Sidebar } from './_components/sidebar';
 import { useUserStore } from '@/shared/store/useUserStore';
@@ -17,16 +17,25 @@ export default function DashboardLayout({
   
   const router = useRouter();
   const pathname = usePathname();
+  const hasFetched = useRef(false);
 
   useEffect(() => {
-    fetchUser();
+    if (!hasFetched.current) {
+      hasFetched.current = true;
+      fetchUser();
+    }
   }, [fetchUser]);
 
   useEffect(() => {
-    if (!isLoading && user === null) {
-      useUserStore.getState().logout(); 
+    if (isLoading) return;
+
+    if (user === null) {
+      router.push('/login');
+      return;
     }
-    if (!isLoading && user && (!user.restaurants || user.restaurants.length === 0) && pathname !== '/create-organization') {
+
+    const hasNoRestaurants = !user.restaurants || user.restaurants.length === 0;
+    if (hasNoRestaurants && pathname !== '/create-organization') {
       router.push('/create-organization');
     }
   }, [isLoading, user, router, pathname]);

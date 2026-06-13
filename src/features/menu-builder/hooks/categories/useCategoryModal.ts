@@ -1,24 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useTranslation } from '@/shared/hooks/useTranslation';
-import { categorySchema } from '../../schemas/categories.schema';
-import toast from 'react-hot-toast';
+import { useState } from 'react';
+import { categorySchema } from '@/features/menu-builder/schemas/categories.schema';
+import type { CategoryData } from '@/features/menu-builder/types/categories.types';
 
-export const useCategoryModal = (createCategory: any, updateCategory: any) => {
-  const { t } = useTranslation();
+export const useCategoryModal = (
+  createCategory: (name: string) => void,
+  updateCategory: (params: { id: string; name: string }) => void
+) => {
   const [isCatModalOpen, setIsCatModalOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<any>(null);
+  const [editingCategory, setEditingCategory] = useState<CategoryData | null>(null);
   const [catName, setCatName] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (isCatModalOpen) {
-      setError(null);
-    }
-  }, [isCatModalOpen]);
-
-  const handleOpenCategoryModal = (category?: any) => {
+  const handleOpenCategoryModal = (category?: CategoryData) => {
+    setError(null);
     if (category) {
       setEditingCategory(category);
       setCatName(category.name);
@@ -32,40 +28,27 @@ export const useCategoryModal = (createCategory: any, updateCategory: any) => {
   const handleSaveCategory = () => {
     const result = categorySchema.safeParse({ name: catName });
     if (!result.success) {
-      setError(t(result.error.issues[0].message));
+      setError(result.error.issues[0].message);
       return;
     }
 
     setError(null);
 
-    const mutationOptions = {
-      onSuccess: () => {
-        setIsCatModalOpen(false);
-        toast.success(t('common.success') || 'Категорію успішно збережено');
-      },
-      onError: (err: any) => {
-        const apiError = err?.response?.data?.message || t('auth.errors.defaultError');
-        setError(apiError);
-        toast.error(apiError);
-      }
-    };
-
     if (editingCategory) {
-      updateCategory({ id: editingCategory.id, name: catName }, mutationOptions);
+      updateCategory({ id: editingCategory.id, name: catName });
     } else {
-      createCategory(catName, mutationOptions);
+      createCategory(catName);
     }
+    setIsCatModalOpen(false);
   };
 
   return {
-    t,
     isCatModalOpen,
     setIsCatModalOpen,
     editingCategory,
     catName,
     setCatName,
     error,
-    setError,
     handleOpenCategoryModal,
     handleSaveCategory,
   };

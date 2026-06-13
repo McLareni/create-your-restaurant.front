@@ -1,8 +1,9 @@
 'use client';
 
+import React from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { Button, FloatingPanel, Input, Switch } from '@/shared/ui';
-import { ModifierOptionModalProps } from '../../types/modifiers.types';
+import type { ModifierOptionModalProps } from '@/features/menu-builder/types/modifiers.types';
 
 export const ModifierOptionModal = ({
   isOpen,
@@ -15,15 +16,22 @@ export const ModifierOptionModal = ({
 }: ModifierOptionModalProps) => {
   const { t } = useTranslation();
 
+  if (!isOpen) return null;
+
+  const handleSubmitAction = () => {
+    if (isLoading) return;
+    onSave();
+  };
+
   return (
     <FloatingPanel
       panelId="modifier-option-panel"
       isOpen={isOpen}
       onClose={onClose}
       title={isEditing ? t('menu.constructor.modifiers.modal.option.editTitle') : t('menu.constructor.modifiers.modal.option.createTitle')}
-      className="w-120 border-brand-copper/20"
+      className="w-132 border-brand-copper/20"
     >
-      <div className="flex flex-col gap-4 text-brand-espresso dark:text-brand-cream">
+      <form action={handleSubmitAction} className="flex flex-col gap-4 text-brand-espresso dark:text-brand-cream">
         <Input
           id="optName"
           label={t('menu.constructor.modifiers.modal.option.nameLabel')}
@@ -49,12 +57,12 @@ export const ModifierOptionModal = ({
         </div>
 
         <div className="flex justify-end gap-3 pt-4 mt-2 border-t border-brand-gray/10">
-          <Button variant="ghost" onClick={onClose} className="h-9 text-xs font-semibold" disabled={isLoading}>
+          <Button type="button" variant="ghost" onClick={onClose} className="h-9 text-xs font-semibold" disabled={isLoading}>
             {t('menu.constructor.modifiers.modal.cancel')}
           </Button>
           <Button
+            type="submit"
             variant="brand"
-            onClick={onSave}
             className="px-5 h-9 text-xs font-bold shadow-md"
             disabled={!form.name.trim() || isLoading}
             isLoading={isLoading}
@@ -62,7 +70,7 @@ export const ModifierOptionModal = ({
             {t('menu.constructor.modifiers.modal.save')}
           </Button>
         </div>
-      </div>
+      </form>
     </FloatingPanel>
   );
 };

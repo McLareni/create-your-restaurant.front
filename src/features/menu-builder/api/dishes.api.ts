@@ -1,18 +1,20 @@
 import { apiClient } from '@/shared/api/client';
-import { Dish, CreateDishDTO } from '../types/dishes.types';
+import { Dish } from '../types/dishes.types';
+import { DishFormValues } from '../schemas/dishes.schema';
+import { menuApi } from './menu.api';
 
 export const dishesApi = {
   getAll: async (restaurantId: number): Promise<Dish[]> => {
-    const response = await apiClient.get<{ categories: { dishes: Dish[] }[] }>(`/menu/owner/${restaurantId}`);
+    const response = await menuApi.getFullMenu(restaurantId);
     return response.categories.flatMap(cat => cat.dishes);
   },
 
   getTagsLookup: async (restaurantId: number): Promise<string[]> => {
-    return apiClient.get<string[]>(`/menu/owner/${restaurantId}/dishes/lookups/tags`);
+    return await apiClient.get<string[]>(`/menu/owner/${restaurantId}/dishes/lookups/tags`);
   },
 
   getAllergensLookup: async (restaurantId: number): Promise<string[]> => {
-    return apiClient.get<string[]>(`/menu/owner/${restaurantId}/dishes/lookups/allergens`);
+    return await apiClient.get<string[]>(`/menu/owner/${restaurantId}/dishes/lookups/allergens`);
   },
 
   createTagLookup: async (restaurantId: number, tagName: string): Promise<string> => {
@@ -33,17 +35,11 @@ export const dishesApi = {
     await apiClient.delete(`/menu/owner/${restaurantId}/dishes/lookups/allergens/${encodeURIComponent(allergenName)}`);
   },
 
-  create: async (categoryId: string, data: CreateDishDTO): Promise<Dish> => {
-    const response = await apiClient.post<any>(`/menu/owner/categories/${categoryId}/dishes`, data);
-    return response.dish || response;
+  create: async (categoryId: string, data: DishFormValues): Promise<Dish> => {
+    return await menuApi.createDish(categoryId, data);
   },
 
-  update: async (id: string, data: Partial<Dish>): Promise<Dish> => {
-    const response = await apiClient.patch<any>(`/menu/owner/dishes/${id}`, data);
-    return response.dish || response;
-  },
-
-  delete: async (id: string): Promise<void> => {
-    await apiClient.delete(`/menu/owner/dishes/${id}`);
+  update: async (id: string, data: Partial<DishFormValues>): Promise<Dish> => {
+    return await menuApi.updateDish(id, data);
   }
 };

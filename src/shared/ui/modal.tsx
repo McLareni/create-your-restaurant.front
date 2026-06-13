@@ -1,23 +1,15 @@
 'use client';
 
-import { ReactNode, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { X, GripHorizontal } from 'lucide-react';
 import { DndContext, useDraggable, useSensor, useSensors, PointerSensor, DragEndEvent } from '@dnd-kit/core';
+import type { ModalProps, DraggableContentProps } from '@/shared/types/ui.types';
 
-interface ModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  title: string;
-  children: ReactNode;
-  className?: string; // Додано для кастомної ширини модалки
-}
-
-const DraggableContent = ({ title, children, onClose, coordinates, className }: any) => {
+const DraggableContent = ({ title, children, onClose, coordinates, className }: DraggableContentProps) => {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: 'draggable-modal-handler',
   });
 
-  // Застосовуємо трансформацію. Плавний transition тільки коли відпускаємо модалку
   const style = {
     transform: `translate3d(${coordinates.x + (transform?.x || 0)}px, ${coordinates.y + (transform?.y || 0)}px, 0)`,
     transition: isDragging ? 'none' : 'transform 0.1s ease-out',
@@ -27,31 +19,31 @@ const DraggableContent = ({ title, children, onClose, coordinates, className }: 
     <div 
       ref={setNodeRef} 
       style={style} 
-      className={`relative w-full max-w-lg rounded-2xl bg-white dark:bg-brand-mocha dark:border dark:border-brand-gray/20 shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col pointer-events-auto ${className || ''}`}
+      className={`relative w-full max-w-lg rounded-3xl bg-bg-surface border border-solid border-border-main shadow-md flex flex-col pointer-events-auto ${className || ''}`}
     >
-      {/* Шапка модалки — ТІЛЬКИ ВОНА служить зоною для перетягування */}
       <div 
         {...attributes} 
         {...listeners}
-        className={`flex items-center justify-between border-b border-brand-gray/20 dark:border-brand-gray/10 px-6 py-4 cursor-grab active:cursor-grabbing ${isDragging ? 'bg-brand-cream/50 dark:bg-brand-gray/10 rounded-t-2xl' : ''}`}
+        className={`flex items-center justify-between border-b border-solid border-border-main px-6 py-4 cursor-grab active:cursor-grabbing rounded-t-3xl transition-colors ${
+          isDragging ? 'bg-bg-element/70' : 'bg-bg-element/30'
+        }`}
       >
         <div className="flex items-center gap-3">
-          <GripHorizontal className="h-5 w-5 text-brand-gray/50" />
-          <h3 className="text-lg font-semibold text-brand-espresso dark:text-brand-cream select-none">{title}</h3>
+          <GripHorizontal className="h-5 w-5 text-text-muted/40" />
+          <h3 className="text-base font-bold text-text-main select-none">{title}</h3>
         </div>
         
-        {/* stopPropagation запобігає перетягуванню при кліку на хрестик */}
         <button 
+          type="button"
           onPointerDown={(e) => e.stopPropagation()} 
           onClick={onClose}
-          className="rounded-full p-2 text-brand-gray transition-colors hover:bg-brand-gray/10 dark:hover:bg-brand-gray/20 dark:hover:text-brand-cream outline-none"
+          className="rounded-xl p-1.5 text-text-muted transition-colors hover:bg-bg-element hover:text-text-main outline-none cursor-pointer"
         >
           <X className="h-5 w-5" />
         </button>
       </div>
       
-      {/* Сам контент модалки. Курсор стандартний, перетягування не працює */}
-      <div className="p-6 cursor-default">
+      <div className="p-6 cursor-default text-text-main">
         {children}
       </div>
     </div>
@@ -61,11 +53,16 @@ const DraggableContent = ({ title, children, onClose, coordinates, className }: 
 export const Modal = (props: ModalProps) => {
   const { isOpen, onClose } = props;
   const [coordinates, setCoordinates] = useState({ x: 0, y: 0 });
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+
+  if (isOpen !== prevIsOpen) {
+    setPrevIsOpen(isOpen);
+    setCoordinates({ x: 0, y: 0 });
+  }
 
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
-      setCoordinates({ x: 0, y: 0 }); // Скидаємо позицію модалки по центру при відкритті
     } else {
       document.body.style.overflow = 'unset';
     }
@@ -74,7 +71,6 @@ export const Modal = (props: ModalProps) => {
     };
   }, [isOpen]);
 
-  // Захист від випадкових мікро-зсувів: перетягування почнеться, лише якщо протягнути мишкою 5 пікселів
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 5 },
@@ -92,15 +88,13 @@ export const Modal = (props: ModalProps) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0 pointer-events-none">
-      {/* Темний фон для закриття по кліку */}
       <div 
-        className="absolute inset-0 bg-brand-espresso/40 dark:bg-black/60 backdrop-blur-sm transition-opacity pointer-events-auto" 
+        className="absolute inset-0 bg-black/20 dark:bg-black/60 backdrop-blur-xs transition-opacity pointer-events-auto" 
         onClick={onClose}
       />
       
-      {/* Контекст перетягування */}
       <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-         <DraggableContent {...props} coordinates={coordinates} />
+        <DraggableContent {...props} coordinates={coordinates} />
       </DndContext>
     </div>
   );

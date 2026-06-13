@@ -24,14 +24,14 @@ export const CreateOrgAnimation = ({ state }: CreateOrgAnimationProps) => {
   };
 
   return (
-    <div className="flex h-screen w-full flex-col items-center justify-center bg-brand-cream dark:bg-brand-espresso p-6 text-center transition-colors">
-      <div className="w-full max-w-md rounded-3xl bg-white dark:bg-brand-mocha p-8 shadow-xl border border-brand-gray/20 flex flex-col items-center gap-6">
+    <div className="flex h-screen w-full flex-col items-center justify-center bg-bg-main text-text-main p-6 text-center transition-colors duration-300">
+      <div className="w-full max-w-md rounded-3xl bg-bg-surface p-8 shadow-2xl border border-border-main flex flex-col items-center gap-6 animate-in zoom-in-95 duration-300">
         {animationStep < 4 ? (
-          <Loader2 className="h-12 w-12 animate-spin text-brand-copper" />
+          <Loader2 className="h-12 w-12 animate-spin text-brand-emerald" />
         ) : (
           <div className="h-12 w-12 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center text-2xl font-bold">✓</div>
         )}
-        <p className="text-base font-medium text-brand-espresso dark:text-brand-cream animate-pulse">
+        <p className="text-base font-medium text-text-main animate-pulse">
           {getStepText()}
         </p>
       </div>

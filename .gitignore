@@ -42,19 +42,21 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Repomix exclusions (додайте це в кінець .gitignore)
-# src/features/marketplace/
-# # src/features/organizations/
-# src/features/public-menu/
-# src/features/pos
-# src/features/qr-tables/
-# # src/features/staff/
-# src/features/menu-builder/
+# Repomix
+repomix.config.json
+repomix-*.txt
+repomix-output.xml
 
+.vscode/
 
-# src/app/(dashboard)/dashboard/marketplace/
-# src/app/(dashboard)/dashboard/menu-builder/
-# # src/app/(dashboard)/create-organization/
-# src/app/(dashboard)/dashboard/qr/
-# # src/app/(dashboard)/dashboard/staff/
-# src/app/(dashboard)/dashboard/pos/
+# --- ВАША ЛОГІКА ---
+# # 1. Спочатку ігноруємо все в src, крім папок, які нам потрібні
+# /src/*
+# !/src/app/
+# !/src/shared/
+# !/src/features/
+
+# # 2. Тепер ігноруємо все в features, КРІМ qr-tables
+# /src/features/*
+# !/src/features/qr-tables/
+# !/src/features/auth/

@@ -12,7 +12,7 @@ export const verifySchema = emailSchema.extend({
   code: z
     .string()
     .length(6, 'auth.errors.codeLength')
-    .regex(/^\d+$/, 'auth.errors.codeNumeric'),
+    .regex(/^[0-9]+$/, 'auth.errors.codeNumeric'),
 });
 
 export type EmailFormValues = z.infer<typeof emailSchema>;

@@ -1,19 +1,20 @@
 import { apiClient } from '@/shared/api/client';
+import { ModifierGroup, CreateModifierGroupDTO, UpdateModifierGroupDTO } from '@/features/menu-builder/types/modifiers.types';
 
 export const modifiersApi = {
-  async getGroups(restaurantId: number) {
-    return await apiClient.get<any>(`/restaurants/${restaurantId}/modifiers`);
+  getGroups: async (restaurantId: number): Promise<ModifierGroup[]> => {
+    return await apiClient.get<ModifierGroup[]>(`/restaurants/${restaurantId}/modifiers`);
   },
 
-  async createGroup(restaurantId: number, data: any) {
-    return await apiClient.post<any>(`/restaurants/${restaurantId}/modifiers`, data);
+  createGroup: async (restaurantId: number, data: CreateModifierGroupDTO): Promise<ModifierGroup> => {
+    return await apiClient.post<ModifierGroup>(`/restaurants/${restaurantId}/modifiers`, data);
   },
 
-  async updateGroup(restaurantId: number, groupId: string, data: any) {
-    return await apiClient.patch<any>(`/restaurants/${restaurantId}/modifiers/${groupId}`, data);
+  updateGroup: async (restaurantId: number, groupId: string, data: UpdateModifierGroupDTO): Promise<ModifierGroup> => {
+    return await apiClient.patch<ModifierGroup>(`/restaurants/${restaurantId}/modifiers/${groupId}`, data);
   },
 
-  async deleteGroup(restaurantId: number, groupId: string) {
-    return await apiClient.delete<any>(`/restaurants/${restaurantId}/modifiers/${groupId}`);
+  deleteGroup: async (restaurantId: number, groupId: string): Promise<void> => {
+    await apiClient.delete(`/restaurants/${restaurantId}/modifiers/${groupId}`);
   }
 };

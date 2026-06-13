@@ -1,7 +1,19 @@
 {
-  "css.lint.unknownAtRules": "ignore",
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
   "css.validate": false,
-  "less.validate": false,
-  "scss.validate": false,
-  "tailwindCSS.experimental.configFile": null
+  "scss.validate": true,
+  "css.lint.unknownAtRules": "ignore",
+  "[css]": {
+    "editor.defaultFormatter": "vscode.css-language-features"
+  }
 }

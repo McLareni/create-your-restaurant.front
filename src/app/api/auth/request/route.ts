@@ -10,6 +10,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ errorCode: 'serverError' }, { status: 500 });
     }
 
+    console.log("===> МАРШРУТ NEXT.JS СПРАЦЮВАВ! Очікуємо відповідь від бекенду...");
+
     const response = await fetch(`${API_URL}/users`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

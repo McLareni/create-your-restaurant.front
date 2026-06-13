@@ -1,10 +1,9 @@
-import { SelectHTMLAttributes, ReactNode, Ref } from 'react';
+import { ComponentPropsWithRef, ReactNode } from 'react';
 
-interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
+interface SelectProps extends ComponentPropsWithRef<'select'> {
   label?: string;
   error?: string;
   children: ReactNode;
-  ref?: Ref<HTMLSelectElement>;
 }
 
 export const Select = ({
@@ -13,7 +12,6 @@ export const Select = ({
   children,
   className = '',
   id,
-  ref,
   ...props
 }: SelectProps) => {
   return (
@@ -25,7 +23,6 @@ export const Select = ({
       )}
       <div className="relative flex items-center">
         <select
-          ref={ref}
           id={id}
           className={`h-12 w-full rounded-md border bg-white dark:bg-brand-mocha px-3 py-2 text-sm text-brand-espresso dark:text-brand-cream outline-none transition-colors focus:border-brand-copper focus:ring-1 focus:ring-brand-copper disabled:cursor-not-allowed disabled:opacity-50 appearance-none ${
             error ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-brand-gray/30 dark:border-brand-gray/50'

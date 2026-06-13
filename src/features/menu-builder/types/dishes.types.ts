@@ -1,123 +1,85 @@
-import { DishFormValues } from '../schemas/dishes.schema';
-
-export type ProductionZone = 'HOT_KITCHEN' | 'COLD_KITCHEN' | 'BAR' | 'SUSHI' | 'HOOKAH';
-
-export interface DishVariant {
-  id?: string;
-  name: string;
-  price: number;
-  sku?: string;
-}
-
-export interface LookupSectionProps {
-  title: string;
-  icon: React.ReactNode;
-  placeholder: string;
-  inputValue: string;
-  onInputChange: (val: string) => void;
-  onAdd: () => void;
-  items: string[];
-  checkedItems: string[];
-  onToggle: (item: string, checked: boolean) => void;
-  onRemoveFromDb: (item: string) => void;
-  emptyText: string;
-  hasBorder?: boolean;
-}
-
-export interface DishCardProps {
-  dish: Dish;
-  categoryId: string;
-  onEdit: (categoryId: string, dish: Dish) => void;
-  onDelete: (dishId: string) => void;
-  isOverlay?: boolean;
-}
+import type { ChangeEvent, Dispatch, SetStateAction } from 'react';
+import { DishFormValues } from '@/features/menu-builder/schemas/dishes.schema';
 
 export interface IngredientItem {
   name: string;
   quantity: number;
-  unit: 'kg' | 'g' | 'l' | 'ml' | 'pcs';
-  inventoryItemId?: string | null;
+  unit: string;
+  inventoryItemId: string | null;
+}
+
+export interface ModifierGroupLookup {
+  id: string;
+  name: string;
 }
 
 export interface Dish {
   id: string;
+  categoryId: string;
   name: string;
-  description: string;
-  imageUrl?: string | null;
-  images?: Array<{ id: string; url: string }>;
-  sku?: string;
+  description: string | null;
   price: number;
-  variants: DishVariant[];
-  taxRate: number;
   weight: number | null;
   cookingTime: number | null;
   calories: number | null;
+  badge: string;
+  isAvailable: boolean;
   isVegan: boolean;
   isSpicy: boolean;
   isLactoseFree: boolean;
-  badge: string;
   allergens: string[];
   tags: string[];
-  isAvailable: boolean;
-  stockQuantity: number | null;
-  productionZone: ProductionZone | null;
   modifierIds: string[];
+  sortOrder?: number;
   ingredients: IngredientItem[];
-  upsellDishIds: string[];
+  images?: { id: string; url: string }[];
+  imageUrl?: string | null;
 }
 
-export type CreateDishDTO = Omit<Dish, 'id' | 'stockQuantity' | 'productionZone'>;
-export type UpdateDishDTO = Partial<CreateDishDTO>;
-
-export interface DishModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  isEditing: boolean;
-  dishForm: DishFormValues;
-  setDishForm: React.Dispatch<React.SetStateAction<any>>;
-  onSave: () => void;
-  handleLocalImageUploadWrapper: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  imageUrls: string[];
-  activeImageIndex: number;
-  onPrevImage: () => void;
-  onNextImage: () => void;
-  onSelectImage: (index: number) => void;
-  handleAddVariant: () => void;
-  handleRemoveVariant: (index: number) => void;
-  handleVariantChange: (index: number, field: string, value: any) => void;
-  activeTab: 'general' | 'pricing' | 'characteristics' | 'ingredients' | 'modifiers' | 'upsell' | 'media';
-  setActiveTab: (tab: 'general' | 'pricing' | 'characteristics' | 'ingredients' | 'modifiers' | 'upsell' | 'media') => void;
-  modifierGroups: any[];
-  currentDishId?: string;
-  isLoading?: boolean;
-  errors: Record<string, string>;
-}
-
-export interface DishCardProps {
-  dish: Dish;
-  categoryId: string;
-  onEdit: (categoryId: string, dish: Dish) => void;
-  onDelete: (dishId: string) => void;
-  isOverlay?: boolean;
-}
-
-export interface DishLivePreviewProps {
-  form: DishFormValues;
-  imageUrl?: string;
-}
-
-export interface CharacteristicsTabProps {
-  dishForm: DishFormValues;
-  setDishForm: React.Dispatch<React.SetStateAction<any>>;
+export interface UseDishModalProps {
+  createDishAsync: (params: { categoryId: string; data: DishFormValues }) => Promise<Dish>;
+  updateDishAsync: (params: { id: string; data: DishFormValues }) => Promise<Dish>;
 }
 
 export interface IngredientsTabProps {
   dishForm: DishFormValues;
-  setDishForm: React.Dispatch<React.SetStateAction<any>>;
+  setDishForm: Dispatch<SetStateAction<DishFormValues>>;
 }
 
-export interface UpsellTabProps {
+export interface CharacteristicsTabProps {
   dishForm: DishFormValues;
-  setDishForm: React.Dispatch<React.SetStateAction<any>>;
-  currentDishId?: string;
+  setDishForm: Dispatch<SetStateAction<DishFormValues>>;
+}
+
+export interface UseDishModalReturn {
+  isDishModalOpen: boolean;
+  setIsDishModalOpen: (open: boolean) => void;
+  dishForm: DishFormValues;
+  setDishForm: Dispatch<SetStateAction<DishFormValues>>;
+  formErrors: Record<string, string>;
+  editingDish: Dish | null;
+  dishImageUrls: string[];
+  activeDishImageIndex: number;
+  isSaving: boolean;
+  activeTab: 'general' | 'characteristics' | 'ingredients' | 'modifiers' | 'media';
+  setActiveTab: (tab: 'general' | 'characteristics' | 'ingredients' | 'modifiers' | 'media') => void;
+  handleLocalImageUploadWrapper: (e: ChangeEvent<HTMLInputElement>) => Promise<void>;
+  handlePrevDishImage: () => void;
+  handleNextDishImage: () => void;
+  handleSelectDishImage: (index: number) => void;
+  handleOpenDishModal: (categoryId: string, dish?: Dish | null) => void;
+  handleSaveDish: () => Promise<void>;
+  modifierGroups: ModifierGroupLookup[];
+}
+
+export interface DishModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  dish?: Dish | null;
+  state: UseDishModalReturn;
+}
+
+export interface DishLivePreviewProps {
+  form: DishFormValues;
+  imageUrl?: string | null;
 }
