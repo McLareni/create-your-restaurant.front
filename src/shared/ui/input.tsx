@@ -19,36 +19,36 @@ export const Input = ({
   ...props
 }: InputProps) => {
   return (
-    <div className="flex w-full flex-col gap-1.5">
+    <div className="flex w-full flex-col gap-1.5 text-left">
       {label && (
-        <label htmlFor={id} className="text-sm font-medium text-brand-espresso dark:text-brand-cream">
+        <label htmlFor={id} className="text-xs font-bold uppercase tracking-widest text-text-muted">
           {label}
         </label>
       )}
-      <div className="relative flex items-center">
+      <div className="relative flex items-center w-full">
         {leftIcon && (
-          <div className="pointer-events-none absolute left-3 text-brand-gray dark:text-brand-gray/80">
+          <div className="pointer-events-none absolute left-4 text-text-muted">
             {leftIcon}
           </div>
         )}
         <input
           id={id}
-          className={`h-12 w-full rounded-md border bg-white dark:bg-brand-mocha px-3 py-2 text-sm text-brand-espresso dark:text-brand-cream outline-none transition-colors placeholder:text-brand-gray/60 dark:placeholder:text-brand-gray/40 focus:border-brand-copper focus:ring-1 focus:ring-brand-copper disabled:cursor-not-allowed disabled:opacity-50 ${
-            leftIcon ? 'pl-10' : ''
+          className={`h-12 w-full rounded-xl border bg-bg-surface dark:bg-bg-element px-4 py-2 text-sm text-text-main outline-none transition-colors placeholder:text-text-muted/40 focus:border-brand-gold focus:ring-1 focus:ring-brand-gold/30 disabled:cursor-not-allowed disabled:opacity-50 ${
+            leftIcon ? 'pl-11' : ''
           } ${
             rightElement ? 'pr-35' : ''
           } ${
-            error ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-brand-gray/30 dark:border-brand-gray/50'
+            error ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-border-main'
           } ${className}`}
           {...props}
         />
         {rightElement && (
-          <div className="absolute right-3 flex items-center gap-2 text-sm text-brand-gray">
+          <div className="absolute right-4 flex items-center gap-2 text-sm text-text-muted">
             {rightElement}
           </div>
         )}
       </div>
-      {hint && !error && <span className="text-xs text-brand-gray">{hint}</span>}
+      {hint && !error && <span className="text-xs text-text-muted/70">{hint}</span>}
       {error && <span className="text-xs text-red-500">{error}</span>}
     </div>
   );

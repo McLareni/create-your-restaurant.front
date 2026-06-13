@@ -1,6 +1,6 @@
 'use client';
 
-import { FloatingPanel, Input, Button } from '@/shared/ui';
+import { FloatingPanel, Input } from '@/shared/ui';
 import { Zap, Info } from 'lucide-react';
 import { useMarketplace } from '@/features/marketplace/hooks/useMarketplace';
 import { ModuleCard } from '@/features/marketplace/components/moduleCard';
@@ -9,20 +9,26 @@ export const MarketplaceList = () => {
   const state = useMarketplace();
 
   return (
-    <div className="flex h-full flex-col p-6">
-      <div className="mb-8 flex items-center justify-between">
+    <div className="flex min-h-screen w-full flex-col p-8 bg-bg-main text-text-main overflow-x-hidden transition-colors">
+      
+      <div className="mb-8 flex items-center justify-between w-full">
         <div>
-          <h1 className="text-3xl font-serif font-bold text-brand-espresso dark:text-brand-cream flex items-center gap-3">
-            <Zap className="h-8 w-8 text-brand-copper" />
+          <h1 className="text-2xl font-bold tracking-tight text-text-main flex items-center gap-2.5">
+            <div className="h-9 w-9 rounded-lg bg-brand-emerald flex items-center justify-center text-white">
+              <Zap className="h-4 w-4 fill-white text-white" />
+            </div>
             {state.t('marketplace.title')}
           </h1>
-          <p className="mt-2 text-brand-gray dark:text-brand-gray/80 max-w-2xl">
+          <p className="mt-1 text-xs text-text-muted max-w-2xl font-light">
             {state.t('marketplace.subtitle')}
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-8">
+      <div 
+        className="grid gap-6 pb-12 w-full"
+        style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}
+      >
         {state.modules.map((mod) => (
           <ModuleCard 
             key={mod.key} 
@@ -43,15 +49,15 @@ export const MarketplaceList = () => {
           isOpen={!!state.selectedModule}
           onClose={state.handleCloseConnectModal}
           title={state.t('marketplace.connectModal.title')}
-          className="w-full max-w-md"
+          className="w-full max-w-md border border-border-main bg-bg-surface shadow-md rounded-2xl"
         >
-          <form action={state.handleConfirmConnectionAction} className="space-y-4 text-brand-espresso dark:text-brand-cream">
-            <div className="bg-brand-cream/40 dark:bg-brand-espresso/40 p-4 rounded-xl border border-brand-gray/10 flex gap-3 text-sm leading-relaxed">
-              <Info className="h-5 w-5 text-brand-copper shrink-0 mt-0.5" />
-              <p>{state.modalDescription}</p>
+          <form action={state.handleConfirmConnectionAction} className="space-y-4 text-text-main">
+            <div className="bg-bg-element border border-border-main p-4 rounded-xl flex gap-2.5 text-xs leading-relaxed font-medium">
+              <Info className="h-4 w-4 text-brand-emerald shrink-0 mt-0.5" />
+              <p className="text-text-main/90">{state.modalDescription}</p>
             </div>
 
-            <div>
+            <div className="p-0.5">
               <Input
                 id="activation-code-input"
                 label={state.t('marketplace.connectModal.activationCodeLabel')}
@@ -59,28 +65,26 @@ export const MarketplaceList = () => {
                 value={state.activationCode}
                 onChange={(e) => state.setActivationCode(e.target.value)}
                 disabled={state.isPending}
+                className="rounded-lg h-11 border-border-main bg-bg-element text-text-main placeholder:text-text-muted/40"
               />
             </div>
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-brand-gray/10">
-              <Button
+            <div className="flex justify-end gap-2.5 pt-4 border-t border-border-main">
+              <button
                 type="button"
-                variant="ghost"
-                className="h-10 text-xs font-semibold"
                 onClick={state.handleCloseConnectModal}
                 disabled={state.isPending}
+                className="px-3.5 h-9 text-xs font-semibold text-text-muted hover:text-text-main hover:bg-bg-element rounded-lg transition-all cursor-pointer"
               >
                 {state.t('confirmModal.cancel')}
-              </Button>
-              <Button
+              </button>
+              <button
                 type="submit"
-                variant="brand"
-                className="px-5 h-10 text-xs font-bold shadow-md"
-                isLoading={state.isPending}
                 disabled={state.isPending}
+                className="px-4 h-9 text-xs font-bold text-white bg-brand-emerald hover:bg-brand-emerald-hover active:scale-98 rounded-lg transition-all cursor-pointer"
               >
                 {state.t('marketplace.connectModal.confirmBtn')}
-              </Button>
+              </button>
             </div>
           </form>
         </FloatingPanel>

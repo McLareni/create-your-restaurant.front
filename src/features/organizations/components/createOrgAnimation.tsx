@@ -27,7 +27,7 @@ export const CreateOrgAnimation = ({ state }: CreateOrgAnimationProps) => {
     <div className="flex h-screen w-full flex-col items-center justify-center bg-bg-main text-text-main p-6 text-center transition-colors duration-300">
       <div className="w-full max-w-md rounded-3xl bg-bg-surface p-8 shadow-2xl border border-border-main flex flex-col items-center gap-6 animate-in zoom-in-95 duration-300">
         {animationStep < 4 ? (
-          <Loader2 className="h-12 w-12 animate-spin text-brand-copper" />
+          <Loader2 className="h-12 w-12 animate-spin text-brand-emerald" />
         ) : (
           <div className="h-12 w-12 rounded-full bg-green-500/10 text-green-500 flex items-center justify-center text-2xl font-bold">✓</div>
         )}

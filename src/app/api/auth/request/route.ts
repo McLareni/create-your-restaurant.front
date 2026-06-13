@@ -5,6 +5,8 @@ export async function POST(request: Request) {
     const { email } = await request.json();
     const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+    console.log("===> МАРШРУТ NEXT.JS СПРАЦЮВАВ! Очікуємо відповідь від бекенду...");
+
     const response = await fetch(`${API_URL}/users`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -16,7 +18,7 @@ export async function POST(request: Request) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ errorCode: 'serverError' }, { status: 500 });
   }
 }

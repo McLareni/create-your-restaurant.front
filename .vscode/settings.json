@@ -11,5 +11,9 @@
     "typescriptreact"
   ],
   "css.validate": false,
-  "scss.validate": true
+  "scss.validate": true,
+  "css.lint.unknownAtRules": "ignore",
+  "[css]": {
+    "editor.defaultFormatter": "vscode.css-language-features"
+  }
 }

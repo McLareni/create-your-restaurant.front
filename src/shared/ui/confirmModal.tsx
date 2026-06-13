@@ -10,8 +10,8 @@ interface ConfirmModalProps {
   onConfirm: () => void;
   title?: string;
   description?: string;
-  confirmLabel?: string;   // Новий проп для тексту
-  isDestructive?: boolean; // Новий проп для кольору
+  confirmLabel?: string;
+  isDestructive?: boolean;
 }
 
 export const ConfirmModal = ({ 
@@ -21,7 +21,7 @@ export const ConfirmModal = ({
   title, 
   description,
   confirmLabel,
-  isDestructive = true // За замовчуванням залишаємо червоним (для видалень)
+  isDestructive = true
 }: ConfirmModalProps) => {
   const { t } = useTranslation();
 
@@ -32,17 +32,16 @@ export const ConfirmModal = ({
       title={title || t('confirmModal.title')}
     >
       <div className="flex flex-col gap-6">
-        <p className="text-brand-gray dark:text-brand-gray/80">
+        <p className="text-text-muted font-light">
           {description || t('confirmModal.defaultDesc')}
         </p>
-        <div className="flex justify-end gap-3 pt-2 border-t border-brand-gray/10 dark:border-brand-gray/20">
-          <Button variant="ghost" onClick={onClose}>
+        <div className="flex justify-end gap-3 pt-4 border-t border-solid border-border-main">
+          <Button variant="ghost" onClick={onClose} className="h-10 text-xs">
             {t('confirmModal.cancel')}
           </Button>
           <Button 
             variant="brand" 
-            // Якщо це деструктивна дія — робимо червоним, інакше — стандартним мідним
-            className={isDestructive ? "bg-red-500 hover:bg-red-600 border-red-500 text-white" : ""} 
+            className={`h-10 text-xs px-5 ${isDestructive ? "bg-red-500 hover:bg-red-600 text-white" : ""}`} 
             onClick={onConfirm}
           >
             {confirmLabel || t('confirmModal.confirm')}

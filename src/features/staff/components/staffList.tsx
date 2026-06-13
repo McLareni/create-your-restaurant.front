@@ -21,23 +21,33 @@ export const StaffList = () => {
 
   return (
     <div className="flex h-full flex-col text-text-main">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6 pb-4 border-b border-border-main shrink-0">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6 pb-5 border-b border-solid border-border-main shrink-0">
         <div>
-          <h2 className="text-2xl font-serif font-bold text-text-main">{t('staff.title')}</h2>
-          <p className="text-sm text-text-muted mt-1">{t('staff.subtitle')}</p>
+          <h2 className="text-xl md:text-2xl font-bold text-text-main">{t('staff.title')}</h2>
+          <p className="text-xs md:text-sm text-text-muted mt-1 font-light">{t('staff.subtitle')}</p>
         </div>
-        <div className="flex gap-3">
-          <Button variant="outline" icon={<ShieldCheck className="h-4 w-4" />} onClick={() => setIsRolesModalOpen(true)}>
+        <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+          <Button 
+            variant="outline" 
+            icon={<ShieldCheck className="h-4 w-4" />} 
+            onClick={() => setIsRolesModalOpen(true)} 
+            className="flex-1 sm:flex-none text-xs md:text-sm h-11 px-4 border border-border-main bg-bg-surface text-text-main hover:border-brand-emerald hover:text-brand-emerald transition-all shadow-sm rounded-xl font-bold"
+          >
             {t('staff.modal.rolesPanelBtn')}
           </Button>
-          <Button variant="brand" icon={<Plus className="h-4 w-4" />} onClick={openCreateModal}>
+          <Button 
+            variant="brand" 
+            icon={<Plus className="h-4 w-4" />} 
+            onClick={openCreateModal} 
+            className="flex-1 sm:flex-none text-xs md:text-sm h-11 px-5 bg-brand-emerald hover:bg-brand-emerald-hover text-white border border-border-main/10 transition-all active:scale-98 flex items-center justify-center gap-1.5 rounded-xl shadow-md font-bold"
+          >
             {t('staff.addBtn')}
           </Button>
         </div>
       </div>
 
-      <div className="mb-5 relative w-full max-w-md shrink-0">
-        <span className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-text-muted">
+      <div className="mb-6 relative w-full max-w-md shrink-0 px-1">
+        <span className="absolute inset-y-0 left-5 flex items-center pointer-events-none text-text-muted/50">
           <Search className="h-4 w-4" />
         </span>
         <input
@@ -45,21 +55,21 @@ export const StaffList = () => {
           placeholder={t('staff.searchPlaceholder')}
           value={localSearch}
           onChange={(e) => setLocalSearch(e.target.value)}
-          className="w-full h-10 pl-9 pr-4 text-sm bg-bg-surface border border-border-main rounded-xl outline-none focus:border-brand-copper transition-colors"
+          className="w-full h-11 pl-11 pr-4 text-sm bg-bg-surface border border-border-main rounded-xl outline-none focus:border-brand-emerald focus:ring-1 focus:ring-brand-emerald/30 transition-colors placeholder:text-text-muted/40 text-text-main shadow-xs"
         />
       </div>
 
       <div className="flex-1 overflow-hidden flex flex-col">
         {isLoading && staff.length === 0 ? (
           <div className="flex flex-1 items-center justify-center p-12 text-text-muted font-medium animate-pulse min-h-[40vh]">
-            <RefreshCw className="h-5 w-5 animate-spin mr-2 text-brand-copper" />
+            <RefreshCw className="h-5 w-5 animate-spin mr-2 text-brand-emerald" />
             {t('actions.loading')}
           </div>
         ) : staff.length === 0 ? (
           <EmptyState icon={<Users className="text-text-muted/30" />} title={t('staff.emptyTitle')} description={t('staff.emptyDesc')} actionLabel={t('staff.addBtn')} onAction={openCreateModal} />
         ) : (
-          <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar pb-6">
-            <div className="qr-tables-grid">
+          <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ scrollbarGutter: 'stable' }}>
+            <div className="qr-tables-grid p-2 pt-1 pb-8">
               {staff.map((member: StaffMember) => (
                 <StaffCard 
                   key={member.id} 
@@ -85,12 +95,11 @@ export const StaffList = () => {
         panelId="staff-roles-permissions-panel"
         isOpen={isRolesModalOpen}
         onClose={() => setIsRolesModalOpen(false)}
-        title={t('staff.modal.addRoleLabel')}
-        className="w-140 border-brand-copper/20 shadow-2xl"
+        title={t('staff.modal.rolesPanelBtn')}
+        className="w-full max-w-xl border border-solid border-border-main shadow-2xl rounded-2xl"
       >
-        <div className="flex flex-col gap-6 text-text-main">
-          <div className="bg-bg-main p-4 rounded-xl border border-border-main flex flex-col gap-4">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-text-muted">{t('staff.modal.addRoleLabel')}</h4>
+        <div className="flex flex-col gap-8 text-text-main">
+          <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-4">
               <Input
                 id="newRoleNameInput"
@@ -98,19 +107,23 @@ export const StaffList = () => {
                 placeholder={t('staff.modal.addRolePlaceholder')}
                 value={roleLogic.newRoleName}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => roleLogic.setNewRoleName(e.target.value)}
+                className="h-11 border-border-main"
               />
               
-              <div className="flex flex-col gap-2.5 mt-1">
-                <span className="text-xs font-semibold text-text-muted">{t('staff.modal.permissionsTitle')}</span>
-                <div className="grid gap-2 bg-bg-surface p-3 rounded-lg border border-border-main">
+              <div className="flex flex-col gap-3">
+                <span className="text-[11px] font-bold uppercase tracking-widest text-text-muted px-1">
+                  {t('staff.modal.permissionsTitle')}
+                </span>
+                <div className="grid gap-1 bg-bg-surface dark:bg-bg-element p-2 rounded-lg border border-solid border-border-main/50">
                   {roleLogic.permissions.map((perm) => (
-                    <label key={perm.id} className="flex items-center gap-3 px-1 py-1 hover:bg-bg-hover rounded-md cursor-pointer transition-colors duration-150">
+                    <label key={perm.id} className="flex items-center gap-3 px-3 py-2 hover:bg-bg-element/20 dark:hover:bg-bg-surface/5 rounded-md cursor-pointer transition-colors duration-150 group">
                       <Checkbox
                         id={`perm-${perm.id}`}
                         checked={roleLogic.selectedPermissions.includes(perm.id)}
                         onChange={() => roleLogic.togglePermission(perm.id)}
+                        className="scale-90"
                       />
-                      <span className="text-xs font-medium text-text-main">{perm.label}</span>
+                      <span className="text-sm font-medium text-text-main/90 group-hover:text-text-main transition-colors">{perm.label}</span>
                     </label>
                   ))}
                 </div>
@@ -121,26 +134,28 @@ export const StaffList = () => {
                 variant="brand"
                 onClick={roleLogic.handleAddRoleClick}
                 disabled={roleLogic.isCreatingRole || !roleLogic.newRoleName.trim()}
-                className="w-full mt-2 h-10 font-bold"
+                className="w-full h-11 font-bold bg-brand-emerald hover:bg-brand-emerald-hover text-white rounded-xl transition-all shadow-sm"
               >
                 {t('staff.modal.addRoleBtn')}
               </Button>
             </div>
           </div>
 
-          <div className="flex flex-col gap-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-text-muted">{t('staff.modal.existingRoles')}</h4>
-            <div className="max-h-60 overflow-y-auto pr-1 custom-scrollbar flex flex-col gap-2">
+          <div className="flex flex-col gap-4 border-t border-solid border-border-main pt-6">
+            <h4 className="text-[11px] font-bold uppercase tracking-widest text-text-muted px-1">{t('staff.modal.existingRoles')}</h4>
+            <div className="max-h-52 overflow-y-auto pr-1 custom-scrollbar flex flex-col gap-2">
               {roles.length === 0 ? (
-                <div className="text-xs text-text-muted text-center py-4 font-medium">{t('staff.modal.noRoles')}</div>
+                <div className="text-xs text-text-muted text-center py-6 font-light bg-bg-surface dark:bg-bg-element rounded-lg border border-dashed border-border-main">
+                  {t('staff.modal.noRoles')}
+                </div>
               ) : (
                 roles.map((role: CustomStaffRole) => (
-                  <div key={role.id} className="flex items-center justify-between h-11 px-4 bg-bg-surface border border-border-main rounded-xl shadow-xs">
+                  <div key={role.id} className="flex items-center justify-between h-12 px-4 bg-bg-surface dark:bg-bg-element border border-solid border-border-main rounded-lg hover:border-brand-emerald/30 transition-colors group">
                     <span className="text-sm font-semibold text-text-main">{role.name}</span>
                     <button
                       type="button"
                       onClick={(e) => roleLogic.handleRemoveRoleClick(e, role.id)}
-                      className="text-text-muted hover:text-red-500 p-1.5 rounded-lg hover:bg-red-500/5 transition-colors outline-none cursor-pointer"
+                      className="text-text-muted hover:text-red-500 p-2 rounded-lg hover:bg-red-500/5 transition-all outline-none cursor-pointer border-0 bg-transparent"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>

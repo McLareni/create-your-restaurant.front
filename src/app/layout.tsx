@@ -5,7 +5,7 @@ import { ThemeProvider } from "@/shared/providers/themeProvider";
 import "./globals.css";
 
 const geist = Geist({
-  subsets: ["latin"],
+  subsets: ["latin", "cyrillic"],
 });
 
 export const metadata: Metadata = {

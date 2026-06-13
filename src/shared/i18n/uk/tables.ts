@@ -1,12 +1,4 @@
 export const tables = {
-  card: {
-    numberTitle: 'Стіл №{{number}}',
-    typeLabel: 'Тип зони',
-  },
-  status: {
-    active: 'Активний',
-    inactive: 'Неактивний',
-  },
   types: {
     INDOCK: 'Основна зала',
     TERRACE: 'Тераса / Літній майданчик',

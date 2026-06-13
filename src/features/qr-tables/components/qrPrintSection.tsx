@@ -2,57 +2,67 @@
 
 import React from 'react';
 import Image from 'next/image';
-import { useTranslation } from '@/shared/hooks/useTranslation';
 import { QrPrintSectionProps } from '@/features/qr-tables/types/tables.types';
+import { useQrPrint } from '@/features/qr-tables/hooks/useQrPrint';
 
-export const QrPrintSection = ({
-  tables,
-  selectedIds,
-  printingDataUrls,
-}: QrPrintSectionProps) => {
-  const { t } = useTranslation();
+export const QrPrintSection = (props: QrPrintSectionProps) => {
+  const { selectedIds } = props;
+  const { t, printQrImages, tablesToPrint } = useQrPrint(props);
 
   if (selectedIds.length === 0) return null;
 
-  const tablesToPrint = tables.filter((table) => selectedIds.includes(table.id));
-
   return (
-    <div className="hidden print:block print-isolate-canvas print-canvas-target bg-white text-black p-8">
-      <div className="grid grid-cols-2 gap-8">
+    <div className="hidden print:block bg-white w-full h-full p-6">
+      <div className="grid grid-cols-2 gap-8 w-full max-w-4xl mx-auto">
         {tablesToPrint.map((table) => {
-          const qrCodeUrl = printingDataUrls[table.id];
+          const printableUrl = printQrImages[table.id];
           return (
             <div
               key={table.id}
-              className="flex flex-col items-center justify-center border-2 border-dashed border-gray-400 p-6 rounded-xl text-center print-no-break"
+              className="flex flex-col items-center justify-between bg-brand-espresso text-brand-cream p-8 rounded-3xl text-center aspect-2/3 max-w-80 mx-auto border border-brand-emerald/30 relative overflow-hidden shadow-xl"
             >
-              <h2 className="text-2xl font-bold tracking-wide text-gray-900 mb-1">
-                {t('qr.table')} {table.tableNumber}
-              </h2>
-              {table.type && (
-                <span className="text-sm font-medium text-gray-600 bg-gray-100 px-3 py-1 rounded-full mb-4">
-                  {table.type}
-                </span>
-              )}
+              <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-brand-emerald/40 m-4 rounded-tl-md" />
+              <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-brand-emerald/40 m-4 rounded-tr-md" />
+              <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-brand-emerald/40 m-4 rounded-bl-md" />
+              <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-brand-emerald/40 m-4 rounded-br-md" />
+
+              <div className="w-full flex flex-col items-center pt-2">
+                <h2 className="text-3xl font-bold tracking-wide text-white">
+                  {t('qr.table')} {table.tableNumber}
+                </h2>
+                {table.type && (
+                  <span className="mt-2 text-[10px] font-bold uppercase tracking-widest text-brand-emerald bg-brand-mocha border border-brand-emerald/20 px-3 py-1 rounded-full">
+                    {table.type}
+                  </span>
+                )}
+              </div>
               
-              {qrCodeUrl ? (
-                <Image
-                  src={qrCodeUrl}
-                  alt={`${t('qr.table')} ${table.tableNumber}`}
-                  width={192}
-                  height={192}
-                  unoptimized
-                  className="object-contain"
-                />
-              ) : (
-                <div className="w-48 h-48 bg-gray-200 animate-pulse rounded-lg flex items-center justify-center text-xs text-gray-400">
-                  {t('qr.print.generating')}
-                </div>
-              )}
+              <div className="bg-white p-4 rounded-2xl shadow-md flex items-center justify-center my-4 w-48 h-48">
+                {printableUrl ? (
+                  <Image
+                    src={printableUrl}
+                    alt={`${t('qr.table')} ${table.tableNumber}`}
+                    width={160}
+                    height={160}
+                    unoptimized
+                    className="w-40 h-40 object-contain block rounded-lg"
+                  />
+                ) : (
+                  <div className="w-40 h-40 bg-brand-cream rounded-xl flex items-center justify-center text-xs text-brand-gray font-medium">
+                    {t('qr.print.generating')}
+                  </div>
+                )}
+              </div>
               
-              <p className="text-xs text-gray-500 mt-4 font-mono">
-                {t('qr.print.scanHint')}
-              </p>
+              <div className="w-full flex flex-col items-center pb-2">
+                <p className="text-xs text-brand-cream/90 max-w-50 leading-relaxed">
+                  {t('qr.print.scanHint')}
+                </p>
+                <div className="w-8 h-px bg-brand-emerald/30 my-3" />
+                <p className="text-[9px] text-brand-gray uppercase tracking-widest font-mono">
+                  gustio menu
+                </p>
+              </div>
             </div>
           );
         })}

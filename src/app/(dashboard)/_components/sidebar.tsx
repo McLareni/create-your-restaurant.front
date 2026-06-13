@@ -20,7 +20,7 @@ export const Sidebar = () => {
           className="flex w-full items-center justify-between rounded-xl bg-bg-surface p-3 border border-border-main transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1) hover:border-brand-copper/30 shadow-xs outline-none cursor-pointer"
         >
           <div className="flex items-center gap-3 overflow-hidden flex-1">
-            <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-copper text-white font-serif text-base font-bold shadow-sm transition-transform duration-300 overflow-hidden">
+            <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-copper text-white text-base font-bold shadow-sm transition-transform duration-300 overflow-hidden">
               {board.activeRestaurant?.imageUrl ? (
                 <Image 
                   src={board.activeRestaurant.imageUrl} 
@@ -212,10 +212,10 @@ export const Sidebar = () => {
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-white' : item.highlight ? 'text-brand-gold' : 'text-text-muted'}`} />
+                      <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-white' : item.highlight ? 'text-brand-emerald' : 'text-text-muted'}`} />
                       <span>{item.label}</span>
                     </div>
-                    {item.highlight && !isActive && <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-gold animate-pulse"></div>}
+                    {item.highlight && !isActive && <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-emerald animate-pulse"></div>}
                   </Link>
                 );
               })}

@@ -1,139 +1,162 @@
 'use client';
 
-import { Mail, Key, Loader2 } from 'lucide-react';
-import { Input, Button, Checkbox, GoogleIcon, AppleIcon } from '@/shared/ui';
+import { Mail, Key, ArrowRight, RefreshCw, LogIn } from 'lucide-react';
+import { Checkbox, GoogleIcon, AppleIcon } from '@/shared/ui';
 import { useLoginForm } from '@/features/auth/hooks/useLoginForm';
 
 export const LoginForm = () => {
   const login = useLoginForm();
 
   return (
-    <div className="w-full max-w-md rounded-3xl bg-white dark:bg-brand-mocha p-8 shadow-2xl border border-brand-gray/20 dark:border-brand-gray/20 transition-colors"> 
+    <div className="w-full max-w-md rounded-2xl bg-brand-espresso/60 backdrop-blur-xl p-8 shadow-premium border border-white/8 transition-all duration-300">
       <div className="mb-8 text-center lg:text-left">
-        <h2 className="text-[32px] font-serif font-medium leading-tight text-brand-espresso dark:text-brand-cream">
+        <h2 className="text-3xl font-serif font-bold tracking-tight text-white">
           {login.t('auth.login.title')}
         </h2>
-        <p className="mt-2 text-sm leading-relaxed text-brand-gray dark:text-brand-gray/80">
+        <p className="mt-2 text-xs leading-relaxed text-white/70">
           {login.t('auth.login.subtitle')}
         </p>
       </div>
 
       <form action={login.handleFormAction} className="flex flex-col gap-5">
-        <div className="p-1 -m-1">
-          <Input
-            id="email"
-            type="email"
-            label={login.t('auth.login.emailLabel')}
-            placeholder={login.t('auth.login.emailPlaceholder')}
-            leftIcon={<Mail className="h-5 w-5" />}
-            hint={login.t('auth.login.emailHint')}
-            value={login.email}
-            onChange={login.handleEmailChange}
-            error={login.emailError}
-            disabled={login.isSubmitting || login.step === 2}
-            autoComplete="email"
-            required
-          />
-        </div>
-
-        {login.step === 2 && (
-          <div className="p-1 -m-1 flex flex-col gap-2">
-            <Input
-              id="code"
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9\s]*"
-              label={login.t('auth.login.codeLabel')}
-              placeholder={login.t('auth.login.codePlaceholder')}
-              leftIcon={<Key className="h-5 w-5" />}
-              value={login.formatDisplayCode(login.code)}
-              onChange={login.handleCodeChange}
-              error={login.codeError}
-              disabled={login.isSubmitting}
-              autoComplete="one-time-code"
-              maxLength={7}
-              required
-            />
+        {login.step === 1 ? (
+          <div className="flex flex-col gap-1">
+            <label htmlFor="email" className="text-xs font-semibold text-white/80 mb-1.5 px-0.5">
+              {login.t('auth.login.emailLabel')}
+            </label>
+            <div className="relative flex items-center">
+              <Mail className="absolute left-3.5 h-4 w-4 text-white/40" />
+              <input
+                id="email"
+                type="email"
+                value={login.email}
+                onChange={login.handleEmailChange}
+                placeholder={login.t('auth.login.emailPlaceholder')}
+                disabled={login.isSubmitting}
+                className="w-full h-11 pl-10 pr-3.5 bg-white/2 border border-white/8 focus:border-brand-gold focus:ring-4 focus:ring-brand-gold/10 rounded-xl transition-all text-sm outline-none text-white placeholder:text-white/30"
+              />
+            </div>
+            <p className="mt-1.5 text-[11px] text-white/50 px-0.5">
+              {login.t('auth.login.emailHint')}
+            </p>
+            {login.emailError && (
+              <span className="text-xs text-red-400 mt-1 px-0.5">{login.emailError}</span>
+            )}
+          </div>
+        ) : (
+          <div className="flex flex-col gap-1 animate-fade-in">
+            <div className="flex items-center justify-between mb-1.5 px-0.5">
+              <label htmlFor="code" className="text-xs font-semibold text-white/80">
+                {login.t('auth.login.codeLabel')}
+              </label>
+              <span className="text-[11px] font-medium text-brand-gold">
+                {login.email}
+              </span>
+            </div>
+            <div className="relative flex items-center">
+              <Key className="absolute left-3.5 h-4 w-4 text-white/40" />
+              <input
+                id="code"
+                type="text"
+                maxLength={6}
+                value={login.code}
+                onChange={login.handleCodeChange}
+                placeholder={login.t('auth.login.codePlaceholder')}
+                disabled={login.isSubmitting}
+                className="w-full h-11 pl-10 pr-3.5 bg-white/2 border border-white/8 focus:border-brand-gold focus:ring-4 focus:ring-brand-gold/10 rounded-xl transition-all text-sm font-mono tracking-widest outline-none text-white placeholder:text-white/20"
+              />
+            </div>
+            {login.codeError && (
+              <span className="text-xs text-red-400 mt-1 px-0.5">{login.codeError}</span>
+            )}
             
-            <div className="text-right text-[13px] px-1">
-              {login.timeLeft > 0 ? (
-                <span className="text-brand-gray dark:text-brand-gray/80">
-                  {login.t('auth.login.resendCodeTimer')} <span className="font-medium text-brand-espresso dark:text-brand-cream">{login.formatTime(login.timeLeft)}</span>
-                </span>
-              ) : (
-                <button
-                  type="button"
-                  onClick={login.handleResendCode}
-                  disabled={login.isSubmitting}
-                  className="text-brand-copper hover:text-brand-gold transition-colors font-medium outline-none disabled:opacity-50 cursor-pointer"
-                >
-                  {login.t('auth.login.resendCode')}
-                </button>
-              )}
+            <div className="mt-2 flex items-center justify-end text-[11px] text-white/50 px-0.5">
+              <button
+                type="button"
+                onClick={login.handleResendCode}
+                disabled={login.timeLeft > 0 || login.isSubmitting}
+                className="text-brand-gold hover:text-brand-gold-hover font-semibold transition-colors disabled:opacity-50 flex items-center gap-1 cursor-pointer"
+              >
+                <RefreshCw className="h-3 w-3" />
+                {login.timeLeft > 0 
+                  ? `${login.t('auth.login.resendCodeTimer')} ${login.formatTime(login.timeLeft)}` 
+                  : login.t('auth.login.resendCode')}
+              </button>
             </div>
           </div>
         )}
 
-        <div className={login.isEmailSyntacticallyValid || login.step === 2 ? 'block' : 'hidden'}>
-          <div className="p-1 -m-1">
-            <Button 
-              variant="brand" 
-              type="submit" 
-              isLoading={login.isSubmitting} 
-              className="h-14 w-full text-lg shadow-lg shadow-brand-copper/20"
-              disabled={login.emailError !== ''}
-            >
-              {login.step === 1 ? login.t('auth.login.continueBtn') : login.t('auth.login.verifyBtn')}
-            </Button>
-          </div>
-        </div>
+        <button
+          type="submit"
+          disabled={login.isSubmitting || (login.step === 1 && !login.isEmailSyntacticallyValid)}
+          className="w-full h-11 text-xs font-bold tracking-wide text-brand-espresso bg-brand-gold hover:bg-brand-gold-hover active:scale-98 rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-brand-gold/5 transition-all cursor-pointer border border-brand-gold/20 disabled:opacity-30 disabled:scale-100 disabled:cursor-not-allowed"
+        >
+          {login.isSubmitting ? (
+            <RefreshCw className="h-4 w-4 animate-spin" />
+          ) : login.step === 1 ? (
+            <>
+              {login.t('auth.login.continueBtn')}
+              <ArrowRight className="h-4 w-4" />
+            </>
+          ) : (
+            <>
+              {login.t('auth.login.verifyBtn')}
+              <LogIn className="h-4 w-4" />
+            </>
+          )}
+        </button>
 
-        <div className="p-1 -m-1 flex justify-center mt-2">
-          <Checkbox 
-            id="terms" 
-            required
-            disabled={login.isSubmitting}
-          >
-            <span className="text-brand-gray dark:text-brand-gray/80">
-              {login.t('auth.login.termsPrefix')}
-              <a href="#" className="text-brand-copper hover:text-brand-gold transition-colors hover:underline">
-                {login.t('auth.login.privacyPolicy')}
-              </a> 
-              {login.t('auth.login.and')}
-              <a href="#" className="text-brand-copper hover:text-brand-gold transition-colors hover:underline">
-                {login.t('auth.login.terms')}
-              </a>.
-            </span>
-          </Checkbox>
-        </div>
+        {login.step === 1 && (
+          <div className="px-0.5 mt-1">
+            <Checkbox
+              id="terms"
+              name="terms"
+              required
+              className="text-white/60 border-white/10 bg-white/2 rounded-md focus:ring-brand-gold/30"
+            >
+              <span className="text-[11px] leading-snug text-white/60 block">
+                {login.t('auth.login.termsPrefix')}
+                <a href="/privacy" className="text-brand-gold hover:underline font-medium ml-1">
+                  {login.t('auth.login.privacyPolicy')}
+                </a>
+                {login.t('auth.login.and')}
+                <a href="/terms" className="text-brand-gold hover:underline font-medium ml-1">
+                  {login.t('auth.login.terms')}
+                </a>
+              </span>
+            </Checkbox>
+          </div>
+        )}
       </form>
 
-      <div className="my-6 flex items-center before:mt-0.5 before:flex-1 before:border-t before:border-brand-gray/20 dark:before:border-brand-gray/20 after:mt-0.5 after:flex-1 after:border-t after:border-brand-gray/20 dark:after:border-brand-gray/20">
-        <span className="mx-4 mb-0 text-center text-sm text-brand-gray dark:text-brand-gray/80">
-          {login.t('auth.login.or')}
-        </span>
-      </div>
+      {login.step === 1 && (
+        <>
+          <div className="my-6 flex items-center before:mt-0.5 before:flex-1 before:border-t before:border-white/6 after:mt-0.5 after:flex-1 after:border-t after:border-white/6">
+            <span className="mx-3 text-center text-[11px] font-medium tracking-wide uppercase text-white/40">
+              {login.t('auth.login.or')}
+            </span>
+          </div>
 
-      <div className="flex flex-col gap-3 p-1 -m-1">
-        <Button 
-          variant="outlineDark" 
-          type="button" 
-          className="w-full text-brand-espresso dark:text-brand-cream border-brand-gray/30 dark:border-brand-gray/50 hover:bg-brand-gray/10 dark:hover:bg-brand-gray/20"
-          icon={<GoogleIcon className="h-5 w-5" />}
-          disabled={login.isSubmitting}
-        >
-          {login.t('auth.login.google')}
-        </Button>
-        <Button 
-          variant="outlineDark" 
-          type="button" 
-          className="w-full text-brand-espresso dark:text-brand-cream border-brand-gray/30 dark:border-brand-gray/50 hover:bg-brand-gray/10 dark:hover:bg-brand-gray/20"
-          icon={<AppleIcon className="h-5 w-5" />}
-          disabled={login.isSubmitting}
-        >
-          {login.t('auth.login.apple')}
-        </Button>
-      </div>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              disabled={login.isSubmitting}
+              className="h-11 px-4 text-xs font-semibold text-white bg-white/2 hover:bg-white/5 active:scale-98 border border-white/8 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40"
+            >
+              <GoogleIcon className="h-4 w-4" />
+              <span>Google</span>
+            </button>
+            <button
+              type="button"
+              disabled={login.isSubmitting}
+              className="h-11 px-4 text-xs font-semibold text-white bg-white/2 hover:bg-white/5 active:scale-98 border border-white/8 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-40"
+            >
+              <AppleIcon className="h-4 w-4" />
+              <span>Apple</span>
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 };

@@ -19,28 +19,31 @@ const DraggableContent = ({ title, children, onClose, coordinates, className }: 
     <div 
       ref={setNodeRef} 
       style={style} 
-      className={`relative w-full max-w-lg rounded-2xl bg-white dark:bg-brand-mocha dark:border dark:border-brand-gray/20 shadow-2xl animate-in zoom-in-95 duration-200 flex flex-col pointer-events-auto ${className || ''}`}
+      className={`relative w-full max-w-lg rounded-3xl bg-bg-surface border border-solid border-border-main shadow-md flex flex-col pointer-events-auto ${className || ''}`}
     >
       <div 
         {...attributes} 
         {...listeners}
-        className={`flex items-center justify-between border-b border-brand-gray/20 dark:border-brand-gray/10 px-6 py-4 cursor-grab active:cursor-grabbing ${isDragging ? 'bg-brand-cream/50 dark:bg-brand-gray/10 rounded-t-2xl' : ''}`}
+        className={`flex items-center justify-between border-b border-solid border-border-main px-6 py-4 cursor-grab active:cursor-grabbing rounded-t-3xl transition-colors ${
+          isDragging ? 'bg-bg-element/70' : 'bg-bg-element/30'
+        }`}
       >
         <div className="flex items-center gap-3">
-          <GripHorizontal className="h-5 w-5 text-brand-gray/50" />
-          <h3 className="text-lg font-semibold text-brand-espresso dark:text-brand-cream select-none">{title}</h3>
+          <GripHorizontal className="h-5 w-5 text-text-muted/40" />
+          <h3 className="text-base font-bold text-text-main select-none">{title}</h3>
         </div>
         
         <button 
+          type="button"
           onPointerDown={(e) => e.stopPropagation()} 
           onClick={onClose}
-          className="rounded-full p-2 text-brand-gray transition-colors hover:bg-brand-gray/10 dark:hover:bg-brand-gray/20 dark:hover:text-brand-cream outline-none"
+          className="rounded-xl p-1.5 text-text-muted transition-colors hover:bg-bg-element hover:text-text-main outline-none cursor-pointer"
         >
           <X className="h-5 w-5" />
         </button>
       </div>
       
-      <div className="p-6 cursor-default">
+      <div className="p-6 cursor-default text-text-main">
         {children}
       </div>
     </div>
@@ -86,7 +89,7 @@ export const Modal = (props: ModalProps) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-0 pointer-events-none">
       <div 
-        className="absolute inset-0 bg-brand-espresso/40 dark:bg-black/60 backdrop-blur-sm transition-opacity pointer-events-auto" 
+        className="absolute inset-0 bg-black/20 dark:bg-black/60 backdrop-blur-xs transition-opacity pointer-events-auto" 
         onClick={onClose}
       />
       

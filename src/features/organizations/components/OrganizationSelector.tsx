@@ -79,10 +79,10 @@ export const OrganizationSelector = () => {
   };
 
   return (
-    <div className="w-full space-y-2 p-2 bg-neutral-900/50 rounded-xl border border-neutral-800">
-      <div className="px-2 flex items-center justify-between text-xs font-semibold text-neutral-400 uppercase tracking-wider">
+    <div className="w-full space-y-2 p-2 bg-bg-element/50 rounded-xl border border-border-main">
+      <div className="px-2 flex items-center justify-between text-xs font-semibold text-text-muted uppercase tracking-wider">
         <span>{t('sidebar.orgSelector.switch')}</span>
-        <span className="text-[10px] text-neutral-500 font-mono normal-case">
+        <span className="text-[10px] text-text-muted/70 font-mono normal-case">
           {restaurants.length} / {maxAllowed}
         </span>
       </div>
@@ -101,13 +101,13 @@ export const OrganizationSelector = () => {
               onDrop={() => handleDrop(index)}
               className={`w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-lg transition-all duration-200 group border ${
                 isActive 
-                  ? 'bg-neutral-800 text-white font-medium border-neutral-700' 
+                  ? 'bg-bg-surface text-brand-emerald font-semibold border-border-main shadow-2xs' 
                   : isLocked
-                    ? 'bg-neutral-950/40 text-neutral-600 border-transparent opacity-50'
-                    : 'text-neutral-400 hover:bg-neutral-800/40 hover:text-neutral-200 border-transparent'
+                    ? 'bg-bg-main/20 text-text-muted/40 border-transparent opacity-40 select-none'
+                    : 'text-text-muted hover:bg-bg-hover hover:text-text-main border-transparent'
               }`}
             >
-              <div className="cursor-grab active:cursor-grabbing text-neutral-600 hover:text-neutral-400 p-0.5 shrink-0 transition-colors">
+              <div className="cursor-grab active:cursor-grabbing text-text-muted/50 hover:text-text-muted p-0.5 shrink-0 transition-colors">
                 <GripVertical className="w-3.5 h-3.5" />
               </div>
 
@@ -118,13 +118,13 @@ export const OrganizationSelector = () => {
                 <span className="truncate pr-2">{res.name}</span>
                 
                 {isActive && !isLocked && (
-                  <Check className="w-4 h-4 text-emerald-500 shrink-0" />
+                  <Check className="w-4 h-4 text-brand-emerald shrink-0" />
                 )}
                 
                 {isLocked && (
-                  <div className="flex items-center gap-1 text-xs text-neutral-500 font-normal shrink-0">
-                    <Lock className="w-3 h-3 text-neutral-600" />
-                    <span className="text-[9px] bg-neutral-800 px-1 py-0.5 rounded text-neutral-400 font-mono">
+                  <div className="flex items-center gap-1 text-xs text-text-muted font-normal shrink-0">
+                    <Lock className="w-3 h-3 text-text-muted/60" />
+                    <span className="text-[9px] bg-bg-element px-1 py-0.5 rounded text-text-muted border border-border-main/30 font-mono">
                       HOLD
                     </span>
                   </div>
@@ -142,7 +142,7 @@ export const OrganizationSelector = () => {
       ) : (
         <button
           onClick={() => router.push('/dashboard/restaurants/new')}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium border border-dashed border-neutral-700 hover:border-neutral-500 rounded-lg text-neutral-400 hover:text-neutral-200 transition-colors cursor-pointer"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium border border-dashed border-border-main hover:border-text-muted rounded-lg text-text-muted hover:text-text-main transition-colors cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />
           {t('sidebar.orgSelector.addNew')}

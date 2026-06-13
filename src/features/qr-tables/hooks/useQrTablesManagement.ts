@@ -8,7 +8,6 @@ import { useUserStore } from '@/shared/store/useUserStore';
 import { tableSchema } from '@/features/qr-tables/schemas/tables.schema';
 import { Table, CreateTableDTO, UpdateTableDTO } from '@/features/qr-tables/types/tables.types';
 import { tablesApi } from '@/features/qr-tables/api/tables.api';
-import QRCode from 'qrcode';
 import toast from 'react-hot-toast';
 
 const INITIAL_FORM_DATA: CreateTableDTO = { 
@@ -16,6 +15,15 @@ const INITIAL_FORM_DATA: CreateTableDTO = {
   type: '', 
   isActive: true, 
 };
+
+interface ApiErrorResponse {
+  response?: {
+    data?: {
+      message?: string | string[];
+    };
+  };
+  message: string;
+}
 
 export const useQrTablesManagement = () => {
   const { t } = useTranslation();
@@ -27,12 +35,10 @@ export const useQrTablesManagement = () => {
 
   const [errorMsg, setErrorMsg] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [printingDataUrls, setPrintingDataUrls] = useState<Record<string, string>>({});
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTable, setEditingTable] = useState<Table | null>(null);
   const [formData, setFormData] = useState<CreateTableDTO>(INITIAL_FORM_DATA);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  
   const [showTypeSuggestions, setShowTypeSuggestions] = useState(false);
 
   const printTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -59,20 +65,28 @@ export const useQrTablesManagement = () => {
     return existingTypes.filter((z) => z.toLowerCase().includes(query));
   }, [formData.type, existingTypes]);
 
-  const createTableMutation = useMutation<Table, Error, CreateTableDTO>({
+  const extractErrorMessage = (error: ApiErrorResponse): string => {
+    const serverMessage = error.response?.data?.message;
+    if (Array.isArray(serverMessage)) return serverMessage[0];
+    if (typeof serverMessage === 'string') return serverMessage;
+    return error.message;
+  };
+
+  const createTableMutation = useMutation<Table, ApiErrorResponse, CreateTableDTO>({
     mutationFn: (data: CreateTableDTO) => tablesApi.create(restaurantId!, data, restaurantSlug),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tables', restaurantId] });
       setIsModalOpen(false);
       toast.success(t('qr.notifications.createSuccess'));
     },
-    onError: (error: Error) => {
-      setErrorMsg(error.message);
-      toast.error(error.message);
+    onError: (error) => {
+      const msg = extractErrorMessage(error);
+      setErrorMsg(msg);
+      toast.error(msg);
     }
   });
 
-  const updateTableMutation = useMutation<Table, Error, { id: string; data: UpdateTableDTO }>({
+  const updateTableMutation = useMutation<Table, ApiErrorResponse, { id: string; data: UpdateTableDTO }>({
     mutationFn: ({ id, data }: { id: string; data: UpdateTableDTO }) => 
       tablesApi.update(restaurantId!, id, data, restaurantSlug),
     onSuccess: () => {
@@ -80,21 +94,22 @@ export const useQrTablesManagement = () => {
       setIsModalOpen(false);
       toast.success(t('qr.notifications.updateSuccess'));
     },
-    onError: (error: Error) => {
-      setErrorMsg(error.message);
-      toast.error(error.message);
+    onError: (error) => {
+      const msg = extractErrorMessage(error);
+      setErrorMsg(msg);
+      toast.error(msg);
     }
   });
 
-  const deleteTableMutation = useMutation<void, Error, string>({
+  const deleteTableMutation = useMutation<void, ApiErrorResponse, string>({
     mutationFn: (id: string) => tablesApi.delete(restaurantId!, id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tables', restaurantId] });
       setDeleteId(null);
       toast.success(t('qr.notifications.deleteSuccess'));
     },
-    onError: (error: Error) => {
-      toast.error(error.message);
+    onError: (error) => {
+      toast.error(extractErrorMessage(error));
     }
   });
 
@@ -131,7 +146,7 @@ export const useQrTablesManagement = () => {
     const validationResult = tableSchema.safeParse(formData);
     if (!validationResult.success) {
       const firstError = validationResult.error.issues[0]?.message;
-      setErrorMsg(t(firstError || 'common.errors.formValidation'));
+      setErrorMsg(t(firstError || 'qr.errors.formValidation'));
       return;
     }
 
@@ -161,23 +176,11 @@ export const useQrTablesManagement = () => {
     setSelectedIds(checked ? tables.map(t => t.id) : []);
   };
 
-  const handlePrint = async () => {
+  const handlePrint = () => {
     if (printTimeoutRef.current) clearTimeout(printTimeoutRef.current);
-    const urls: Record<string, string> = {};
-    const tablesToPrint = tables.filter(t => selectedIds.includes(t.id));
-    
-    for (const table of tablesToPrint) {
-      if (!table.qrUrl) continue;
-      try {
-        urls[table.id] = await QRCode.toDataURL(table.qrUrl, { margin: 0, width: 300 });
-      } catch {
-        // Safe context
-      }
-    }
-    setPrintingDataUrls(urls);
     printTimeoutRef.current = setTimeout(() => {
       window.print();
-    }, 500);
+    }, 150);
   };
 
   const handleStatusChange = (id: string, isActive: boolean) => {
@@ -198,7 +201,6 @@ export const useQrTablesManagement = () => {
     isSubmitting: isMutationPending,
     errorMsg,
     selectedIds,
-    printingDataUrls,
     isModalOpen,
     setIsModalOpen,
     editingTable,

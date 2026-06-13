@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { Phone, MapPin, Printer, Globe, Clock, RefreshCw } from 'lucide-react';
-import { Button } from '@/shared/ui';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { CreateOrgCardProps } from '@/features/organizations/types/organization.types';
 
@@ -41,10 +40,10 @@ export const CreateOrgCard = ({ formData }: CreateOrgCardProps) => {
     cardBg: isElegant 
       ? 'bg-zinc-950 text-[#F5EFE6] border-zinc-800/80 shadow-2xl relative' 
       : 'bg-[#FAF9F6] text-zinc-900 border-zinc-300 shadow-2xl relative',
-    titleText: 'text-lg font-serif font-black tracking-tight truncate leading-none relative z-10 text-white',
-    goldText: isElegant ? 'text-brand-gold font-semibold tracking-wide relative z-10' : 'text-brand-copper font-semibold tracking-wide relative z-10',
-    badge: isElegant ? 'bg-white/5 border-white/10 text-brand-gold backdrop-blur-md relative z-10' : 'bg-brand-copper/5 border-brand-copper/10 text-brand-copper relative z-10',
-    iconColor: isElegant ? 'text-brand-gold relative z-10' : 'text-brand-copper relative z-10',
+    titleText: 'text-lg font-black tracking-tight truncate leading-none relative z-10 text-white',
+    goldText: isElegant ? 'text-brand-emerald font-semibold tracking-wide relative z-10' : 'text-brand-emerald font-semibold tracking-wide relative z-10',
+    badge: isElegant ? 'bg-white/5 border-white/10 text-brand-emerald backdrop-blur-md relative z-10' : 'bg-brand-emerald/5 border-brand-emerald/10 text-brand-emerald relative z-10',
+    iconColor: isElegant ? 'text-brand-emerald relative z-10' : 'text-brand-emerald relative z-10',
   };
 
   const fullAddress = [
@@ -58,33 +57,41 @@ export const CreateOrgCard = ({ formData }: CreateOrgCardProps) => {
 
   return (
     <div className="flex flex-col items-start pt-2 w-100 shrink-0 relative select-none print:pt-0 print:w-[85mm] print:h-[55mm]">
-      <div className="w-full flex items-center justify-between mb-5 print:hidden">
-        <div className="flex bg-bg-main p-1 rounded-xl border border-border-main gap-1 shadow-inner">
+      <div className="w-full flex items-center justify-between mb-5 print:hidden gap-3">
+        <div className="flex bg-bg-element p-1 rounded-xl border border-border-main gap-1 shadow-inner h-9 items-center">
           {(['classic', 'elegant'] as const).map((v) => (
             <button
               key={v}
               type="button"
               onClick={() => setVariant(v)}
-              className={`px-3 py-1.5 text-[10px] font-bold rounded-lg uppercase tracking-wider transition-all cursor-pointer outline-none ${variant === v ? 'bg-brand-copper text-white shadow-xs' : 'text-text-muted hover:text-text-main'}`}
+              className={`px-3 h-7 text-[10px] font-bold rounded-lg uppercase tracking-wider transition-all cursor-pointer outline-none border-0 select-none ${
+                variant === v 
+                  ? 'bg-brand-emerald text-white shadow-xs' 
+                  : 'text-text-muted hover:text-text-main bg-transparent'
+              }`}
             >
               {t(`organization.create.variants.${v}`)}
             </button>
           ))}
         </div>
         
-        <div className="flex items-center gap-2">
-          <Button 
+        <div className="flex items-center gap-2 h-9">
+          <button 
             type="button"
-            variant="outline" 
             onClick={() => setIsFlipped(!isFlipped)} 
-            className="h-7 text-[11px] px-2.5 gap-1.5 border-border-main bg-bg-surface text-text-main hover:bg-bg-hover rounded-xl shadow-xs active:scale-95"
+            className="h-9 text-[11px] font-bold px-3.5 gap-1.5 border border-border-main bg-bg-surface text-text-main hover:bg-bg-hover rounded-xl shadow-2xs active:scale-95 flex items-center justify-center transition-all cursor-pointer outline-none select-none"
           >
-            <RefreshCw className={`h-3 w-3 transition-transform duration-500 ${isFlipped ? 'rotate-180' : ''}`} />
-            {t('organization.create.cardFlipBtn')}
-          </Button>
-          <Button type="button" variant="outline" onClick={() => window.print()} className="h-7 text-[11px] px-2.5 gap-1 border-border-main bg-bg-surface text-text-main hover:bg-bg-hover rounded-xl shadow-xs">
-            <Printer className="h-3 w-3" /> {t('organization.create.cardPrintBtn')}
-          </Button>
+            <RefreshCw className={`h-3.5 w-3.5 text-text-muted transition-transform duration-500 ${isFlipped ? 'rotate-180' : ''}`} />
+            <span>{t('organization.create.cardFlipBtn')}</span>
+          </button>
+          <button 
+            type="button" 
+            onClick={() => window.print()} 
+            className="h-9 text-[11px] font-bold px-3.5 gap-1.5 border border-border-main bg-bg-surface text-text-main hover:bg-bg-hover rounded-xl shadow-2xs active:scale-95 flex items-center justify-center transition-all cursor-pointer outline-none select-none"
+          >
+            <Printer className="h-3.5 w-3.5 text-text-muted" /> 
+            <span>{t('organization.create.cardPrintBtn')}</span>
+          </button>
         </div>
       </div>
 
@@ -104,11 +111,11 @@ export const CreateOrgCard = ({ formData }: CreateOrgCardProps) => {
 
             <div className="flex justify-between items-start w-full relative z-10 border-b border-border-main/10 pb-3">
               <div className="flex gap-3.5 items-center min-w-0 flex-1">
-                <div className={`h-11 w-11 rounded-xl shrink-0 flex items-center justify-center border border-white/20 font-serif font-extrabold text-base shadow-md ${isElegant ? 'bg-white/10 text-brand-gold backdrop-blur-md' : 'bg-brand-copper/10 text-brand-copper'}`}>
+                <div className={`h-11 w-11 rounded-xl shrink-0 flex items-center justify-center border border-white/20 font-extrabold text-base shadow-md ${isElegant ? 'bg-white/10 text-brand-emerald backdrop-blur-md' : 'bg-brand-emerald/10 text-brand-emerald'}`}>
                   {initialLetter}
                 </div>
                 <div className="flex flex-col min-w-0 flex-1">
-                  <h2 className={isElegant ? styles.titleText : 'text-lg font-serif font-black tracking-tight truncate leading-none text-zinc-900'}>
+                  <h2 className={isElegant ? styles.titleText : 'text-lg font-black tracking-tight truncate leading-none text-zinc-900'}>
                     {formData.name || t('organization.create.nameLabel')}
                   </h2>
                   <div className="flex items-center gap-1.5 mt-1.5">
@@ -147,7 +154,7 @@ export const CreateOrgCard = ({ formData }: CreateOrgCardProps) => {
               <div className="w-24 h-24 bg-white rounded-xl p-2 flex items-center justify-center">
                 <Globe className="h-16 w-16 text-zinc-900 stroke-[1.5]" />
               </div>
-              <span className="text-[10px] font-medium tracking-wider uppercase text-brand-gold">
+              <span className="text-[10px] font-medium tracking-wider uppercase text-brand-emerald">
                 {formData.slug ? `${formData.slug}${domainSuffix}` : 'gustio.com'}
               </span>
             </div>

@@ -15,10 +15,7 @@ const toStatus = (isActive: boolean): TableStatus =>
   isActive ? 'ACTIVE' : 'INACTIVE';
 
 const getPublicMenuBaseUrl = (): string => {
-  if (typeof window !== 'undefined') {
-    return `${window.location.protocol}//${window.location.hostname}${window.location.port ? `:${window.location.port}` : ''}`;
-  }
-  return 'http://localhost:3000';
+  return process.env.NEXT_PUBLIC_MENU_BASE_URL || 'https://gustio.menu';
 };
 
 const toUiTable = (

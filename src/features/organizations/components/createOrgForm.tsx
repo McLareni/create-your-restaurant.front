@@ -58,8 +58,8 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
       <div className="flex items-start justify-center w-full max-w-6xl p-2 gap-0">
         
         <div className="relative w-full max-w-xl rounded-3xl bg-bg-surface p-6 md:p-10 border border-border-main/80 shadow-2xl z-10
-          [&_input]:bg-bg-main/60! [&_input]:text-text-main! [&_input]:border-border-main/60! [&_input]:w-full [&_input]:rounded-xl! [&_input]:focus:border-brand-copper/50!
-          [&_select]:bg-bg-main/60! [&_select]:text-text-main! [&_select]:border-border-main/60! [&_select]:w-full [&_select]:rounded-xl! [&_select]:focus:border-brand-copper/50!
+          [&_input]:bg-bg-main/60! [&_input]:text-text-main! [&_input]:border-border-main/60! [&_input]:w-full [&_input]:rounded-xl! [&_input]:focus:border-brand-emerald/50!
+          [&_select]:bg-bg-main/60! [&_select]:text-text-main! [&_select]:border-border-main/60! [&_select]:w-full [&_select]:rounded-xl! [&_select]:focus:border-brand-emerald/50!
           [&_input.border-red-500]:border-red-500! [&_select.border-red-500]:border-red-500!
           [&_label]:text-text-main/90! [&_label]:text-xs! [&_label]:font-bold! [&_label]:uppercase! [&_label]:tracking-wider! 
           [&_span.text-red-500]:text-red-600! [&_span.text-red-500]:font-bold!"
@@ -67,16 +67,16 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
           <button
             type="button"
             onClick={() => setSidebarPreview(!sidebarPreview)}
-            className="absolute top-1/2 -right-3.5 -translate-y-1/2 flex h-14 w-7 items-center justify-end pr-1 rounded-r-2xl border-y border-r border-l-0 border-border-main bg-bg-surface text-brand-copper transition-all duration-300 hover:-right-4 hover:w-8 shadow-md group cursor-pointer outline-none z-20"
+            className="absolute top-1/2 -right-3.5 -translate-y-1/2 flex h-14 w-7 items-center justify-end pr-1 rounded-r-2xl border-y border-r border-l-0 border-border-main bg-bg-surface text-brand-emerald transition-all duration-300 hover:right-4 hover:w-8 shadow-md group cursor-pointer outline-none z-20"
           >
             <ChevronRight className={`h-4 w-4 transition-transform duration-500 ${sidebarPreview ? 'rotate-180' : ''}`} />
           </button>
 
           <div className="mb-8 flex flex-col items-center text-center w-full">
-            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-brand-copper/20 to-brand-copper/5 text-brand-copper border border-brand-copper/20 shadow-xs">
+            <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-brand-emerald/20 to-brand-emerald/5 text-brand-emerald border border-brand-emerald/20 shadow-xs">
               <Store className="h-6 w-6 stroke-[1.8]" />
             </div>
-            <h1 className="text-xl md:text-2xl font-serif font-bold tracking-tight bg-linear-to-r from-text-main to-text-main/80 bg-clip-text text-transparent">
+            <h1 className="text-xl md:text-2xl font-bold tracking-tight bg-linear-to-r from-text-main to-text-main/80 bg-clip-text text-transparent">
               {t('organization.create.title')}
             </h1>
             <p className="text-xs text-text-muted mt-1.5 font-medium">{t('organization.create.subtitle')}</p>
@@ -107,7 +107,7 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
                 rightElement={
                   <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-text-muted bg-bg-surface/80 backdrop-blur-xs px-2.5 py-1 rounded-lg border border-border-main h-7 shrink-0 shadow-2xs">
                     <span>{process.env.NEXT_PUBLIC_DOMAIN_SUFFIX || '.gustio.com'}</span>
-                    {isCheckingSlug && <Loader2 className="h-3 w-3 animate-spin text-brand-copper" />}
+                    {isCheckingSlug && <Loader2 className="h-3 w-3 animate-spin text-brand-emerald" />}
                     {slugAvailable === true && <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />}
                     {slugAvailable === false && <XCircle className="h-3.5 w-3.5 text-red-500" />}
                   </div>
@@ -154,7 +154,7 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
 
             <div className="relative flex py-4 items-center select-none">
               <div className="grow border-t border-border-main/40"></div>
-              <span className="shrink mx-4 text-[9px] font-extrabold uppercase tracking-widest text-brand-copper bg-brand-copper/5 px-3 py-1.5 border border-brand-copper/15 rounded-xl shadow-3xs">
+              <span className="shrink mx-4 text-[9px] font-extrabold uppercase tracking-widest text-brand-emerald bg-brand-emerald/5 px-3 py-1.5 border border-brand-emerald/15 rounded-xl shadow-3xs">
                 {t('organization.create.additionalSettings')}
               </span>
               <div className="grow border-t border-border-main/40"></div>
@@ -163,15 +163,15 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
             <div className="border border-border-main/50 rounded-2xl overflow-hidden bg-bg-main/10 shadow-3xs group/sec">
               <button type="button" onClick={() => toggleSection('media')} className="w-full flex items-center justify-between p-4.5 text-xs font-bold uppercase tracking-wider text-text-main/80 hover:bg-bg-hover/30 hover:text-text-main transition-all cursor-pointer outline-none">
                 <div className="flex items-center gap-2.5">
-                  <ImageIcon className="h-4 w-4 text-brand-copper/80 group-hover/sec:text-brand-copper transition-colors" /> 
+                  <ImageIcon className="h-4 w-4 text-brand-emerald/80 group-hover/sec:text-brand-emerald transition-colors" /> 
                   <span>{t('organization.create.mediaTitle')}</span>
                 </div>
-                <ChevronDown className={`h-4 w-4 text-text-muted transition-transform duration-300 ${openSections.media ? 'rotate-180 text-brand-copper' : ''}`} />
+                <ChevronDown className={`h-4 w-4 text-text-muted transition-transform duration-300 ${openSections.media ? 'rotate-180 text-brand-emerald' : ''}`} />
               </button>
               <div className={`grid transition-all duration-300 ease-in-out ${openSections.media ? 'grid-rows-[1fr] border-t border-border-main/40 opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                 <div className="overflow-hidden">
                   <div className="p-4">
-                    <div className="border border-dashed border-border-main/80 rounded-xl p-5 bg-bg-surface flex flex-col gap-2 hover:border-brand-copper/30 hover:bg-bg-main/5 transition-all relative">
+                    <div className="border border-dashed border-border-main/80 rounded-xl p-5 bg-bg-surface flex flex-col gap-2 hover:border-brand-emerald/30 hover:bg-bg-main/5 transition-all relative">
                       <div className="flex items-center gap-4 w-full">
                         <div className="relative h-12 w-12 rounded-xl bg-bg-main border border-border-main flex items-center justify-center text-text-muted overflow-hidden shrink-0 shadow-inner">
                           {formData.imageUrl ? (
@@ -201,10 +201,10 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
             <div className="border border-border-main/50 rounded-2xl overflow-hidden bg-bg-main/10 shadow-3xs group/sec">
               <button type="button" onClick={() => toggleSection('schedule')} className="w-full flex items-center justify-between p-4.5 text-xs font-bold uppercase tracking-wider text-text-main/80 hover:bg-bg-hover/30 hover:text-text-main transition-all ease-in-out duration-200 cursor-pointer outline-none">
                 <div className="flex items-center gap-2.5">
-                  <Clock className="h-4 w-4 text-brand-copper/80 group-hover/sec:text-brand-copper transition-colors" /> 
+                  <Clock className="h-4 w-4 text-brand-emerald/80 group-hover/sec:text-brand-emerald transition-colors" /> 
                   <span>{t('organization.create.scheduleTitle')}</span>
                 </div>
-                <ChevronDown className={`h-4 w-4 text-text-muted transition-transform duration-300 ${openSections.schedule ? 'rotate-180 text-brand-copper' : ''}`} />
+                <ChevronDown className={`h-4 w-4 text-text-muted transition-transform duration-300 ${openSections.schedule ? 'rotate-180 text-brand-emerald' : ''}`} />
               </button>
               <div className={`grid transition-all duration-300 ease-in-out ${openSections.schedule ? 'grid-rows-[1fr] border-t border-border-main/40 opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                 <div className="overflow-hidden">
@@ -220,11 +220,11 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
                               disabled={isPending}
                               onClick={() => toggleDay(day.key)}
                               className={`flex-1 flex flex-col items-center justify-center py-2.5 rounded-xl transition-all duration-200 cursor-pointer outline-none disabled:opacity-50 ${
-                                selected ? 'bg-bg-surface text-brand-copper border border-border-main/60 shadow-xs font-bold' : 'bg-transparent text-text-muted border border-transparent hover:text-text-main'
+                                selected ? 'bg-bg-surface text-brand-emerald border border-brand-emerald/30 bg-brand-emerald/5 shadow-xs font-bold' : 'bg-transparent text-text-muted border border-transparent hover:text-text-main'
                               }`}
                             >
                               <span className="text-xs tracking-tight">{t(`organization.create.days.${day.key}`)}</span>
-                              <div className={`h-1 rounded-full mt-1.5 transition-all ${selected ? 'bg-brand-copper w-3' : 'bg-text-muted/30 w-1'}`} />
+                              <div className={`h-1 rounded-full mt-1.5 transition-all ${selected ? 'bg-brand-emerald w-3' : 'bg-text-muted/30 w-1'}`} />
                             </button>
                           );
                         })}
@@ -234,7 +234,7 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
 
                     <div className="space-y-2">
                       <label className="text-[10px] font-extrabold uppercase tracking-widest text-text-main/60 flex items-center gap-2">
-                        <Clock className="h-3.5 w-3.5 text-brand-copper/80" /> {t('organization.create.hoursLabel')}
+                        <Clock className="h-3.5 w-3.5 text-brand-emerald/80" /> {t('organization.create.hoursLabel')}
                       </label>
                       <div className="grid grid-cols-2 gap-4 bg-bg-main/30 p-4 rounded-2xl border border-border-main/40">
                         <div className="flex flex-col gap-1">
@@ -255,10 +255,10 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
             <div className="border border-border-main/50 rounded-2xl overflow-hidden bg-bg-main/10 shadow-3xs group/sec">
               <button type="button" onClick={() => toggleSection('address')} className="w-full flex items-center justify-between p-4.5 text-xs font-bold uppercase tracking-wider text-text-main/80 hover:bg-bg-hover/30 hover:text-text-main transition-all cursor-pointer outline-none">
                 <div className="flex items-center gap-2.5">
-                  <MapPin className="h-4 w-4 text-brand-copper/80 group-hover/sec:text-brand-copper transition-colors" /> 
+                  <MapPin className="h-4 w-4 text-brand-emerald/80 group-hover/sec:text-brand-emerald transition-colors" /> 
                   <span>{t('organization.create.locationTitle')}</span>
                 </div>
-                <ChevronDown className={`h-4 w-4 text-text-muted transition-transform duration-300 ${openSections.address ? 'rotate-180 text-brand-copper' : ''}`} />
+                <ChevronDown className={`h-4 w-4 text-text-muted transition-transform duration-300 ${openSections.address ? 'rotate-180 text-brand-emerald' : ''}`} />
               </button>
               <div className={`grid transition-all duration-300 ease-in-out ${openSections.address ? 'grid-rows-[1fr] border-t border-border-main/40 opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                 <div className="overflow-hidden">
@@ -274,10 +274,10 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
             <div className="border border-border-main/50 rounded-2xl overflow-hidden bg-bg-main/10 shadow-3xs group/sec">
               <button type="button" onClick={() => toggleSection('socials')} className="w-full flex items-center justify-between p-4.5 text-xs font-bold uppercase tracking-wider text-text-main/80 hover:bg-bg-hover/30 hover:text-text-main transition-all cursor-pointer outline-none">
                 <div className="flex items-center gap-2.5">
-                  <Share2 className="h-4 w-4 text-brand-copper/80 group-hover/sec:text-brand-copper transition-colors" /> 
+                  <Share2 className="h-4 w-4 text-brand-emerald/80 group-hover/sec:text-brand-copper transition-colors" /> 
                   <span>{t('organization.create.socialsTitle')}</span>
                 </div>
-                <ChevronDown className={`h-4 w-4 text-text-muted transition-transform duration-300 ${openSections.socials ? 'rotate-180 text-brand-copper' : ''}`} />
+                <ChevronDown className={`h-4 w-4 text-text-muted transition-transform duration-300 ${openSections.socials ? 'rotate-180 text-brand-emerald' : ''}`} />
               </button>
               <div className={`grid transition-all duration-300 ease-in-out ${openSections.socials ? 'grid-rows-[1fr] border-t border-border-main/40 opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                 <div className="overflow-hidden">
@@ -323,9 +323,13 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
             </div>
 
             <div className="pt-3 w-full">
-              <Button variant="brand" type="submit" className="w-full h-12 rounded-xl text-sm font-bold shadow-md transition-all active:scale-98" isLoading={isPending} disabled={isPending || isCheckingSlug || slugAvailable === false}>
-                {t('organization.create.submitBtn')}
-              </Button>
+              <button 
+                type="submit" 
+                disabled={isPending || isCheckingSlug || slugAvailable === false}
+                className="w-full h-12 rounded-xl text-sm font-bold shadow-md transition-all active:scale-98 bg-brand-emerald hover:bg-brand-emerald-hover text-white flex items-center justify-center border border-brand-emerald/10 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed select-none"
+              >
+                {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : t('organization.create.submitBtn')}
+              </button>
             </div>
           </form>
         </div>

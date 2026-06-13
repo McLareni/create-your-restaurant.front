@@ -41,7 +41,7 @@ export const StaffModalView = ({
       isOpen={isOpen} 
       onClose={onClose}
       title={editingMember ? t('staff.modal.editTitle') : t('staff.modal.createTitle')}
-      className="w-132 border-brand-copper/20 shadow-2xl"
+      className="w-132 border-brand-emerald/20 shadow-2xl"
     >
       <form action={formAction} className="flex flex-col gap-4 text-text-main">
         <div className="flex flex-col items-center justify-center py-2 shrink-0">
@@ -82,7 +82,7 @@ export const StaffModalView = ({
 
         <div className="flex flex-col gap-1 relative shrink-0">
           <Input id="password" name="password" type={showPassword ? 'text' : 'password'} label={t('staff.modal.passwordLabel')} placeholder={editingMember ? t('staff.modal.passwordPlaceholderEdit') : t('staff.modal.passwordPlaceholderCreate')} value={fields.password} onChange={(e) => handleFieldChange('password', e.target.value)} error={errors.password} disabled={isFormPending} />
-          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-8 text-text-muted hover:text-brand-copper transition-colors outline-none cursor-pointer" disabled={isFormPending}>
+          <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-8 text-text-muted hover:text-brand-emerald transition-colors outline-none cursor-pointer" disabled={isFormPending}>
             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
           
