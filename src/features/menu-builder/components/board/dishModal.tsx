@@ -1,16 +1,30 @@
 'use client';
 
-import React, { ChangeEvent } from 'react';
+import React, { ChangeEvent, useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
-import { FloatingPanel, Input, Button, Select, Switch } from '@/shared/ui';
+import { FloatingPanel, Input, Switch } from '@/shared/ui';
 import { CharacteristicsTab } from '@/features/menu-builder/components/board/tabs/CharacteristicsTab';
 import { IngredientsTab } from '@/features/menu-builder/components/board/tabs/IngredientsTab';
 import { DishLivePreview } from '@/features/menu-builder/components/board/preview/DishLivePreview';
 import { useTranslation } from '@/shared/hooks/useTranslation';
+import { Loader2, ChevronDown, Check } from 'lucide-react';
 import type { DishModalProps, ModifierGroupLookup } from '@/features/menu-builder/types/dishes.types';
 
 export const DishModal = ({ isOpen, onClose, dish, state }: DishModalProps) => {
   const { t } = useTranslation();
+  const [isBadgeDropdownOpen, setIsBadgeDropdownOpen] = useState(false);
+  const badgeDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (badgeDropdownRef.current && !badgeDropdownRef.current.contains(target)) {
+        setIsBadgeDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   if (!isOpen) return null;
 
@@ -26,25 +40,23 @@ export const DishModal = ({ isOpen, onClose, dish, state }: DishModalProps) => {
       isOpen={isOpen}
       onClose={onClose}
       title={dish ? t('menu.constructor.dishes.modal.editTitle') : t('menu.constructor.dishes.modal.createTitle')}
-      className="w-full max-w-5xl border-brand-copper/20"
+      className="max-w-5xl w-full h-[640px]"
     >
-      {/* Фіксована висота внутрішньої сітки (h-150) запобігає стрибкам модалки */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start h-150 overflow-hidden">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start h-[540px] overflow-hidden">
         
-        {/* ЛІВА ЧАСТИНА: Форма та робочі вкладки */}
         <div className="md:col-span-2 flex flex-col h-full overflow-hidden">
           
-          {/* Навігація по табах згідно з menu.constructor.dishes.modal.tabs */}
-          <div className="flex gap-4 border-b border-zinc-200 mb-4 pb-2 select-none shrink-0 overflow-x-auto custom-scrollbar">
+          <div className="flex gap-4 border-b border-solid border-neutral-200 dark:border-neutral-800 mb-4 pb-2 select-none shrink-0 overflow-x-auto custom-scrollbar">
             {(['pricing', 'characteristics', 'ingredients', 'modifiers', 'media'] as const).map((tab) => (
               <button
                 key={tab}
                 type="button"
                 onClick={() => state.setActiveTab(tab === 'pricing' ? 'general' : tab)}
-                className={`pb-2 text-sm font-semibold cursor-pointer transition-colors relative whitespace-nowrap ${
-                  (state.activeTab === 'general' && tab === 'pricing') || state.activeTab === tab
-                    ? 'border-b-2 border-brand-copper text-brand-copper font-bold'
-                    : 'text-zinc-500 hover:text-brand-espresso dark:hover:text-brand-cream'
+                className={`pb-2 text-sm font-semibold cursor-pointer transition-colors relative whitespace-nowrap border-0 bg-transparent outline-none ${
+                  (state.activeTab === 'general' && tab === 'pricing') ||
+                  state.activeTab === tab
+                    ? 'border-b-2! border-solid! border-brand-emerald text-brand-emerald font-bold'
+                    : 'text-text-muted hover:text-text-main'
                 }`}
               >
                 {t(`menu.constructor.dishes.modal.tabs.${tab}`)}
@@ -52,9 +64,11 @@ export const DishModal = ({ isOpen, onClose, dish, state }: DishModalProps) => {
             ))}
           </div>
 
-          <form action={handleFormAction} className="flex flex-col flex-1 overflow-hidden">
-            {/* Область контенту з індивідуальним вертикальним скролом */}
-            <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar pb-4 space-y-4">
+          <form action={handleFormAction} className="flex flex-col flex-1 overflow-hidden h-full
+            [&_input:not([type=checkbox])]:bg-bg-main/40! [&_input:not([type=checkbox])]:text-text-main! [&_input:not([type=checkbox])]:border-solid! [&_input:not([type=checkbox])]:border-neutral-300! dark:[&_input:not([type=checkbox])]:border-neutral-700! [&_input:not([type=checkbox])]:w-full [&_input:not([type=checkbox])]:rounded-xl! [&_input:not([type=checkbox])]:focus:border-brand-emerald/50! [&_input:not([type=checkbox])]:focus:ring-1! [&_input:not([type=checkbox])]:focus:ring-brand-emerald/20! [&_input:not([type=checkbox])]:outline-none!
+            [&_select]:bg-bg-main/40! [&_select]:text-text-main! [&_select]:border-solid! [&_select]:border-neutral-300! dark:[&_select]:border-neutral-700! [&_select]:w-full [&_select]:rounded-xl! [&_select]:focus:border-brand-emerald/50! [&_select]:focus:ring-1! [&_select]:focus:ring-brand-emerald/20! [&_select]:outline-none!"
+          >
+            <div className="flex-1 overflow-y-auto pr-3 custom-scrollbar pb-4 space-y-4">
               
               {state.activeTab === 'general' && (
                 <div className="space-y-4 animate-in fade-in duration-100">
@@ -69,7 +83,7 @@ export const DishModal = ({ isOpen, onClose, dish, state }: DishModalProps) => {
                   />
                   
                   <div className="flex flex-col gap-1.5">
-                    <label htmlFor="dish-desc" className="text-xs font-bold text-brand-espresso dark:text-brand-cream uppercase tracking-wider">
+                    <label htmlFor="dish-desc" className="text-xs font-bold text-text-main/80 uppercase tracking-wider">
                       {t('menu.constructor.dishes.modal.descLabel')}
                     </label>
                     <textarea
@@ -79,7 +93,7 @@ export const DishModal = ({ isOpen, onClose, dish, state }: DishModalProps) => {
                       value={state.dishForm.description || ''}
                       onChange={(e: ChangeEvent<HTMLTextAreaElement>) => state.setDishForm((prev) => ({ ...prev, description: e.target.value }))}
                       disabled={state.isSaving}
-                      className="w-full text-xs font-semibold p-3 border rounded-xl bg-white dark:bg-brand-espresso border-brand-gray/30 focus:border-brand-copper outline-none transition-colors dark:text-brand-cream resize-none"
+                      className="w-full text-xs font-semibold p-3 border border-solid rounded-xl bg-bg-main/40 border-neutral-300 dark:border-neutral-700 focus:border-brand-emerald/50 outline-none transition-colors text-text-main resize-none placeholder:text-text-muted/40"
                     />
                   </div>
 
@@ -94,7 +108,6 @@ export const DishModal = ({ isOpen, onClose, dish, state }: DishModalProps) => {
                     disabled={state.isSaving}
                   />
                   
-                  {/* Стабільна триколонкова числова сітка параметрів */}
                   <div className="grid grid-cols-3 gap-4">
                     <Input
                       id="dish-weight"
@@ -128,22 +141,46 @@ export const DishModal = ({ isOpen, onClose, dish, state }: DishModalProps) => {
                     />
                   </div>
 
-                  <Select
-                    id="dish-badge"
-                    label={t('menu.constructor.dishes.modal.badgeLabel')}
-                    value={state.dishForm.badge}
-                    onChange={(e: ChangeEvent<HTMLSelectElement>) => state.setDishForm((prev) => ({ ...prev, badge: e.target.value }))}
-                    disabled={state.isSaving}
-                  >
-                    <option value="NONE">{t('menu.constructor.badges.NONE')}</option>
-                    <option value="NEW">{t('menu.constructor.badges.NEW')}</option>
-                    <option value="HIT">{t('menu.constructor.badges.HIT')}</option>
-                    <option value="CHEF_CHOICE">{t('menu.constructor.badges.CHEF_CHOICE')}</option>
-                    <option value="TOP_RATED">{t('menu.constructor.badges.TOP_RATED')}</option>
-                  </Select>
+                  <div className="flex flex-col gap-1.5 relative z-50" ref={badgeDropdownRef}>
+                    <span className="text-xs font-bold uppercase tracking-wider text-text-muted mb-0.5">
+                      {t('menu.constructor.dishes.modal.badgeLabel')}
+                    </span>
+                    <div 
+                      onClick={() => !state.isSaving && setIsBadgeDropdownOpen(!isBadgeDropdownOpen)}
+                      className={`h-11 w-full rounded-xl bg-bg-main/40 border border-solid border-neutral-300 dark:border-neutral-700 text-xs text-text-main px-4 flex items-center justify-between transition-all select-none ${
+                        state.isSaving ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:border-neutral-400 dark:hover:border-neutral-600'
+                      } ${isBadgeDropdownOpen ? 'border-brand-emerald! ring-1 ring-brand-emerald/20 bg-bg-surface!' : ''}`}
+                    >
+                      <span className="font-medium">
+                        {t(`menu.constructor.badges.${state.dishForm.badge}`)}
+                      </span>
+                      <ChevronDown className={`h-4 w-4 text-text-muted transition-transform duration-200 ${isBadgeDropdownOpen ? 'rotate-180 text-brand-emerald' : ''}`} />
+                    </div>
+
+                    {isBadgeDropdownOpen && (
+                      <div className="absolute top-full left-0 right-0 z-[100] mt-1 bg-bg-surface border border-solid border-border-main/60 rounded-xl shadow-md flex flex-col overflow-hidden p-1 animate-in fade-in slide-in-from-top-2 duration-150">
+                        <div className="max-h-40 overflow-y-auto pr-1 custom-scrollbar flex flex-col gap-0.5">
+                          {(['NONE', 'NEW', 'HIT', 'CHEF_CHOICE', 'TOP_RATED'] as const).map((b) => (
+                            <button
+                              key={b}
+                              type="button"
+                              onClick={() => {
+                                state.setDishForm((prev) => ({ ...prev, badge: b }));
+                                setIsBadgeDropdownOpen(false);
+                              }}
+                              className="w-full flex items-center justify-between px-3 h-10 rounded-lg hover:bg-bg-hover text-left transition-colors cursor-pointer group/item outline-none border-0 text-xs font-medium text-text-main shrink-0"
+                            >
+                              <span className="group-hover/item:text-brand-emerald transition-colors">{t(`menu.constructor.badges.${b}`)}</span>
+                              {state.dishForm.badge === b && <Check className="h-4 w-4 text-brand-emerald shrink-0" />}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
 
                   <div className="flex items-center justify-between pt-2">
-                    <span className="text-xs font-bold text-brand-espresso dark:text-brand-cream uppercase tracking-wider">
+                    <span className="text-xs font-bold text-text-main/80 uppercase tracking-wider">
                       {t('menu.constructor.dishes.modal.availabilityLabel')}
                     </span>
                     <Switch
@@ -166,15 +203,15 @@ export const DishModal = ({ isOpen, onClose, dish, state }: DishModalProps) => {
 
               {state.activeTab === 'modifiers' && (
                 <div className="space-y-3 animate-in fade-in duration-100">
-                  <span className="text-xs font-bold block text-brand-espresso dark:text-brand-cream uppercase tracking-wider">
+                  <span className="text-xs font-bold block text-text-main/80 uppercase tracking-wider">
                     {t('menu.constructor.modifiers.title')}
                   </span>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto custom-scrollbar p-1">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-1">
                     {state.modifierGroups?.length === 0 ? (
-                      <span className="text-xs text-brand-gray italic p-2">{t('menu.constructor.dishes.modal.noModifiers')}</span>
+                      <span className="text-xs text-text-muted italic p-2 font-light">{t('menu.constructor.dishes.modal.noModifiers')}</span>
                     ) : (
                       state.modifierGroups?.map((group: ModifierGroupLookup) => (
-                        <div key={group.id} className="flex items-center gap-2.5 p-3 border border-zinc-200 dark:border-brand-gray/30 rounded-xl bg-white dark:bg-brand-mocha shadow-xs transition-colors hover:border-brand-copper/30">
+                        <div key={group.id} className="flex items-center gap-2.5 p-3 border border-solid border-neutral-300 dark:border-neutral-700 rounded-xl bg-bg-surface shadow-2xs transition-colors hover:border-brand-emerald/30">
                           <input
                             type="checkbox"
                             id={`mod-group-${group.id}`}
@@ -187,9 +224,9 @@ export const DishModal = ({ isOpen, onClose, dish, state }: DishModalProps) => {
                                 : currentIds.filter((id: string) => id !== group.id);
                               state.setDishForm((prev) => ({ ...prev, modifierIds: nextIds }));
                             }}
-                            className="rounded border-zinc-300 text-brand-copper focus:ring-brand-copper cursor-pointer h-4 w-4 shrink-0"
+                            className="rounded border-neutral-300 text-brand-emerald focus:ring-brand-emerald cursor-pointer h-4 w-4 shrink-0"
                           />
-                          <label htmlFor={`mod-group-${group.id}`} className="text-xs font-semibold text-brand-espresso dark:text-brand-cream cursor-pointer select-none truncate">
+                          <label htmlFor={`mod-group-${group.id}`} className="text-xs font-semibold text-text-main cursor-pointer select-none truncate">
                             {group.name}
                           </label>
                         </div>
@@ -201,7 +238,7 @@ export const DishModal = ({ isOpen, onClose, dish, state }: DishModalProps) => {
 
               {state.activeTab === 'media' && (
                 <div className="space-y-4 animate-in fade-in duration-100">
-                  <div className="border-2 border-dashed border-zinc-300 dark:border-brand-gray/40 rounded-xl p-6 text-center bg-zinc-50 dark:bg-brand-mocha/20 hover:border-brand-copper/40 transition-colors">
+                  <div className="border-2 border-dashed border-neutral-200 dark:border-neutral-800 rounded-xl p-6 text-center bg-bg-main/40 hover:border-brand-emerald/40 transition-colors">
                     <input
                       type="file"
                       id="dish-photo-upload"
@@ -210,18 +247,18 @@ export const DishModal = ({ isOpen, onClose, dish, state }: DishModalProps) => {
                       onChange={(e: ChangeEvent<HTMLInputElement>) => { void state.handleLocalImageUploadWrapper(e); }}
                       className="hidden"
                     />
-                    <label htmlFor="dish-photo-upload" className="cursor-pointer text-xs text-brand-copper font-bold uppercase tracking-wider select-none block w-full h-full py-2">
+                    <label htmlFor="dish-photo-upload" className="cursor-pointer text-xs text-brand-emerald font-bold uppercase tracking-wider select-none block w-full h-full py-2">
                       {t('menu.constructor.dishes.modal.mediaHint')}
                     </label>
                   </div>
                   {state.dishImageUrls.length > 0 && (
-                    <div className="relative aspect-video w-full max-w-md mx-auto rounded-xl overflow-hidden border border-zinc-200 dark:border-brand-gray/30 shadow-md bg-white dark:bg-brand-mocha">
+                    <div className="relative aspect-video w-full max-w-md mx-auto rounded-xl overflow-hidden border border-solid border-neutral-200 dark:border-neutral-800 shadow-md bg-bg-surface">
                       <Image
                         src={state.dishImageUrls[state.activeDishImageIndex]}
                         alt={state.dishForm.name || t('menu.constructor.dishes.modal.tabs.media')}
                         fill
                         unoptimized
-                        className="object-cover"
+                        className="object-cover pointer-events-none select-none"
                       />
                     </div>
                   )}
@@ -229,20 +266,28 @@ export const DishModal = ({ isOpen, onClose, dish, state }: DishModalProps) => {
               )}
             </div>
 
-            {/* СПІЛЬНИЙ ПІДВАЛ: Кнопки надійно зафіксовані тут */}
-            <div className="flex justify-end gap-3 pt-4 border-t border-zinc-200 dark:border-brand-gray/20 shrink-0 bg-white dark:bg-brand-mocha mt-auto">
-              <Button type="button" variant="ghost" onClick={onClose} disabled={state.isSaving} className="h-10 text-xs font-semibold">
+            <div className="flex justify-end gap-3 pt-4 border-t border-solid border-neutral-200 dark:border-neutral-800/60 shrink-0 bg-bg-surface mt-auto">
+              <button 
+                type="button" 
+                onClick={onClose} 
+                disabled={state.isSaving} 
+                className="h-10 px-4 text-xs font-semibold text-text-muted hover:text-text-main hover:bg-bg-element rounded-xl transition-all cursor-pointer border-0 bg-transparent outline-none select-none"
+              >
                 {t('menu.constructor.dishes.modal.cancel')}
-              </Button>
-              <Button type="submit" variant="brand" isLoading={state.isSaving} className="h-10 text-xs font-bold px-6">
+              </button>
+              <button 
+                type="submit" 
+                disabled={state.isSaving} 
+                className="h-10 px-5 text-xs font-bold text-white bg-brand-emerald hover:bg-brand-emerald-hover active:scale-98 rounded-xl shadow-md transition-all cursor-pointer border border-brand-emerald/10 select-none flex items-center justify-center gap-1.5"
+              >
+                {state.isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
                 {t('menu.constructor.dishes.modal.save')}
-              </Button>
+              </button>
             </div>
           </form>
         </div>
 
-        {/* ПРАВА ЧАСТИНА: Live Preview */}
-        <div className="hidden md:block border-l border-zinc-100 dark:border-brand-gray/10 pl-6 h-full overflow-hidden">
+        <div className="hidden md:block border-l border-solid border-neutral-200 dark:border-neutral-800/40 pl-6 h-full overflow-hidden">
           <DishLivePreview form={state.dishForm} imageUrl={currentPreviewUrl} />
         </div>
       </div>

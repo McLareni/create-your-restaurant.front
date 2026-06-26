@@ -8,11 +8,24 @@ import { QrGeneratorModalProps } from '@/features/qr-tables/types/tables.types';
 import { useQrGeneratorModal } from '@/features/qr-tables/hooks/useQrGeneratorModal';
 
 export const QrGeneratorModal = (props: QrGeneratorModalProps) => {
-  const { isOpen, onClose, errorMsg, onDelete, onPrint, formData, handleFormDataChange, filteredTypes, showTypeSuggestions, setShowTypeSuggestions, editingTableId, tables } = props;
+  const { 
+    isOpen, 
+    onClose, 
+    errorMsg, 
+    onDelete, 
+    onPrint, 
+    formData, 
+    handleFormDataChange, 
+    filteredTypes, 
+    showTypeSuggestions, 
+    setShowTypeSuggestions, 
+    editingTableId, 
+    tables 
+  } = props;
+  
   const { t } = useTranslation();
   
   const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   const {
     patternType,
     setPatternType,
@@ -53,8 +66,10 @@ export const QrGeneratorModal = (props: QrGeneratorModalProps) => {
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        className={`w-full max-w-4xl bg-bg-surface rounded-3xl border border-border-main text-text-main overflow-hidden grid grid-cols-1 md:grid-cols-12 pointer-events-auto transition-shadow duration-300 cursor-grab active:cursor-grabbing relative ${
-          isDragging ? 'shadow-3xl ring-1 ring-emerald-500/20' : 'shadow-2xl'
+        className={`w-full max-w-4xl mx-auto shrink-0 bg-bg-surface rounded-3xl border border-border-main text-text-main overflow-hidden grid grid-cols-1 md:grid-cols-12 pointer-events-auto cursor-grab active:cursor-grabbing relative z-50 ${
+          isDragging 
+            ? 'shadow-[0_35px_70px_-10px_rgba(28,25,23,0.25)] dark:shadow-[0_35px_70px_-10px_rgba(0,0,0,0.9)] ring-1 ring-emerald-500/30' 
+            : 'shadow-[0_25px_60px_-15px_rgba(28,25,23,0.18)] dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.75)]'
         }`}
       >
         <div className="absolute top-4 left-4 z-20 flex items-center gap-1.5 px-3 py-1 bg-emerald-500/5 border border-emerald-500/30 rounded-full text-[10px] text-emerald-400 font-semibold tracking-wide pointer-events-none">
@@ -86,7 +101,7 @@ export const QrGeneratorModal = (props: QrGeneratorModalProps) => {
                 type="button"
                 disabled={!qrImage}
                 onClick={handleDownload}
-                className="h-9 w-9 bg-neutral-900 border border-neutral-800 hover:border-emerald-500/50 text-white rounded-xl flex items-center justify-center transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                className="h-9 w-9 bg-neutral-900 border border-neutral-800 hover:border-emerald-500/50 text-white rounded-xl flex items-center justify-center transition-colors duration-200 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                 title={t('qr.actions.download')}
               >
                 <Download className="h-4 w-4" />
@@ -95,7 +110,7 @@ export const QrGeneratorModal = (props: QrGeneratorModalProps) => {
                 <button
                   type="button"
                   onClick={onPrint}
-                  className="h-9 w-9 bg-neutral-900 border border-neutral-800 hover:border-emerald-500/50 text-white rounded-xl flex items-center justify-center transition-all cursor-pointer"
+                  className="h-9 w-9 bg-neutral-900 border border-neutral-800 hover:border-emerald-500/50 text-white rounded-xl flex items-center justify-center transition-colors duration-200 cursor-pointer"
                   title={t('qr.actions.print')}
                 >
                   <Printer className="h-4 w-4" />
@@ -106,7 +121,7 @@ export const QrGeneratorModal = (props: QrGeneratorModalProps) => {
                   href={activeTableUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="h-9 w-9 bg-neutral-900 border border-neutral-800 hover:border-emerald-500/50 text-white rounded-xl flex items-center justify-center transition-all cursor-pointer"
+                  className="h-9 w-9 bg-neutral-900 border border-neutral-800 hover:border-emerald-500/50 text-white rounded-xl flex items-center justify-center transition-colors duration-200 cursor-pointer"
                   title={t('qr.actions.showQr')}
                 >
                   <ExternalLink className="h-4 w-4" />
@@ -221,7 +236,7 @@ export const QrGeneratorModal = (props: QrGeneratorModalProps) => {
                     key={style}
                     type="button"
                     onClick={() => setPatternType(style)}
-                    className={`h-11 rounded-xl text-xs font-medium border capitalize tracking-wide transition-all cursor-pointer ${
+                    className={`h-11 rounded-xl text-xs font-medium border capitalize tracking-wide transition-colors duration-150 cursor-pointer ${
                       patternType === style
                         ? 'border-emerald-600 text-emerald-600 bg-emerald-500/5 font-semibold'
                         : 'border-border-main text-text-muted hover:bg-bg-hover hover:text-text-main'
@@ -279,7 +294,7 @@ export const QrGeneratorModal = (props: QrGeneratorModalProps) => {
                   type="button"
                   onClick={onDelete}
                   disabled={isPending}
-                  className="h-11 px-4 text-xs font-semibold text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded-xl transition-all flex items-center gap-2 cursor-pointer border border-transparent hover:border-red-500/20 disabled:opacity-50"
+                  className="h-11 px-4 text-xs font-semibold text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded-xl transition-colors duration-150 flex items-center gap-2 cursor-pointer border border-transparent hover:border-red-500/20 disabled:opacity-50"
                 >
                   <Trash2 className="h-4 w-4" />
                   {t('qr.modal.deleteBtn')}
@@ -291,7 +306,7 @@ export const QrGeneratorModal = (props: QrGeneratorModalProps) => {
                 type="button"
                 onClick={onClose}
                 disabled={isPending}
-                className="px-5 h-11 text-xs font-semibold tracking-wide text-text-muted hover:text-text-main hover:bg-bg-element rounded-xl transition-all cursor-pointer disabled:opacity-50"
+                className="px-5 h-11 text-xs font-semibold tracking-wide text-text-muted hover:text-text-main hover:bg-bg-element rounded-xl transition-colors duration-150 cursor-pointer disabled:opacity-50"
               >
                 {t('qr.modal.cancel')}
               </button>

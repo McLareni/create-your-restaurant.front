@@ -12,7 +12,7 @@ export const StaffCard = ({ member, onEdit, onDelete, onStatusChange }: StaffCar
 
   return (
     <div 
-      className={`p-5 flex flex-col justify-between w-full h-[255px] rounded-2xl bg-bg-surface border transition-all duration-300 group select-none relative shadow-table ${
+      className={`p-5 flex flex-col justify-between w-full h-63.75 rounded-2xl bg-bg-surface border transition-all duration-300 group select-none relative shadow-table ${
         !member.isActive 
           ? 'border-border-main/40 dark:border-border-main/30 opacity-70' 
           : 'border-border-main/60 dark:border-border-main hover:border-border-main'

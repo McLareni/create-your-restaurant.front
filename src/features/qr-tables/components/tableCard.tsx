@@ -90,7 +90,7 @@ export const TableCard = (props: TableCardProps) => {
           )}
         </div>
 
-        <div className="mt-4 text-center w-full max-w-[200px] shrink-0">
+        <div className="mt-4 text-center w-full max-w-50 shrink-0">
           <h3 className="text-2xl font-bold tracking-tight text-text-main leading-none truncate">
             {table.tableNumber}
           </h3>

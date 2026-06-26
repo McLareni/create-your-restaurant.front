@@ -15,7 +15,6 @@ export const StaffList = () => {
     t, staff, roles, isLoading, localSearch, setLocalSearch, isModalOpen, setIsModalOpen,
     editingMember, deleteId, setDeleteId, openCreateModal, openEditModal, confirmDelete, updateStaffStatus,
   } = listProps;
-
   const [isRolesModalOpen, setIsRolesModalOpen] = useState(false);
   const roleLogic = useStaffRoles();
 
@@ -96,7 +95,7 @@ export const StaffList = () => {
         isOpen={isRolesModalOpen}
         onClose={() => setIsRolesModalOpen(false)}
         title={t('staff.modal.rolesPanelBtn')}
-        className="w-full max-w-xl border border-solid border-border-main shadow-2xl rounded-2xl"
+        className="max-w-xl"
       >
         <div className="flex flex-col gap-8 text-text-main">
           <div className="flex flex-col gap-5">
