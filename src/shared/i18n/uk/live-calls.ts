@@ -7,5 +7,24 @@ export const liveCalls = {
   notification: "Нове сповіщення від столика!",
   typeWaiter: "Потрібен офіціант",
   typeBill: "Просить принести рахунок",
-  doneBtn: "Прийнято й виконано"
+  doneBtn: "Прийнято й виконано",
+  card: {
+    table: "Стіл",
+    zone: "Зона",
+    noZone: "Без зони",
+    type: "Тип",
+    activeOrdersCount: "Активних замовлень",
+    hide: "Сховати",
+    details: "Детально",
+    order: "Замовлення",
+    total: "Разом",
+    noOrders: "Немає активних замовлень для цього столика."
+  },
+  statuses: {
+    pending: "Очікує",
+    in_progress: "В процесі",
+    ready: "Готово",
+    completed: "Виконано",
+    canceled: "Скасовано"
+  }
 };

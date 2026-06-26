@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import { Input, Button, Select } from '@/shared/ui';
+import { Input, Select } from '@/shared/ui';
 import { 
   Loader2, CheckCircle2, XCircle, Store, ChevronRight, 
   ChevronDown, Image as ImageIcon, Clock, Share2, MapPin
@@ -220,7 +220,7 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
                               disabled={isPending}
                               onClick={() => toggleDay(day.key)}
                               className={`flex-1 flex flex-col items-center justify-center py-2.5 rounded-xl transition-all duration-200 cursor-pointer outline-none disabled:opacity-50 ${
-                                selected ? 'bg-bg-surface text-brand-emerald border border-brand-emerald/30 bg-brand-emerald/5 shadow-xs font-bold' : 'bg-transparent text-text-muted border border-transparent hover:text-text-main'
+                                selected ? 'bg-bg-surface text-brand-emerald border border-brand-emerald/30 shadow-xs font-bold' : 'bg-transparent text-text-muted border border-transparent hover:text-text-main'
                               }`}
                             >
                               <span className="text-xs tracking-tight">{t(`organization.create.days.${day.key}`)}</span>

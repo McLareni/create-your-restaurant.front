@@ -12,81 +12,81 @@ export const InventoryTab = () => {
 
   if (board.isLoading) {
     return (
-      <div className="p-8 text-center text-brand-gray animate-pulse">
-        {board.t('common.loading')}
+      <div className="p-8 text-center text-text-muted font-medium animate-pulse">
+        {board.t('actions.loading')}
       </div>
     );
   }
 
   return (
-    <div className="w-full h-full p-4 select-none flex flex-col">
-      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-brand-gray/10 dark:border-brand-gray/20 pb-4">
+    <div className="w-full h-full p-4 select-none flex flex-col text-text-main bg-bg-main">
+      <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-solid border-border-main/60 pb-4">
         <div>
-          <h2 className="text-xl font-semibold text-brand-espresso dark:text-brand-cream">
+          <h2 className="text-xl font-bold text-text-main tracking-tight">
             {board.t('inventory.title')}
           </h2>
-          <p className="text-sm text-brand-gray dark:text-brand-gray/80 mt-1">
+          <p className="text-sm text-text-muted font-light mt-1">
             {board.t('inventory.subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-3 w-full md:w-auto">
           <div className="relative w-full md:w-72">
-            <Search className="absolute left-3 top-3.5 h-4 w-4 text-brand-gray/60 dark:text-brand-gray/80" />
+            <Search className="absolute left-3 top-3.5 h-4 w-4 text-text-muted/40" />
             <input 
               type="text" 
               placeholder={board.t('inventory.searchPlaceholder')} 
               value={board.searchQuery} 
               onChange={(e) => board.setSearchQuery(e.target.value)} 
-              className="h-11 w-full rounded-full border border-brand-gray/30 dark:border-brand-gray/5 bg-white dark:bg-brand-mocha pl-9 pr-4 text-sm text-brand-espresso dark:text-brand-cream outline-none transition-colors focus:border-brand-copper focus:ring-1 focus:ring-brand-copper" 
+              className="h-11 w-full rounded-full border border-solid border-neutral-300 dark:border-neutral-700 bg-bg-surface pl-9 pr-4 text-sm text-text-main outline-none transition-colors focus:border-brand-emerald/50 focus:ring-1 focus:ring-brand-emerald/20 placeholder:text-text-muted/40" 
             />
           </div>
           <button 
             type="button"
             onClick={board.openCreateModal} 
-            className="h-11 px-5 rounded-full bg-brand-copper hover:bg-brand-copper/90 text-white text-sm font-medium transition-colors whitespace-nowrap cursor-pointer"
+            className="h-11 px-5 rounded-full bg-brand-emerald hover:bg-brand-emerald-hover active:scale-98 text-white text-sm font-bold transition-all whitespace-nowrap cursor-pointer shadow-md border border-brand-emerald/10"
           >
-            + {board.t('inventory.addButton')}
+            <span>+ </span>{board.t('inventory.addButton')}
           </button>
         </div>
       </div>
 
-      <div className="flex-1 overflow-hidden rounded-xl border border-brand-gray/20 bg-white dark:bg-brand-mocha flex flex-col z-0">
-        <div className="grid grid-cols-12 gap-4 border-b border-brand-gray/20 bg-brand-cream/50 dark:bg-brand-espresso px-4 py-3 text-xs font-semibold uppercase tracking-wider text-brand-gray dark:text-brand-gray/60">
+      <div className="flex-1 overflow-hidden rounded-xl border border-solid border-neutral-300 dark:border-neutral-700 bg-bg-surface flex flex-col z-0 shadow-table">
+        <div className="grid grid-cols-12 gap-4 border-b border-solid border-neutral-200 dark:border-neutral-800 bg-bg-main/40 px-4 py-3 text-xs font-bold uppercase tracking-wider text-text-muted">
           <div className="col-span-5">{board.t('inventory.columns.name')}</div>
           <div className="col-span-3 text-center">{board.t('inventory.columns.unit')}</div>
           <div className="col-span-2 text-center">{board.t('inventory.columns.stock')}</div>
           <div className="col-span-2 text-right">{board.t('inventory.columns.actions')}</div>
         </div>
         
-        <div className="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-2 pr-3 space-y-1 custom-scrollbar">
           {board.filteredItems.length === 0 ? (
-            <div className="text-center py-10 text-xs italic text-brand-gray">
+            <div className="text-center py-10 text-xs italic text-text-muted font-light">
               {board.t('inventory.emptyState')}
             </div>
           ) : (
             board.filteredItems.map((item: InventoryItem) => (
               <div 
                 key={item.id} 
-                className={`grid grid-cols-12 items-center gap-4 rounded-lg p-2 transition-colors hover:bg-brand-cream/30 dark:hover:bg-white/5 ${ 
-                  item.stock <= 2 ? 'bg-red-50/40 dark:bg-red-500/5' : '' 
+                className={`grid grid-cols-12 items-center gap-4 rounded-lg p-2 transition-colors hover:bg-bg-hover/40 ${ 
+                  item.stock <= 2 ? 'bg-red-500/5 dark:bg-red-500/10 border-l-2 border-l-red-500/40 rounded-l-none' : '' 
                 }`}
               >
                 <div className="col-span-5 flex items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-cream dark:bg-brand-espresso text-brand-gray dark:text-brand-gray/60">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-bg-main dark:bg-bg-element text-text-muted">
                     <Package className="h-5 w-5" />
                   </div>
-                  <span className="text-sm font-medium text-brand-espresso dark:text-brand-cream line-clamp-1">
+                  <span className="text-sm font-semibold text-text-main line-clamp-1">
                     {item.name}
                   </span>
                 </div>
-                <div className="col-span-3 text-center text-sm text-brand-gray dark:text-brand-gray/80">
+                <div className="col-span-3 text-center text-sm text-text-muted font-medium">
                   {board.t(`menu.constructor.dishes.modal.ingredients.units.${item.unit}`) || item.unit}
                 </div>
                 <div className="col-span-2 flex justify-center">
                   <div className="relative w-20">
                     <Input 
                       id={`stock-input-${item.id}`} 
-                      className="h-9 text-center text-sm font-medium pr-1 pl-1" 
+                      className="h-9 text-center text-sm font-mono font-bold pr-1 pl-1 [&_input]:text-center! border-solid! bg-bg-main/30!" 
                       type="number" 
                       step="any" 
                       defaultValue={item.stock} 
@@ -98,24 +98,24 @@ export const InventoryTab = () => {
                       }} 
                     />
                     {item.stock <= 2 && (
-                      <AlertCircle className="absolute -right-2 -top-2 h-4 w-4 text-brand-copper bg-white dark:bg-brand-mocha rounded-full" />
+                      <AlertCircle className="absolute -right-1.5 -top-1.5 h-3.5 w-3.5 text-red-500 bg-bg-surface rounded-full shadow-2xs animate-bounce" />
                     )}
                   </div>
                 </div>
-                <div className="col-span-2 flex items-center justify-end gap-2 pr-2">
+                <div className="col-span-2 flex items-center justify-end gap-1 pr-2">
                   <button 
                     type="button"
                     onClick={() => board.startEdit(item)} 
-                    className="p-2 text-brand-gray hover:text-brand-copper dark:hover:text-brand-cream rounded-md hover:bg-brand-cream dark:hover:bg-brand-espresso transition-colors cursor-pointer"
+                    className="p-1.5 text-text-muted hover:text-brand-emerald hover:bg-bg-element rounded-md transition-colors cursor-pointer border-0 bg-transparent outline-none"
                   >
-                    <Edit2 className="h-4 w-4" />
+                    <Edit2 className="h-3.5 w-3.5" />
                   </button>
                   <button 
                     type="button"
                     onClick={() => board.setDeleteId(item.id)} 
-                    className="p-2 text-brand-gray hover:text-red-500 rounded-md hover:bg-brand-cream dark:hover:bg-brand-espresso transition-colors cursor-pointer"
+                    className="p-1.5 text-text-muted hover:text-red-500 hover:bg-red-500/5 rounded-md transition-colors cursor-pointer border-0 bg-transparent outline-none"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 </div>
               </div>
@@ -130,9 +130,13 @@ export const InventoryTab = () => {
           isOpen={board.isModalOpen} 
           onClose={() => board.setIsModalOpen(false)} 
           title={board.editingId ? board.t('inventory.modal.editTitle') : board.t('inventory.modal.createTitle')} 
-          className="w-full max-w-md border-brand-copper/20" 
+          className="w-full max-w-md h-75" 
         >
-          <form action={board.handleFormAction} className="space-y-4">
+          <form action={board.handleFormAction} className="space-y-4 text-text-main
+            [&_input:not([type=checkbox])]:bg-bg-main/40! [&_input:not([type=checkbox])]:text-text-main! [&_input:not([type=checkbox])]:border-solid! [&_input:not([type=checkbox])]:border-neutral-300! dark:[&_input:not([type=checkbox])]:border-neutral-700! [&_input:not([type=checkbox])]:w-full [&_input:not([type=checkbox])]:rounded-xl! [&_input:not([type=checkbox])]:focus:border-brand-emerald/50! [&_input:not([type=checkbox])]:focus:ring-1! [&_input:not([type=checkbox])]:focus:ring-brand-emerald/20! [&_input:not([type=checkbox])]:outline-none!
+            [&_select]:bg-bg-main/40! [&_select]:text-text-main! [&_select]:border-solid! [&_select]:border-neutral-300! dark:[&_select]:border-neutral-700! [&_select]:w-full [&_select]:rounded-xl! [&_select]:focus:border-brand-emerald/50! [&_select]:focus:ring-1! [&_select]:focus:ring-brand-emerald/20! [&_select]:outline-none!
+            [&_label]:text-text-main/80! [&_label]:text-xs! [&_label]:font-bold! [&_label]:uppercase! [&_label]:tracking-wider!"
+          >
             <div>
               <Input 
                 id="inventory-item-name" 
@@ -144,8 +148,8 @@ export const InventoryTab = () => {
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="inventory-item-stock" className="block text-sm font-medium text-brand-gray mb-1">
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="inventory-item-stock">
                   {board.t('inventory.modal.stockLabel')}
                 </label>
                 <input 
@@ -154,12 +158,12 @@ export const InventoryTab = () => {
                   step="any" 
                   value={board.formData.stock} 
                   onChange={(e) => board.setFormData({ ...board.formData, stock: parseFloat(e.target.value) || 0 })} 
-                  className={`h-11 w-full rounded-lg border bg-white dark:bg-brand-espresso px-3 text-sm text-brand-espresso dark:text-brand-cream outline-none focus:border-brand-copper ${ 
-                    board.validationErrors.stock ? 'border-red-500' : 'border-brand-gray/30 dark:border-brand-gray/50' 
+                  className={`h-11 w-full rounded-xl bg-bg-main/40 border border-solid px-3.5 text-sm text-text-main outline-none focus:border-brand-emerald focus:ring-1 focus:ring-brand-emerald/20 transition-colors ${ 
+                    board.validationErrors.stock ? 'border-red-500 focus:border-red-500' : 'border-neutral-300 dark:border-neutral-700' 
                   }`} 
                 />
                 {board.validationErrors.stock && (
-                  <span className="text-xs text-red-500 mt-1 block">{board.validationErrors.stock}</span>
+                  <span className="text-xs text-red-500 font-semibold mt-0.5 block">{board.validationErrors.stock}</span>
                 )}
               </div>
               <div>
@@ -168,7 +172,7 @@ export const InventoryTab = () => {
                   label={board.t('inventory.modal.unitLabel')}
                   value={board.formData.unit} 
                   onChange={board.handleUnitChange} 
-                  className="h-11 border-brand-gray/30" 
+                  className="h-11 border-neutral-300! dark:border-neutral-700!" 
                   error={board.validationErrors.unit}
                 >
                   {AVAILABLE_UNITS.map((u) => (
@@ -179,17 +183,17 @@ export const InventoryTab = () => {
                 </Select>
               </div>
             </div>
-            <div className="flex justify-end space-x-2 pt-4 border-t border-brand-gray/10">
+            <div className="flex justify-end gap-3 pt-4 border-t border-solid border-neutral-200 dark:border-neutral-800/60 shrink-0 bg-bg-surface mt-auto">
               <button 
                 type="button" 
                 onClick={() => board.setIsModalOpen(false)} 
-                className="px-4 h-11 border border-brand-gray/30 text-brand-gray rounded-lg text-sm font-medium hover:bg-brand-cream/30 cursor-pointer"
+                className="h-10 px-4 text-xs font-semibold text-text-muted hover:text-text-main hover:bg-bg-element rounded-xl transition-all cursor-pointer border-0 bg-transparent outline-none select-none"
               >
                 {board.t('inventory.modal.cancel')}
               </button>
               <button 
                 type="submit" 
-                className="px-4 h-11 bg-brand-copper hover:bg-brand-copper/90 text-white rounded-lg text-sm font-medium transition-colors cursor-pointer"
+                className="h-10 px-5 text-xs font-bold text-white bg-brand-emerald hover:bg-brand-emerald-hover active:scale-98 rounded-xl shadow-md transition-all cursor-pointer border border-brand-emerald/10 select-none flex items-center justify-center"
               >
                 {board.t('inventory.modal.save')}
               </button>

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, GripHorizontal } from 'lucide-react';
 
 interface FloatingPanelProps {
   panelId: string;
@@ -33,7 +33,6 @@ export const FloatingPanel = ({
     }
     return { x: 0, y: 0 };
   });
-
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef({ x: 0, y: 0 });
   const currentCoordsRef = useRef(coordinates);
@@ -58,7 +57,6 @@ export const FloatingPanel = ({
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging) return;
-
     const nextX = e.clientX - dragStartRef.current.x;
     const nextY = e.clientY - dragStartRef.current.y;
 
@@ -78,22 +76,25 @@ export const FloatingPanel = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-transparent pointer-events-none">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-transparent pointer-events-none select-none">
       <div
         style={style}
-        className={`w-full bg-bg-surface rounded-3xl shadow-md border border-solid border-border-main flex flex-col max-h-[90vh] pointer-events-auto transition-shadow ${
-          isDragging ? 'shadow-lg' : ''
+        className={`w-full mx-auto shrink-0 bg-bg-surface rounded-3xl border border-solid border-border-main flex flex-col max-h-[90vh] pointer-events-auto ${
+          isDragging 
+            ? 'shadow-[0_35px_70px_-10px_rgba(28,25,23,0.25)] dark:shadow-[0_35px_70px_-10px_rgba(0,0,0,0.9)] ring-1 ring-emerald-500/30' 
+            : 'shadow-[0_25px_60px_-15px_rgba(28,25,23,0.18)] dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.75)]'
         } ${className}`}
       >
         <div
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
-          className={`flex items-center justify-between px-5 py-3.5 border-b border-solid border-border-main cursor-grab active:cursor-grabbing bg-bg-element/30 rounded-t-3xl select-none touch-none transition-colors ${
+          className={`flex items-center justify-between px-5 py-3.5 border-b border-solid border-border-main cursor-grab active:cursor-grabbing bg-bg-element/30 rounded-t-3xl touch-none transition-colors ${
             isDragging ? 'bg-bg-element/60' : ''
           }`}
         >
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-2">
+            <GripHorizontal className="h-4 w-4 text-text-muted/40 shrink-0 stroke-[2.5]" />
             <span className="text-sm font-bold text-text-main">
               {title}
             </span>
@@ -101,7 +102,7 @@ export const FloatingPanel = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-xl text-text-muted hover:bg-bg-element hover:text-text-main transition-colors cursor-pointer"
+            className="p-1.5 rounded-xl text-text-muted hover:bg-bg-element hover:text-text-main transition-colors cursor-pointer border-0 bg-transparent outline-none"
           >
             <X className="h-4 w-4" />
           </button>

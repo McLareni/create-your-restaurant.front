@@ -7,10 +7,10 @@ export default function GlobalLoading() {
   const { t } = useTranslation();
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-brand-cream text-brand-espresso">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-bg-main text-text-main transition-colors duration-300">
       <div className="flex flex-col items-center gap-4">
-        <Loader2 className="h-12 w-12 animate-spin text-brand-copper" />
-        <p className="text-sm font-medium text-brand-gray animate-pulse">
+        <Loader2 className="h-12 w-12 animate-spin text-brand-emerald" />
+        <p className="text-sm font-medium text-text-muted animate-pulse">
           {t('loading')}
         </p>
       </div>

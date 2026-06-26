@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import { Button, FloatingPanel, Input, Switch } from '@/shared/ui';
+import { FloatingPanel, Input, Switch } from '@/shared/ui';
 import type { ModifierGroupModalProps } from '@/features/menu-builder/types/modifiers.types';
 
 export const ModifierGroupModal = ({
@@ -30,9 +30,12 @@ export const ModifierGroupModal = ({
       isOpen={isOpen}
       onClose={onClose}
       title={isEditing ? t('menu.constructor.modifiers.modal.group.editTitle') : t('menu.constructor.modifiers.modal.group.createTitle')}
-      className="w-132 border-brand-copper/20"
+      className="max-w-xl"
     >
-      <form action={handleSubmitAction} className="flex flex-col gap-4 text-brand-espresso dark:text-brand-cream">
+      <form action={handleSubmitAction} className="flex flex-col gap-4 text-text-main w-full
+        [&_input]:bg-bg-main/60! [&_input]:text-text-main! [&_input]:border-border-main/60! [&_input]:w-full [&_input]:rounded-xl! [&_input]:focus:border-brand-emerald/50!
+        [&_label]:text-text-main/90! [&_label]:text-xs! [&_label]:font-bold! [&_label]:uppercase! [&_label]:tracking-wider!"
+      >
         <Input
           id="groupName"
           label={t('menu.constructor.modifiers.modal.group.nameLabel')}
@@ -67,9 +70,9 @@ export const ModifierGroupModal = ({
           />
         </div>
 
-        <div className="flex items-center justify-between border-t border-brand-gray/10 pt-4 mt-2">
+        <div className="flex items-center justify-between border-t border-border-main/60 pt-4 mt-2">
           <div className="max-w-[75%]">
-            <span className="block text-sm font-semibold text-brand-espresso dark:text-brand-cream">
+            <span className="block text-sm font-semibold text-text-main">
               {t('menu.constructor.modifiers.modal.group.requiredLabel')}
             </span>
           </div>
@@ -80,25 +83,22 @@ export const ModifierGroupModal = ({
           />
         </div>
 
-        <div className="flex justify-end gap-3 pt-4 mt-2 border-t border-brand-gray/10">
-          <Button 
+        <div className="flex justify-end gap-3 pt-4 mt-2 border-t border-border-main/60">
+          <button 
             type="button"
-            variant="ghost" 
             onClick={onClose} 
-            className="h-9 text-xs font-semibold" 
+            className="h-10 px-4 text-xs font-semibold text-text-muted hover:text-text-main hover:bg-bg-element rounded-xl transition-all cursor-pointer border-0 bg-transparent outline-none select-none"
             disabled={isLoading}
           >
             {t('menu.constructor.modifiers.modal.cancel')}
-          </Button>
-          <Button
+          </button>
+          <button
             type="submit"
-            variant="brand"
-            className="px-5 h-9 text-xs font-bold shadow-md"
             disabled={!form.name.trim() || isLoading}
-            isLoading={isLoading}
+            className="h-10 px-5 text-xs font-bold text-white bg-brand-emerald hover:bg-brand-emerald-hover active:scale-98 rounded-xl shadow-md transition-all cursor-pointer border border-brand-emerald/10 select-none"
           >
             {t('menu.constructor.modifiers.modal.save')}
-          </Button>
+          </button>
         </div>
       </form>
     </FloatingPanel>
