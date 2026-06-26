@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/shared/hooks/useTranslation';
@@ -41,6 +41,21 @@ export const usePublicMenuClient = (
   const tableExists = useMemo(() => {
     return tableExistsData?.exists === true;
   }, [tableExistsData]);
+
+  const { data: activeOrderResponse } = useQuery({
+    queryKey: ['public-order', resolvedRestaurantId, tableId, orderId],
+    queryFn: () =>
+      publicMenuApi.getOrderById(
+        resolvedRestaurantId as number,
+        tableId as string,
+        orderId as string,
+      ),
+    enabled:
+      Boolean(orderId) &&
+      hasTableId &&
+      Boolean(resolvedRestaurantId) &&
+      tableExists === true,
+  });
 
   const createOrderMutation = useMutation({
     mutationFn: () => {
@@ -95,6 +110,23 @@ export const usePublicMenuClient = (
     },
   });
 
+  const callWaiterMutation = useMutation({
+    mutationFn: () => {
+      if (!tableId) throw new Error('tableId is required');
+      if (!resolvedRestaurantId) throw new Error('Restaurant was not resolved');
+
+      return publicMenuApi.callWaiter(resolvedRestaurantId, tableId);
+    },
+    onSuccess: () => {
+      toast.success(t('menu.public.waiterCallSuccess') || 'Офіціанта викликано');
+    },
+    onError: (error: unknown) => {
+      const errorMessage =
+        error instanceof Error ? error.message : t('errors.unknown');
+      toast.error(errorMessage);
+    },
+  });
+
   const canUseCart = hasTableId && tableExists === true;
 
   const totalItems = useMemo(
@@ -121,7 +153,11 @@ export const usePublicMenuClient = (
   }, [cart, dishesById]);
 
   const activeOrder = useMemo(() => {
-    if (lastOrderSnapshot) {
+    if (activeOrderResponse?.order) {
+      return activeOrderResponse.order;
+    }
+
+    if (lastOrderSnapshot && lastOrderSnapshot.id === orderId) {
       return lastOrderSnapshot;
     }
 
@@ -139,7 +175,7 @@ export const usePublicMenuClient = (
     } catch {
       return null;
     }
-  }, [activeOrderStorageKey, lastOrderSnapshot]);
+  }, [activeOrderResponse, activeOrderStorageKey, lastOrderSnapshot, orderId]);
 
   const addDish = (dishId: string) => {
     if (createOrderMutation.isPending) return;
@@ -178,5 +214,7 @@ export const usePublicMenuClient = (
     removeDish,
     placeOrder: () => createOrderMutation.mutate(),
     isPlacingOrder: createOrderMutation.isPending,
+    callWaiter: () => callWaiterMutation.mutate(),
+    isCallingWaiter: callWaiterMutation.isPending,
   };
 };

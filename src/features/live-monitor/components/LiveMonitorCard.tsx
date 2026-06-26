@@ -38,6 +38,8 @@ export const LiveMonitorCard = ({
   table,
   isExpanded,
   onToggleDetails,
+  onResolveWaiterCall,
+  isResolvingWaiterCall,
 }: LiveMonitorCardProps) => {
   const { t } = useTranslation();
 

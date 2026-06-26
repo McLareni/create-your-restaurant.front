@@ -92,4 +92,6 @@ export interface UsePublicMenuClientReturn {
   removeDish: (dishId: string) => void;
   placeOrder: () => void;
   isPlacingOrder: boolean;
+  callWaiter: () => void;
+  isCallingWaiter: boolean;
 }

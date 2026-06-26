@@ -22,6 +22,8 @@ export type LiveMonitorTable = {
   number: number;
   type: string;
   status: string;
+  isWaiterCallActive: boolean;
+  waiterCallRequestedAt: string | null;
   zone: string | null;
   activeOrderCount: number;
   activeOrdersTotalAmount: number;
