@@ -3,13 +3,15 @@
 import React from 'react';
 import { Button } from "@/shared/ui";
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import { Layers, Receipt, ChevronDown, ChevronUp } from 'lucide-react';
+import { Layers, Receipt, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import type { LiveMonitorTable, LiveMonitorOrder } from "@/features/live-monitor/types/liveMonitor.types";
 
 type LiveMonitorCardProps = {
   table: LiveMonitorTable;
   isExpanded: boolean;
   onToggleDetails: (tableId: string) => void;
+  onResolveWaiterCall: (tableId: string) => void;
+  isResolvingWaiterCall: boolean;
 };
 
 const formatCurrency = (value: number) =>
@@ -45,7 +47,7 @@ export const LiveMonitorCard = ({
 
   return (
     <div
-      className={`group flex w-full flex-col justify-between rounded-xl border bg-bg-surface p-5 transition-all duration-300 ${
+      className={`group flex w-full flex-col justify-between overflow-visible rounded-xl border bg-bg-surface p-5 transition-all duration-300 ${
         isExpanded
           ? "border-brand-emerald/40 ring-1 ring-brand-emerald/10 shadow-md"
           : "border-border-main shadow-table hover:border-border-main/80 hover:shadow-md"
@@ -78,14 +80,26 @@ export const LiveMonitorCard = ({
             <span>{table.activeOrderCount}</span>
           </div>
           
-          <Button
-            variant="outline"
-            className="h-8 text-[11px] font-bold px-3 border-solid rounded-lg flex items-center gap-1"
-            onClick={() => onToggleDetails(table.id)}
-          >
-            <span>{isExpanded ? t('liveCalls.card.hide') : t('liveCalls.card.details')}</span>
-            {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-          </Button>
+          <div className="flex items-center gap-2 mt-2.5">
+            <Button
+              variant="brand"
+              disabled={isResolvingWaiterCall}
+              onClick={() => onResolveWaiterCall(table.id)}
+              className="h-8 text-[11px] font-bold px-3 rounded-lg bg-brand-emerald hover:bg-brand-emerald-hover text-white border-0 cursor-pointer flex items-center gap-1 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isResolvingWaiterCall && <Loader2 className="h-3 w-3 animate-spin" />}
+              <span>{t('liveCalls.doneBtn')}</span>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="h-8 text-[11px] font-bold px-3 border-solid rounded-lg flex items-center gap-1"
+              onClick={() => onToggleDetails(table.id)}
+            >
+              <span>{isExpanded ? t('liveCalls.card.hide') : t('liveCalls.card.details')}</span>
+              {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+            </Button>
+          </div>
         </div>
       </div>
 
