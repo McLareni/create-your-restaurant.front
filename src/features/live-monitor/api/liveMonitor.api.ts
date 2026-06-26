@@ -7,5 +7,12 @@ export const liveMonitorApi = {
       `/restaurants/${restaurantId}/live-monitor/tables`,
       { cache: 'no-store' }
     );
+  },
+
+  resolveWaiterCall: async (restaurantId: number, tableId: string): Promise<unknown> => {
+    return await apiClient.post(
+      `/restaurants/${restaurantId}/live-monitor/tables/${tableId}/resolve`,
+      {}
+    );
   }
 };
