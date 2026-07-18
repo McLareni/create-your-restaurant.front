@@ -4,11 +4,22 @@ import { create } from 'zustand';
 import { apiClient } from '@/shared/api/client';
 import { authApi } from '@/features/auth/api/auth.api';
 
+export interface UserRestaurant {
+  id: string | number;
+  name: string;
+  slug?: string;
+  imageUrl?: string | null;
+}
+
 export interface User {
-  id: string;
+  id: string | number;
   email: string;
-  name?: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  photo?: string | null;
   role?: string;
+  phone?: string | null;
+  restaurants?: UserRestaurant[];
 }
 
 interface UserState {
