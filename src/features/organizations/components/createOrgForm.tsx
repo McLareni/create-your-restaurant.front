@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Image from 'next/image';
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import { Input, Select } from '@/shared/ui';
+import { Input } from '@/shared/ui';
+import { useClickOutside } from '@/shared/hooks/useClickOutside';
 import { 
   Loader2, CheckCircle2, XCircle, Store, ChevronRight, 
-  ChevronDown, Image as ImageIcon, Clock, Share2, MapPin
+  ChevronDown, Image as ImageIcon, Clock, Share2, MapPin, Check
 } from 'lucide-react';
 import { CreateOrgCard } from '@/features/organizations/components/createOrgCard';
 import { CreateOrgFormProps } from '@/features/organizations/types/organization.types';
@@ -16,6 +17,21 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
   const { t } = useTranslation();
   const [sidebarPreview, setSidebarPreview] = useState<boolean>(false);
   
+  const [isTypeOpen, setIsTypeOpen] = useState(false);
+  const [isCurrencyOpen, setIsCurrencyOpen] = useState(false);
+  const [isSocial1Open, setIsSocial1Open] = useState(false);
+  const [isSocial2Open, setIsSocial2Open] = useState(false);
+
+  const typeRef = useRef<HTMLDivElement>(null);
+  const currencyRef = useRef<HTMLDivElement>(null);
+  const social1Ref = useRef<HTMLDivElement>(null);
+  const social2Ref = useRef<HTMLDivElement>(null);
+
+  useClickOutside(typeRef, () => setIsTypeOpen(false));
+  useClickOutside(currencyRef, () => setIsCurrencyOpen(false));
+  useClickOutside(social1Ref, () => setIsSocial1Open(false));
+  useClickOutside(social2Ref, () => setIsSocial2Open(false));
+
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     media: false,
     address: false,
@@ -59,15 +75,14 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
         
         <div className="relative w-full max-w-xl rounded-3xl bg-bg-surface p-6 md:p-10 border border-border-main/80 shadow-2xl z-10
           [&_input]:bg-bg-main/60! [&_input]:text-text-main! [&_input]:border-border-main/60! [&_input]:w-full [&_input]:rounded-xl! [&_input]:focus:border-brand-emerald/50!
-          [&_select]:bg-bg-main/60! [&_select]:text-text-main! [&_select]:border-border-main/60! [&_select]:w-full [&_select]:rounded-xl! [&_select]:focus:border-brand-emerald/50!
-          [&_input.border-red-500]:border-red-500! [&_select.border-red-500]:border-red-500!
+          [&_input.border-red-500]:border-red-500!
           [&_label]:text-text-main/90! [&_label]:text-xs! [&_label]:font-bold! [&_label]:uppercase! [&_label]:tracking-wider! 
           [&_span.text-red-500]:text-red-600! [&_span.text-red-500]:font-bold!"
         >
           <button
             type="button"
             onClick={() => setSidebarPreview(!sidebarPreview)}
-            className="absolute top-1/2 -right-3.5 -translate-y-1/2 flex h-14 w-7 items-center justify-end pr-1 rounded-r-2xl border-y border-r border-l-0 border-border-main bg-bg-surface text-brand-emerald transition-all duration-300 hover:right-4 hover:w-8 shadow-md group cursor-pointer outline-none z-20"
+            className="absolute top-1/2 -right-3.5 -translate-y-1/2 flex h-14 w-7 items-center justify-end pr-1 rounded-r-2xl border-y border-r border-l-0 border-border-main bg-bg-surface text-brand-emerald transition-all duration-300 hover:scale-110 origin-left shadow-md group cursor-pointer outline-none z-[-1]"
           >
             <ChevronRight className={`h-4 w-4 transition-transform duration-500 ${sidebarPreview ? 'rotate-180' : ''}`} />
           </button>
@@ -83,6 +98,9 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
           </div>
 
           <form action={formAction} className="space-y-5 w-full">
+            <input type="hidden" name="type" value={formData.type || ''} />
+            <input type="hidden" name="currency" value={formData.currency || ''} />
+
             <div className="space-y-4">
               <Input 
                 id="name" 
@@ -99,11 +117,11 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
                 id="slug" 
                 label={t('organization.create.slugLabel')} 
                 hint={t('organization.create.slugHint')} 
-                value={formData.slug || ''} 
-                onChange={(e) => handleChange('slug', e.target.value)} 
-                error={errors.slug} 
-                disabled={isPending} 
-                autoComplete="off" 
+                value={formData.slug || ''}
+                onChange={(e) => handleChange('slug', e.target.value)}
+                error={errors.slug}
+                disabled={isPending}
+                autoComplete="off"
                 rightElement={
                   <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-text-muted bg-bg-surface/80 backdrop-blur-xs px-2.5 py-1 rounded-lg border border-border-main h-7 shrink-0 shadow-2xs">
                     <span>{process.env.NEXT_PUBLIC_DOMAIN_SUFFIX || '.gustio.com'}</span>
@@ -111,44 +129,75 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
                     {slugAvailable === true && <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />}
                     {slugAvailable === false && <XCircle className="h-3.5 w-3.5 text-red-500" />}
                   </div>
-                } 
+                }
               />
 
               <div className="grid grid-cols-2 gap-4">
-                <Select 
-                  id="type" 
-                  label={t('organization.create.typeLabel')} 
-                  value={formData.type || ''} 
-                  onChange={(e) => handleChange('type', e.target.value)} 
-                  error={errors.type}
-                  disabled={isPending}
-                >
-                  <option value="" disabled hidden>{t('organization.create.typePlaceholder')}</option>
-                  <option value="FAST_FOOD">{t('organization.create.types.FAST_FOOD')}</option>
-                  <option value="CASUAL_DINING">{t('organization.create.types.CASUAL_DINING')}</option>
-                  <option value="FINE_DINING">{t('organization.create.types.FINE_DINING')}</option>
-                  <option value="CAFE">{t('organization.create.types.CAFE')}</option>
-                  <option value="BUFFET">{t('organization.create.types.BUFFET')}</option>
-                  <option value="FOOD_TRUCK">{t('organization.create.types.FOOD_TRUCK')}</option>
-                </Select>
-                <Select 
-                  id="currency" 
-                  label={t('organization.create.currencyLabel')} 
-                  value={formData.currency || ''} 
-                  onChange={(e) => handleChange('currency', e.target.value)} 
-                  error={errors.currency}
-                  disabled={isPending}
-                >
-                  <option value="" disabled hidden>{t('organization.create.currencyPlaceholder')}</option>
-                  <option value="UAH">{t('organization.create.currencies.UAH')}</option>
-                  <option value="USD">{t('organization.create.currencies.USD')}</option>
-                  <option value="EUR">{t('organization.create.currencies.EUR')}</option>
-                  <option value="GBP">{t('organization.create.currencies.GBP')}</option>
-                  <option value="JPY">{t('organization.create.currencies.JPY')}</option>
-                  <option value="CNY">{t('organization.create.currencies.CNY')}</option>
-                  <option value="RUB">{t('organization.create.currencies.RUB')}</option>
-                  <option value="PLN">{t('organization.create.currencies.PLN')}</option>
-                </Select>
+                <div className="flex flex-col gap-1.5 relative" ref={typeRef}>
+                  <span className="text-xs font-bold uppercase tracking-wider text-text-main/80 mb-0.5">
+                    {t('organization.create.typeLabel')}
+                  </span>
+                  <div
+                    onClick={() => !isPending && setIsTypeOpen(!isTypeOpen)}
+                    className={`h-11 w-full bg-bg-main/40 border border-solid text-sm text-text-main px-4 flex items-center justify-between transition-all select-none rounded-xl cursor-pointer hover:border-neutral-400 dark:hover:border-neutral-600 ${
+                      isTypeOpen ? 'border-brand-emerald! ring-1 ring-brand-emerald/20 bg-bg-surface!' : 'border-neutral-300 dark:border-neutral-700'
+                    } ${errors.type ? 'border-red-500!' : ''}`}
+                  >
+                    <span className="font-semibold truncate">
+                      {formData.type ? t(`organization.create.types.${formData.type}`) : t('organization.create.typePlaceholder')}
+                    </span>
+                    <ChevronDown className={`h-4 w-4 text-text-muted transition-transform duration-200 ${isTypeOpen ? 'rotate-180 text-brand-emerald' : ''}`} />
+                  </div>
+                  {isTypeOpen && (
+                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-bg-surface border border-solid border-border-main/60 shadow-lg flex flex-col p-1 rounded-xl max-h-48 overflow-y-auto custom-scrollbar">
+                      {(['FAST_FOOD', 'CASUAL_DINING', 'CAFE', 'FINE_DINING', 'BUFFET', 'FOOD_TRUCK'] as const).map((typeOption) => (
+                        <button
+                          key={typeOption}
+                          type="button"
+                          onClick={() => { handleChange('type', typeOption); setIsTypeOpen(false); }}
+                          className="w-full flex items-center justify-between px-3 h-10 hover:bg-bg-hover text-left text-xs font-semibold text-text-main rounded-lg shrink-0"
+                        >
+                          <span>{t(`organization.create.types.${typeOption}`)}</span>
+                          {formData.type === typeOption && <Check className="h-4 w-4 text-brand-emerald shrink-0" />}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {errors.type && <span className="text-xs font-semibold text-red-500 mt-0.5">{errors.type}</span>}
+                </div>
+
+                <div className="flex flex-col gap-1.5 relative" ref={currencyRef}>
+                  <span className="text-xs font-bold uppercase tracking-wider text-text-main/80 mb-0.5">
+                    {t('organization.create.currencyLabel')}
+                  </span>
+                  <div
+                    onClick={() => !isPending && setIsTypeOpen(false) || setIsCurrencyOpen(!isCurrencyOpen)}
+                    className={`h-11 w-full bg-bg-main/40 border border-solid text-sm text-text-main px-4 flex items-center justify-between transition-all select-none rounded-xl cursor-pointer hover:border-neutral-400 dark:hover:border-neutral-600 ${
+                      isCurrencyOpen ? 'border-brand-emerald! ring-1 ring-brand-emerald/20 bg-bg-surface!' : 'border-neutral-300 dark:border-neutral-700'
+                    } ${errors.currency ? 'border-red-500!' : ''}`}
+                  >
+                    <span className="font-semibold truncate">
+                      {formData.currency ? t(`organization.create.currencies.${formData.currency}`) : t('organization.create.currencyPlaceholder')}
+                    </span>
+                    <ChevronDown className={`h-4 w-4 text-text-muted transition-transform duration-200 ${isCurrencyOpen ? 'rotate-180 text-brand-emerald' : ''}`} />
+                  </div>
+                  {isCurrencyOpen && (
+                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-bg-surface border border-solid border-border-main/60 shadow-lg flex flex-col p-1 rounded-xl max-h-48 overflow-y-auto custom-scrollbar">
+                      {(['UAH', 'USD', 'EUR', 'GBP', 'JPY', 'CNY', 'RUB', 'PLN'] as const).map((currOption) => (
+                        <button
+                          key={currOption}
+                          type="button"
+                          onClick={() => { handleChange('currency', currOption); setIsCurrencyOpen(false); }}
+                          className="w-full flex items-center justify-between px-3 h-10 hover:bg-bg-hover text-left text-xs font-semibold text-text-main rounded-lg shrink-0"
+                        >
+                          <span>{t(`organization.create.currencies.${currOption}`)}</span>
+                          {formData.currency === currOption && <Check className="h-4 w-4 text-brand-emerald shrink-0" />}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {errors.currency && <span className="text-xs font-semibold text-red-500 mt-0.5">{errors.currency}</span>}
+                </div>
               </div>
             </div>
 
@@ -287,16 +336,32 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold uppercase tracking-wider text-text-main/80 block">{t('organization.create.mainChannel')}</label>
                       <div className="flex gap-2.5 items-center">
-                        <div className="w-1/3">
-                          <Select value={String(socialPlatform1)} disabled={isPending} onChange={(e) => { handleChange(socialPlatform1, ''); setSocialPlatform1(e.target.value as keyof CreateOrganizationValues); }}>
-                            <option value="instagram">Instagram</option>
-                            <option value="facebook">Facebook</option>
-                            <option value="telegram">Telegram</option>
-                            <option value="tiktok">TikTok</option>
-                          </Select>
+                        <div className="w-1/3 relative" ref={social1Ref}>
+                          <div
+                            onClick={() => !isPending && setIsSocial1Open(!isSocial1Open)}
+                            className="h-11 w-full bg-bg-main/40 border border-solid border-neutral-300 dark:border-neutral-700 text-xs font-semibold text-text-main px-3 flex items-center justify-between transition-all rounded-xl cursor-pointer"
+                          >
+                            <span className="capitalize">{String(socialPlatform1)}</span>
+                            <ChevronDown className="h-3.5 w-3.5 text-text-muted" />
+                          </div>
+                          {isSocial1Open && (
+                            <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-bg-surface border border-solid border-border-main/60 shadow-md flex flex-col p-1 rounded-xl">
+                              {(['instagram', 'facebook', 'telegram', 'tiktok'] as const).map((plat) => (
+                                <button
+                                  key={plat}
+                                  type="button"
+                                  onClick={() => { handleChange(socialPlatform1, ''); setSocialPlatform1(plat); setIsSocial1Open(false); }}
+                                  className="w-full flex items-center justify-between px-3 h-9 hover:bg-bg-hover text-left text-xs font-medium text-text-main rounded-lg"
+                                >
+                                  <span className="capitalize">{plat}</span>
+                                  {socialPlatform1 === plat && <Check className="h-3.5 w-3.5 text-brand-emerald" />}
+                                </button>
+                              ))}
+                            </div>
+                          )}
                         </div>
                         <div className="flex-1">
-                          <Input id={String(socialPlatform1)} placeholder="username" value={(formData[socialPlatform1] as string) || ''} onChange={(e) => handleChange(socialPlatform1, e.target.value)} error={errors[socialPlatform1]} disabled={isPending} autoComplete="off" />
+                          <Input name={String(socialPlatform1)} id={String(socialPlatform1)} placeholder="username" value={(formData[socialPlatform1] as string) || ''} onChange={(e) => handleChange(socialPlatform1, e.target.value)} error={errors[socialPlatform1]} disabled={isPending} autoComplete="off" />
                         </div>
                       </div>
                     </div>
@@ -304,16 +369,32 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold uppercase tracking-wider text-text-main/80 block">{t('organization.create.additionalChannel')}</label>
                       <div className="flex gap-2.5 items-center">
-                        <div className="w-1/3">
-                          <Select value={String(socialPlatform2)} disabled={isPending} onChange={(e) => { handleChange(socialPlatform2, ''); setSocialPlatform2(e.target.value as keyof CreateOrganizationValues); }}>
-                            <option value="facebook">Facebook</option>
-                            <option value="instagram">Instagram</option>
-                            <option value="telegram">Telegram</option>
-                            <option value="tiktok">TikTok</option>
-                          </Select>
+                        <div className="w-1/3 relative" ref={social2Ref}>
+                          <div
+                            onClick={() => !isPending && setIsSocial2Open(!isSocial2Open)}
+                            className="h-11 w-full bg-bg-main/40 border border-solid border-neutral-300 dark:border-neutral-700 text-xs font-semibold text-text-main px-3 flex items-center justify-between transition-all rounded-xl cursor-pointer"
+                          >
+                            <span className="capitalize">{String(socialPlatform2)}</span>
+                            <ChevronDown className="h-3.5 w-3.5 text-text-muted" />
+                          </div>
+                          {isSocial2Open && (
+                            <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-bg-surface border border-solid border-border-main/60 shadow-md flex flex-col p-1 rounded-xl">
+                              {(['facebook', 'instagram', 'telegram', 'tiktok'] as const).map((plat) => (
+                                <button
+                                  key={plat}
+                                  type="button"
+                                  onClick={() => { handleChange(socialPlatform2, ''); setSocialPlatform2(plat); setIsSocial2Open(false); }}
+                                  className="w-full flex items-center justify-between px-3 h-9 hover:bg-bg-hover text-left text-xs font-medium text-text-main rounded-lg"
+                                >
+                                  <span className="capitalize">{plat}</span>
+                                  {socialPlatform2 === plat && <Check className="h-3.5 w-3.5 text-brand-emerald" />}
+                                </button>
+                              ))}
+                            </div>
+                          )}
                         </div>
                         <div className="flex-1">
-                          <Input id={String(socialPlatform2)} placeholder="username" value={(formData[socialPlatform2] as string) || ''} onChange={(e) => handleChange(socialPlatform2, e.target.value)} error={errors[socialPlatform2]} disabled={isPending} autoComplete="off" />
+                          <Input name={String(socialPlatform2)} id={String(socialPlatform2)} placeholder="username" value={(formData[socialPlatform2] as string) || ''} onChange={(e) => handleChange(socialPlatform2, e.target.value)} error={errors[socialPlatform2]} disabled={isPending} autoComplete="off" />
                         </div>
                       </div>
                     </div>
@@ -337,7 +418,6 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
         <div className={`transition-all duration-500 ease-in-out origin-left flex items-start justify-center print:flex print:opacity-100 ${sidebarPreview ? 'w-110 opacity-100 pl-8 visible' : 'w-0 opacity-0 pl-0 overflow-hidden invisible'}`}>
           <CreateOrgCard formData={formData} />
         </div>
-
       </div>
     </div>
   );

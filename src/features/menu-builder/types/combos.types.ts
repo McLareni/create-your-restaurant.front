@@ -1,4 +1,4 @@
-import { Dish } from '@/features/menu-builder/types/dishes.types';
+import type { Dish } from '@/features/menu-builder/types/dishes.types';
 
 export type ComboPriceType = 'FIXED' | 'DISCOUNT';
 
@@ -29,7 +29,7 @@ export interface CreateComboDTO {
   name: string;
   priceType: ComboPriceType;
   priceValue: number;
-  dishIds: string[];
+  dishes: ComboDishSelect[];
 }
 
 export interface ComboCardProps {
@@ -38,6 +38,14 @@ export interface ComboCardProps {
   onEdit: (combo: Combo) => void;
   onDelete: (id: string) => void;
 }
+
+export interface ComboFormState {
+  name: string;
+  priceType: ComboPriceType;
+  priceValue: number;
+}
+
+export type ComboFormValues = CreateComboDTO;
 
 export interface UseCombosManagementReturn {
   t: (key: string) => string;
@@ -50,21 +58,18 @@ export interface UseCombosManagementReturn {
   setIsModalOpen: (open: boolean) => void;
   deleteId: string | null;
   setDeleteId: (id: string | null) => void;
-  name: string;
-  setName: (name: string) => void;
   priceType: ComboPriceType;
   setPriceType: (type: ComboPriceType) => void;
-  priceValue: number;
-  setPriceValue: (value: number) => void;
   selectedDishes: ComboDishSelect[];
   errors: Record<string, string>;
   openCreateModal: () => void;
   openEditModal: (combo: Combo) => void;
-  handleAddDish: (dishId: string) => void;
-  handleToggleDish: (dish: ComboDishSelect, checked: boolean) => void;
-  handleSave: () => Promise<void>;
-  handleDeleteConfirm: () => Promise<void>;
+  toggleDishSelection: (dish: Dish) => void;
+  removeDishFromCombo: (dishId: string) => void;
+  handleConfirmDelete: () => Promise<void> | void;
+  formAction: (payload: FormData) => void;
   editingCombo: Combo | null;
+  modalSessionKey: string;
 }
 
 export interface ComboModalProps {

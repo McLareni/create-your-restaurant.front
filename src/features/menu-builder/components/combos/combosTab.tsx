@@ -46,7 +46,7 @@ export const CombosTab = () => {
           description={state.t('menu.constructor.combos.emptyDesc')} 
           actionLabel={state.t('menu.constructor.combos.addBtn')} 
           onAction={state.openCreateModal} 
-        />
+            />
       ) : (
         <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar pb-4" style={{ scrollbarGutter: 'stable' }}>
           <div className="grid gap-5 grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
@@ -69,7 +69,7 @@ export const CombosTab = () => {
       <ConfirmModal 
         isOpen={!!state.deleteId} 
         onClose={() => state.setDeleteId(null)} 
-        onConfirm={state.handleDeleteConfirm} 
+        onConfirm={state.handleConfirmDelete} 
         description={state.t('menu.constructor.combos.deleteConfirm')} 
       />
     </div>

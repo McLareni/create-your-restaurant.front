@@ -38,15 +38,15 @@ export const PosIntegrationView = () => {
   }
 
   return (
-    <div className="flex min-h-screen w-full flex-col bg-bg-main p-6 text-text-main overflow-x-hidden transition-colors duration-300">
-      <div className="mb-8 border-b border-border-main pb-5 max-w-7xl w-full mx-auto">
+    <div className="flex min-h-screen w-full flex-col bg-bg-main p-8 text-text-main overflow-x-hidden transition-colors duration-300">
+      <div className="mb-8 border-b border-border-main pb-5 w-full">
         <h1 className="text-2xl md:text-3xl font-bold text-text-main flex items-center gap-3">
           <div className="p-2 bg-brand-emerald/10 rounded-xl text-brand-emerald">
             <ArrowRightLeft className="h-6 w-6 md:h-7 md:w-7" />
           </div>
           {state.t('pos.title')}
         </h1>
-        <p className="mt-2 text-xs md:text-sm text-text-muted max-w-2xl leading-relaxed font-light">
+        <p className="mt-2 text-xs md:text-sm text-text-muted w-full leading-relaxed font-light">
           {state.t('pos.subtitle')}
         </p>
       </div>

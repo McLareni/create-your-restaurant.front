@@ -1,16 +1,21 @@
 'use client';
 
+import React from 'react';
+import Link from 'next/link';
+import { Eye } from 'lucide-react';
 import { useMenuBuilder } from '@/app/(dashboard)/dashboard/menu-builder/hooks/useMenuBuilder';
 import { ModifiersTab } from '@/features/menu-builder/components/modifiers/modifiersTab';
 import { CombosTab } from '@/features/menu-builder/components/combos/combosTab';
 import { MenuBoard } from '@/features/menu-builder/components/board/menuBoard';
+import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 
 export default function MenuConstructorPage() {
   const builder = useMenuBuilder();
+  const activeRestaurant = useRestaurantStore((state) => state.activeRestaurant);
 
   return (
     <div className="flex h-full flex-col bg-bg-main p-6 transition-colors duration-300 text-text-main">
-      <div className="mb-8 flex flex-col gap-2 md:flex-row md:items-center md:justify-between shrink-0">
+      <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between shrink-0">
         <div>
           <h1 className="text-2xl md:text-3xl font-bold text-text-main tracking-tight">
             {builder.t('menu.constructor.title')}
@@ -19,6 +24,18 @@ export default function MenuConstructorPage() {
             {builder.t('menu.constructor.subtitle')}
           </p>
         </div>
+
+        {activeRestaurant?.slug && (
+          <Link
+            href={`/menu/${activeRestaurant.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-solid border-neutral-300 dark:border-neutral-700 bg-bg-surface px-4 text-xs font-bold text-text-main shadow-2xs hover:bg-bg-hover/40 transition-all active:scale-98"
+          >
+            <Eye className="h-4 w-4 text-brand-emerald" />
+            <span>{builder.t('menu.constructor.viewMenu')}</span>
+          </Link>
+        )}
       </div>
 
       <div className="mb-6 flex space-x-1 rounded-xl bg-bg-surface p-1 shadow-sm border border-solid border-neutral-300 dark:border-neutral-700 max-w-2xl shrink-0">

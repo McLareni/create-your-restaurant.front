@@ -38,13 +38,13 @@ export interface TableCardProps {
 
 export interface QrPrintSectionProps {
   tables: Table[];
-  selectedIds: string[];
+  selectedIds: Set<string>;
 }
 
 export interface RenderOptions {
   canvas: HTMLCanvasElement;
   url: string;
-  patternType: 'dots' | 'squares' | 'lines';
+  patternType: 'dots' | 'squares' | 'lines' | 'rounded' | 'diamonds';
   logoOverlay: boolean;
   logoUrl?: string | null;
   isDark?: boolean;

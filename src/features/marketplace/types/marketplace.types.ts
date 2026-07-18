@@ -30,4 +30,5 @@ export interface ModuleCardProps {
   onToggle: (moduleKey: string, isActive: boolean) => void;
   onSettingsClick: (moduleKey: string) => void;
   isDisabled?: boolean;
+  isManagedFromMain?: boolean;
 }

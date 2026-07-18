@@ -1,8 +1,8 @@
 import { apiClient } from '@/shared/api/client';
-import { Dish } from '../types/dishes.types';
-import { CategoryData } from '../types/categories.types';
-import { DishFormValues } from '../schemas/dishes.schema';
-import { FullMenuResponse } from '../types/menu-board.types';
+import type { Dish } from '@/features/menu-builder/types/dishes.types';
+import type { CategoryData } from '@/features/menu-builder/types/categories.types';
+import type { DishFormValues } from '@/features/menu-builder/schemas/dishes.schema';
+import type { FullMenuResponse, ReorderItem } from '@/features/menu-builder/types/menu-board.types';
 
 export const menuApi = {
   getFullMenu: async (restaurantId: number): Promise<FullMenuResponse> => {
@@ -29,23 +29,21 @@ export const menuApi = {
     return await apiClient.patch<Dish>(`/menu/owner/dishes/${id}`, data);
   },
 
-  uploadDishPhoto: async (id: string, photo: File): Promise<Dish> => {
+  uploadDishPhoto: async (id: string, file: File): Promise<Dish> => {
     const formData = new FormData();
-    formData.append('photo', photo);
-    return await apiClient.patch<Dish>(`/menu/owner/dishes/${id}/photo`, formData);
+    formData.append('photo', file);
+    return await apiClient.patch<Dish>(`/menu/owner/dishes/${id}`, formData);
   },
 
   deleteDish: async (id: string): Promise<void> => {
     await apiClient.delete(`/menu/owner/dishes/${id}`);
   },
   
-  reorderCategories: async (items: { id: string; sortOrder: number }[]): Promise<void> => {
-    // Виправлено 404: NestJS очікує PATCH або PUT для оновлення порядку всього масиву
-    await apiClient.patch('/menu/owner/categories/reorder', { items });
+  reorderCategories: async (items: ReorderItem[]): Promise<void> => {
+    return await apiClient.patch<void>('/menu/owner/categories/reorder', { items });
   },
 
-  reorderDishes: async (items: { id: string; sortOrder: number }[]): Promise<void> => {
-    // Виправлено 404: Переведено на PATCH для синхронізації з роутами NestJS
-    await apiClient.patch('/menu/owner/dishes/reorder', { items });
-  }
+  reorderDishes: async (items: ReorderItem[]): Promise<void> => {
+    return await apiClient.patch<void>('/menu/owner/dishes/reorder', { items });
+  },
 };

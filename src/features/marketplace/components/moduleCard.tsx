@@ -3,7 +3,7 @@
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { Switch } from '@/shared/ui';
 import { Check, Settings2, Plus, Lock } from 'lucide-react';
-import { ModuleCardProps } from '../types/marketplace.types';
+import type { ModuleCardProps } from '../types/marketplace.types';
 
 export const ModuleCard = ({
   moduleData,
@@ -13,21 +13,20 @@ export const ModuleCard = ({
   onToggle,
   onSettingsClick,
   isDisabled = false,
+  isManagedFromMain = false,
 }: ModuleCardProps) => {
   const { t } = useTranslation();
   const Icon = moduleData.icon;
 
   const priceText = moduleData.price === 0 
     ? t('marketplace.price.free') 
-    : t('marketplace.price.monthly').replace('{{price}}', moduleData.price.toString());
+    : t('marketplace.price.monthly', { price: moduleData.price.toString() });
 
   const features = t(`marketplace.modules.${moduleData.key}.features`) as unknown as string[];
-
   const isModuleActive = isPurchased && isActive;
   const isModuleInactivePurchased = isPurchased && !isActive;
-
-  let cardClasses = "p-6 flex flex-col justify-between w-full h-[380px] rounded-2xl bg-bg-surface transition-all duration-300 relative border scale-100 outline-none shadow-table";
   
+  let cardClasses = "p-6 flex flex-col justify-between w-full h-[380px] rounded-2xl bg-bg-surface transition-all duration-300 relative border scale-100 outline-none shadow-table";
   if (isModuleActive) {
     cardClasses += " border-brand-emerald shadow-table-selected";
   } else if (isModuleInactivePurchased) {
@@ -61,16 +60,22 @@ export const ModuleCard = ({
 
           {isPurchased && (
             <div className="flex items-center gap-2.5 shrink-0">
-              <div className={`flex items-center justify-center px-3 py-1 rounded-md w-auto border transition-colors ${
-                isModuleActive ? 'bg-bg-element border-brand-emerald/10' : 'bg-bg-element border-transparent'
-              }`}>
-                <span className={`text-[9px] font-bold uppercase tracking-widest whitespace-nowrap text-center transition-colors ${
-                  isModuleActive ? 'text-brand-emerald' : 'text-text-muted/60'
-                }`}>
-                  {isActive ? t('marketplace.status.enabled') : t('marketplace.status.disabled')}
+              {isManagedFromMain ? (
+                <span className="text-[10px] font-bold text-amber-600 bg-amber-500/10 px-2 py-1 rounded-md border border-amber-500/20 whitespace-nowrap">
+                  {t('marketplace.status.managedFromMainToggle')}
                 </span>
-              </div>
-              <Switch checked={isActive} disabled={isDisabled} onChange={(val) => onToggle(moduleData.key, val)} />
+              ) : (
+                <div className={`flex items-center justify-center px-3 py-1 rounded-md w-auto border transition-colors ${
+                  isModuleActive ? 'bg-bg-element border-brand-emerald/10' : 'bg-bg-element border-transparent'
+                }`}>
+                  <span className={`text-[9px] font-bold uppercase tracking-widest whitespace-nowrap text-center transition-colors ${
+                    isModuleActive ? 'text-brand-emerald' : 'text-text-muted/60'
+                  }`}>
+                    {isActive ? t('marketplace.status.enabled') : t('marketplace.status.disabled')}
+                  </span>
+                </div>
+              )}
+              <Switch checked={isActive} disabled={isDisabled || isManagedFromMain} onChange={(val) => onToggle(moduleData.key, val)} />
             </div>
           )}
         </div>
@@ -123,25 +128,27 @@ export const ModuleCard = ({
               isModuleActive ? 'text-brand-emerald' : 'text-text-muted/60'
             }`}>
               {isModuleActive ? (
-                <Check className="h-3.5 w-3.5"/>
+                <Check className="h-3.5 w-3.5" />
               ) : (
-                <Lock className="h-3.5 w-3.5 opacity-40"/>
+                <Lock className="h-3.5 w-3.5 opacity-40" />
               )}
               {t('marketplace.status.purchased')}
             </span>
-            <button 
-              type="button"
-              onClick={() => onSettingsClick(moduleData.key)}
-              disabled={isDisabled || !isActive}
-              className={`h-8 px-3 text-xs font-medium rounded-lg border transition-all flex items-center gap-1 shrink-0 ${
-                isModuleActive 
-                  ? 'bg-bg-element border-border-main text-text-muted hover:text-brand-emerald cursor-pointer pointer-events-auto' 
-                  : 'bg-transparent border-border-main/50 text-text-muted/30 pointer-events-none opacity-40'
-              }`}
-            >
-              <Settings2 className="h-3.5 w-3.5" />
-              {t('marketplace.status.settings')}
-            </button>
+            {moduleData.key !== 'multi-restaurant' && (
+              <button 
+                type="button"
+                onClick={() => onSettingsClick(moduleData.key)}
+                disabled={isDisabled || !isActive}
+                className={`h-8 px-3 text-xs font-medium rounded-lg border transition-all flex items-center gap-1 shrink-0 ${
+                  isModuleActive 
+                    ? 'bg-bg-element border-border-main text-text-muted hover:text-brand-emerald cursor-pointer pointer-events-auto' 
+                    : 'bg-transparent border-border-main/50 text-text-muted/30 pointer-events-none opacity-40'
+                }`}
+              >
+                <Settings2 className="h-3.5 w-3.5" />
+                {t('marketplace.status.settings')}
+              </button>
+            )}
           </>
         )}
       </div>

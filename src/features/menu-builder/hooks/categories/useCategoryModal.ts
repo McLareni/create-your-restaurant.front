@@ -5,8 +5,8 @@ import { categorySchema } from '@/features/menu-builder/schemas/categories.schem
 import type { CategoryData } from '@/features/menu-builder/types/categories.types';
 
 export const useCategoryModal = (
-  createCategory: (name: string) => void,
-  updateCategory: (params: { id: string; name: string }) => void
+  createCategory: (name: string, options?: { onSuccess?: () => void }) => void,
+  updateCategory: (params: { id: string; name: string }, options?: { onSuccess?: () => void }) => void
 ) => {
   const [isCatModalOpen, setIsCatModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<CategoryData | null>(null);
@@ -33,13 +33,13 @@ export const useCategoryModal = (
     }
 
     setError(null);
+    const closeOnSuccess = { onSuccess: () => setIsCatModalOpen(false) };
 
     if (editingCategory) {
-      updateCategory({ id: editingCategory.id, name: catName });
+      updateCategory({ id: editingCategory.id, name: catName }, closeOnSuccess);
     } else {
-      createCategory(catName);
+      createCategory(catName, closeOnSuccess);
     }
-    setIsCatModalOpen(false);
   };
 
   return {

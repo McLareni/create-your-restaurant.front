@@ -1,6 +1,7 @@
 'use client';
 
-import { ComponentPropsWithoutRef, ReactNode } from 'react';
+import React from 'react';
+import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 
 export interface CheckboxProps extends Omit<ComponentPropsWithoutRef<'input'>, 'children'> {
   id: string;

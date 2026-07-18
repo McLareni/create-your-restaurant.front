@@ -6,9 +6,9 @@ import { useTranslation } from '@/shared/hooks/useTranslation';
 import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 import { useUserStore } from '@/shared/store/useUserStore';
 import { tableSchema } from '@/features/qr-tables/schemas/tables.schema';
-import { Table, CreateTableDTO, UpdateTableDTO } from '@/features/qr-tables/types/tables.types';
 import { tablesApi } from '@/features/qr-tables/api/tables.api';
 import toast from 'react-hot-toast';
+import type { Table, CreateTableDTO, UpdateTableDTO } from '@/features/qr-tables/types/tables.types';
 
 const INITIAL_FORM_DATA: CreateTableDTO = { 
   tableNumber: '', 
@@ -29,21 +29,20 @@ export const useQrTablesManagement = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const activeRestaurant = useRestaurantStore((state) => state.activeRestaurant);
-  const userRestaurants = useUserStore((state) => state.user?.restaurants);
+  const user = useUserStore((state) => state.user) as { restaurants?: Array<{ id: string | number; slug?: string }> } | null;
+  const userRestaurants = user?.restaurants;
   const restaurantId = activeRestaurant?.id ? Number(activeRestaurant.id) : null;
   const restaurantSlug = activeRestaurant?.slug || (userRestaurants || []).find((r) => Number(r.id) === restaurantId)?.slug;
-
   const [errorMsg, setErrorMsg] = useState('');
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTable, setEditingTable] = useState<Table | null>(null);
   const [formData, setFormData] = useState<CreateTableDTO>(INITIAL_FORM_DATA);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showTypeSuggestions, setShowTypeSuggestions] = useState(false);
-
   const printTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const { data: tables = [], isLoading: isTablesLoading } = useQuery({
+  const { data: tables = [], isLoading: isTablesLoading, isError } = useQuery({
     queryKey: ['tables', restaurantId],
     queryFn: () => tablesApi.getAll(restaurantId!, restaurantSlug),
     enabled: !!restaurantId,
@@ -74,9 +73,16 @@ export const useQrTablesManagement = () => {
 
   const createTableMutation = useMutation<Table, ApiErrorResponse, CreateTableDTO>({
     mutationFn: (data: CreateTableDTO) => tablesApi.create(restaurantId!, data, restaurantSlug),
-    onSuccess: () => {
+    onSuccess: (newTable) => {
       queryClient.invalidateQueries({ queryKey: ['tables', restaurantId] });
       setIsModalOpen(false);
+      
+      const tempConfig = localStorage.getItem('qr-style-new');
+      if (tempConfig && newTable?.id) {
+        localStorage.setItem(`qr-style-${newTable.id}`, tempConfig);
+        localStorage.removeItem('qr-style-new');
+      }
+      
       toast.success(t('qr.notifications.createSuccess'));
     },
     onError: (error) => {
@@ -155,25 +161,39 @@ export const useQrTablesManagement = () => {
       return;
     }
 
-    if (editingTable) {
-      updateTableMutation.mutate({ id: editingTable.id, data: formData });
-    } else {
-      createTableMutation.mutate(formData);
-    }
+    try {
+      if (editingTable) {
+        await updateTableMutation.mutateAsync({ id: editingTable.id, data: formData });
+      } else {
+        await createTableMutation.mutateAsync(formData);
+      }
+    } catch {}
   };
 
   const onDeleteConfirm = async () => {
     if (!deleteId) return;
-    setSelectedIds(prev => prev.filter(id => id !== deleteId));
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      next.delete(deleteId);
+      return next;
+    });
     await deleteTableMutation.mutateAsync(deleteId);
   };
 
   const handleToggleSelect = (id: string) => {
-    setSelectedIds(prev => prev.includes(id) ? prev.filter(i => id !== i) : [...prev, id]);
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
   };
 
   const handleSelectAll = (checked: boolean) => {
-    setSelectedIds(checked ? tables.map(t => t.id) : []);
+    setSelectedIds(checked ? new Set(tables.map(t => t.id)) : new Set());
   };
 
   const handlePrint = () => {
@@ -199,6 +219,7 @@ export const useQrTablesManagement = () => {
     tables,
     isLoading: isTablesLoading || isMutationPending,
     isSubmitting: isMutationPending,
+    isError,
     errorMsg,
     selectedIds,
     isModalOpen,

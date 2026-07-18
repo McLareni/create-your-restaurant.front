@@ -13,4 +13,7 @@ export const posApi = {
 
   syncMenu: (restaurantId: number) =>
     apiClient.post<SyncMenuResponse>(`/restaurants/${restaurantId}/pos/sync-menu`),
+
+  disconnect: (restaurantId: number) =>
+    apiClient.post(`/restaurants/${restaurantId}/pos/disconnect`),
 };

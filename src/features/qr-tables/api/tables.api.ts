@@ -1,11 +1,5 @@
 import { apiClient } from '@/shared/api/client';
-import {
-  Table,
-  CreateTableDTO,
-  UpdateTableDTO,
-  BackendTable,
-  TableStatus,
-} from '@/features/qr-tables/types/tables.types';
+import type { Table, CreateTableDTO, UpdateTableDTO, BackendTable, TableStatus } from '@/features/qr-tables/types/tables.types';
 
 type TableEnvelope = {
   table: BackendTable;
@@ -15,7 +9,7 @@ const toStatus = (isActive: boolean): TableStatus =>
   isActive ? 'ACTIVE' : 'INACTIVE';
 
 const getPublicMenuBaseUrl = (): string => {
-  return process.env.NEXT_PUBLIC_MENU_BASE_URL || 'https://gustio.menu';
+  return process.env.NEXT_PUBLIC_MENU_BASE_URL || 'https://create-your-restaurant.vercel.app';
 };
 
 const toUiTable = (

@@ -2,8 +2,8 @@ export const common = {
   hero: {
     logo: "gustio",
     title: "Ваш ресторан\nв кишені гостя.",
-    description: "Інтерактивні QR-меню та виклик персоналу в реальному часі без встановлення додатків.",
-    imageAlt: "Інтер'єр ресторану"
+    description: "Interactive QR menus and staff calling in real-time without app installation.",
+    imageAlt: "Interior of restaurant"
   },
   dashboard: {
     title: "Панель управління Gustio",
@@ -39,7 +39,10 @@ export const common = {
   },
   errors: {
     formValidation: "Будь ласка, перевірте коректність заповнення форми",
-    unknown: "Щось пішло не так. Спробуйте ще раз."
+    unknown: "Щось пішло не так. Спробуйте ще раз.",
+    activationCodeTooLong: "Код активації занадто довгий (максимум 50 символів)",
+    activationCodeInvalid: "Некоректний формат коду (дозволено лише латинські літери, цифри, дефіс та підкреслення)"
   },
   loading: "Завантаження Gustio...",
+  brandName: "gustio menu",
 };

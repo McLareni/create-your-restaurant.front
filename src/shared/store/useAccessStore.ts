@@ -1,11 +1,13 @@
 import { create } from 'zustand';
 import { apiClient } from '@/shared/api/client';
-import { useRestaurantStore } from './useRestaurantStore';
+import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 
 interface AccessResponse {
   purchasedModules: string[];
   activeModules: string[];
   permissions: string[];
+  isMainForMultiRestaurant?: boolean;
+  mainRestaurantId?: string | number | null;
 }
 
 interface AccessState {
@@ -13,6 +15,8 @@ interface AccessState {
   activeModules: string[];
   permissions: string[];
   isLoadingAccess: boolean;
+  isMainForMultiRestaurant: boolean;
+  mainRestaurantId: string | number | null;
   clearAccessData: () => void;
   fetchAccessData: (restaurantId: string) => Promise<void>;
   hasModule: (moduleKey: string) => boolean;
@@ -27,12 +31,16 @@ export const useAccessStore = create<AccessState>((set, get) => ({
   activeModules: [],
   permissions: [],
   isLoadingAccess: false,
+  isMainForMultiRestaurant: false,
+  mainRestaurantId: null,
 
   clearAccessData: () =>
     set({
       purchasedModules: [],
       activeModules: [],
       permissions: [],
+      isMainForMultiRestaurant: false,
+      mainRestaurantId: null,
     }),
 
   fetchAccessData: async (restaurantId: string) => {
@@ -41,6 +49,7 @@ export const useAccessStore = create<AccessState>((set, get) => ({
       purchasedModules: [],
       activeModules: [],
       permissions: [],
+      isMainForMultiRestaurant: false,
     });
 
     try {
@@ -52,14 +61,17 @@ export const useAccessStore = create<AccessState>((set, get) => ({
         purchasedModules: response.purchasedModules || [],
         activeModules: response.activeModules || [],
         permissions: response.permissions || [],
+        isMainForMultiRestaurant: !!response.isMainForMultiRestaurant,
+        mainRestaurantId: response.mainRestaurantId || null,
         isLoadingAccess: false,
       });
     } catch {
-      // FIX: Видалено невикористану змінну 'error'
       set({
         purchasedModules: [],
         activeModules: [],
         permissions: [],
+        isMainForMultiRestaurant: false,
+        mainRestaurantId: null,
         isLoadingAccess: false,
       });
     }
@@ -84,9 +96,8 @@ export const useAccessStore = create<AccessState>((set, get) => ({
     set({
       activeModules: nextModules,
     });
-    const restaurantId =
-      useRestaurantStore.getState().activeRestaurant?.id;
-
+    
+    const restaurantId = useRestaurantStore.getState().activeRestaurant?.id;
     if (!restaurantId) {
       return;
     }
@@ -112,7 +123,6 @@ export const useAccessStore = create<AccessState>((set, get) => ({
       purchasedModules: state.purchasedModules.includes(moduleKey)
         ? state.purchasedModules
         : [...state.purchasedModules, moduleKey],
-
       activeModules: state.activeModules.includes(moduleKey)
         ? state.activeModules
         : [...state.activeModules, moduleKey],

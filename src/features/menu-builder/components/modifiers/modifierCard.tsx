@@ -16,6 +16,7 @@ export const ModifierCard = ({
   onDeleteOption,
 }: ModifierCardProps) => {
   const { t } = useTranslation();
+
   return (
     <div className="flex flex-col rounded-2xl bg-bg-surface border border-border-main/60 dark:border-border-main shadow-table transition-all select-none overflow-hidden">
       <div className="flex items-center justify-between p-3 sm:p-4 hover:bg-bg-hover/30 transition-colors">
@@ -112,15 +113,6 @@ export const ModifierCard = ({
                 </div>
               </div>
             )}
-
-            <button 
-              type="button"
-              onClick={onOpenOptionModal}
-              className="w-fit h-8 text-xs border border-dashed border-border-main text-text-muted hover:border-brand-emerald hover:text-brand-emerald bg-bg-surface transition-colors px-3 rounded-lg font-bold flex items-center gap-1 cursor-pointer outline-none"
-            >
-              <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
-              <span>{t('menu.constructor.modifiers.addOptionBtn')}</span>
-            </button>
           </div>
         </div>
       </div>

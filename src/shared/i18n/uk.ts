@@ -10,6 +10,7 @@ import { inventory } from './uk/inventory';
 import { common } from './uk/common';
 import { analytics } from './uk/analytics';
 import { liveCalls } from './uk/live-calls';
+import { profile } from './uk/profile';
 
 export const uk = {
   auth,
@@ -23,5 +24,6 @@ export const uk = {
   inventory,
   ...common,
   analytics,
-  liveCalls
+  liveCalls,
+  profile,
 };

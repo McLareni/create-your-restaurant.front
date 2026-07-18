@@ -10,20 +10,13 @@ import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 import { useAccessStore } from '@/shared/store/useAccessStore';
 import { UseCreateOrganizationReturn } from '../types/organization.types';
 import { apiClient } from '@/shared/api/client';
+import { formatZodErrors } from '@/shared/utils/validation';
+import { transliterate } from '@/shared/utils/transliterate';
+import type { SidebarRestaurant } from '@/app/(dashboard)/_components/types/sidebar.types';
+import type { User } from '@/shared/store/useUserStore';
 
-const transliterate = (text: string): string => {
-  const ukrToLat: Record<string, string> = {
-    'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'ґ': 'g', 'д': 'd', 'е': 'e', 'є': 'ye',
-    'ж': 'zh', 'з': 'z', 'и': 'y', 'і': 'i', 'ї': 'yi', 'й': 'y', 'к': 'k', 'л': 'l',
-    'м': 'm', 'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
-    'ф': 'f', 'х': 'kh', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'shch', 'ь': '',
-    'ю': 'yu', 'я': 'ya', '\'': '-', '’': '-', ' ': '-'
-  };
-  return text
-    .toLowerCase()
-    .split('')
-    .map(char => ukrToLat[char] !== undefined ? ukrToLat[char] : char)
-    .join('');
+type ExtendedUser = User & {
+  restaurants?: SidebarRestaurant[];
 };
 
 export const useCreateOrganization = (): UseCreateOrganizationReturn => {
@@ -95,8 +88,8 @@ export const useCreateOrganization = (): UseCreateOrganizationReturn => {
     const t4 = setTimeout(async () => {
       try {
         await useUserStore.getState().fetchUser(true); 
-        const updatedUser = useUserStore.getState().user;
-        const newRes = updatedUser?.restaurants?.find(r => r.name === formData.name);
+        const updatedUser = useUserStore.getState().user as ExtendedUser | null;
+        const newRes = updatedUser?.restaurants?.find((r: SidebarRestaurant) => r.name === formData.name);
         if (newRes) {
           useRestaurantStore.getState().setActiveRestaurant({
             id: Number(newRes.id),
@@ -114,7 +107,8 @@ export const useCreateOrganization = (): UseCreateOrganizationReturn => {
     async (prevState: { errors: Partial<Record<keyof CreateOrganizationValues, string>> }) => {
       if (isCheckingSlug || slugAvailable === false) return prevState;
 
-      const restaurants = useUserStore.getState().user?.restaurants || [];
+      const userState = useUserStore.getState().user as ExtendedUser | null;
+      const restaurants = userState?.restaurants || [];
       const userActiveModules = useAccessStore.getState().activeModules;
       const hasMultiModule = userActiveModules.includes('multi-restaurant');
       const maxAllowed = hasMultiModule ? 3 : 1;
@@ -125,10 +119,7 @@ export const useCreateOrganization = (): UseCreateOrganizationReturn => {
 
       const validation = createOrganizationSchema.safeParse(formData);
       if (!validation.success) {
-        const newErrors: Partial<Record<keyof CreateOrganizationValues, string>> = {};
-        validation.error.issues.forEach(issue => {
-          newErrors[issue.path[0] as keyof CreateOrganizationValues] = t(issue.message);
-        });
+        const newErrors = formatZodErrors(validation.error, t);
         return { errors: newErrors };
       }
 

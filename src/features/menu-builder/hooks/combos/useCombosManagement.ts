@@ -3,171 +3,166 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
+import { useActiveRestaurantId } from '@/shared/hooks/useActiveRestaurantId';
 import { useAvailableDishesList } from '@/features/menu-builder/hooks/dishes/useDishesQueries';
-import { combosApi } from '@/features/menu-builder/api/combos.api';
+import { useCrudModal } from '@/shared/hooks/useCrudModal';
 import { createComboSchema } from '@/features/menu-builder/schemas/combos.schema';
-import type { Combo, ComboDishSelect, CreateComboDTO, UseCombosManagementReturn } from '@/features/menu-builder/types/combos.types';
+import { QUERY_KEYS } from '@/shared/api/query-keys';
+import { combosApi } from '@/features/menu-builder/api/combos.api';
+import { useAppActionState } from '@/shared/hooks/useAppActionState';
 import toast from 'react-hot-toast';
+import type { Combo, ComboDishSelect, CreateComboDTO, ComboPriceType, ComboFormState, UseCombosManagementReturn } from '@/features/menu-builder/types/combos.types';
+import type { Dish } from '@/features/menu-builder/types/dishes.types';
+
+const INITIAL_COMBO_FORM: ComboFormState = { name: '', priceType: 'FIXED', priceValue: 0 };
 
 export const useCombosManagement = (): UseCombosManagementReturn => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const restaurantId = useRestaurantStore((state) => state.activeRestaurant?.id ? Number(state.activeRestaurant.id) : null);
-  const { dishes: availableDishes, isLoading: isDishesLoading } = useAvailableDishesList();
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingCombo, setEditingCombo] = useState<Combo | null>(null);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-
-  const [name, setName] = useState('');
-  const [priceType, setPriceType] = useState<'FIXED' | 'DISCOUNT'>('FIXED');
-  const [priceValue, setPriceValue] = useState(0);
+  const restaurantId = useActiveRestaurantId();
   const [selectedDishes, setSelectedDishes] = useState<ComboDishSelect[]>([]);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [priceType, setPriceType] = useState<ComboPriceType>('FIXED');
+  const [modalSessionKey, setModalSessionKey] = useState<string>('session-init');
 
   const { data: combos = [], isLoading: isCombosLoading } = useQuery<Combo[]>({
-    queryKey: ['combos', restaurantId],
-    queryFn: () => combosApi.getAll(restaurantId!),
+    queryKey: QUERY_KEYS.combos(restaurantId),
+    queryFn: async () => {
+      if (!restaurantId) throw new Error('Restaurant ID is required');
+      return await combosApi.getAll(restaurantId);
+    },
     enabled: !!restaurantId,
   });
 
+  const { dishes: availableDishes, isLoading: isDishesLoading } = useAvailableDishesList();
+
   const createComboMutation = useMutation({
-    mutationFn: (data: CreateComboDTO) => combosApi.create(restaurantId!, data),
+    mutationFn: async (data: CreateComboDTO) => {
+      if (!restaurantId) throw new Error('Restaurant ID is required');
+      return await combosApi.create(restaurantId, data);
+    },
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['combos', restaurantId] });
-      setIsModalOpen(false);
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.combos(restaurantId) });
       toast.success(t('menu.constructor.combos.notifications.createSuccess'));
     },
-    onError: () => toast.error(t('menu.constructor.combos.notifications.createError')),
   });
 
   const updateComboMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: CreateComboDTO }) => 
-      combosApi.update(restaurantId!, id, data),
+    mutationFn: async ({ id, data }: { id: string; data: CreateComboDTO }) => {
+      if (!restaurantId) throw new Error('Restaurant ID is required');
+      return await combosApi.update(restaurantId, id, data);
+    },
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['combos', restaurantId] });
-      setIsModalOpen(false);
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.combos(restaurantId) });
       toast.success(t('menu.constructor.combos.notifications.updateSuccess'));
     },
-    onError: () => toast.error(t('menu.constructor.combos.notifications.updateError')),
   });
 
   const deleteComboMutation = useMutation({
-    mutationFn: (id: string) => combosApi.delete(restaurantId!, id),
+    mutationFn: async (id: string) => {
+      if (!restaurantId) throw new Error('Restaurant ID is required');
+      return await combosApi.delete(restaurantId, id);
+    },
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['combos', restaurantId] });
-      setDeleteId(null);
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.combos(restaurantId) });
       toast.success(t('menu.constructor.combos.notifications.deleteSuccess'));
     },
-    onError: () => toast.error(t('menu.constructor.combos.notifications.deleteError')),
+  });
+
+  const crud = useCrudModal<ComboFormState>({
+    initialFormData: INITIAL_COMBO_FORM,
+    createItem: () => {},
+    updateItem: () => {},
+    deleteItem: async (id) => {
+      await deleteComboMutation.mutateAsync(id);
+    },
   });
 
   const openCreateModal = () => {
-    setEditingCombo(null);
-    setErrors({});
-    setName('');
-    setPriceType('FIXED');
-    setPriceValue(0);
     setSelectedDishes([]);
-    setIsModalOpen(true);
+    setPriceType('FIXED');
+    setModalSessionKey(`combo-new-${Date.now()}`);
+    crud.openCreateModal();
   };
 
   const openEditModal = (combo: Combo) => {
-    setEditingCombo(combo);
-    setErrors({});
-    setName(combo.name);
-    setPriceType(combo.priceType);
-    setPriceValue(combo.priceValue);
-    
-    const mappedDishes: ComboDishSelect[] = combo.dishes.map((d) => {
+    const initialDishes: ComboDishSelect[] = combo.dishes.map((d) => {
       const found = availableDishes.find((dish) => dish.id === d.dishId);
-      return {
-        id: d.dishId,
-        name: found?.name || '',
-        price: found?.price || 0,
-      };
+      return { id: d.dishId, name: found?.name || '', price: found?.price || 0 };
     });
-    setSelectedDishes(mappedDishes);
-    setIsModalOpen(true);
+    setSelectedDishes(initialDishes);
+    setPriceType(combo.priceType);
+    setModalSessionKey(`combo-edit-${combo.id}-${Date.now()}`);
+    crud.openEditModal(combo.id, { name: combo.name, priceType: combo.priceType, priceValue: combo.priceValue });
   };
 
-  const handleAddDish = (dishId: string) => {
-    if (!dishId) return;
-    const targetDish = availableDishes.find((d) => d.id === dishId);
-    if (!targetDish) return;
-    if (selectedDishes.some((d) => d.id === dishId)) return;
-    setSelectedDishes((prev) => [...prev, { id: targetDish.id, name: targetDish.name, price: targetDish.price }]);
+  const toggleDishSelection = (dish: Dish) => {
+    setSelectedDishes((prev) => {
+      const exists = prev.some((d) => d.id === dish.id);
+      if (exists) return prev.filter((d) => d.id !== dish.id);
+      return [...prev, { id: dish.id, name: dish.name, price: dish.price }];
+    });
   };
 
-  const handleToggleDish = (dish: ComboDishSelect, checked: boolean) => {
-    if (!checked) {
-      setSelectedDishes((prev) => prev.filter((d) => d.id !== dish.id));
+  const removeDishFromCombo = (dishId: string) => {
+    setSelectedDishes((prev) => prev.filter((d) => d.id !== dishId));
+  };
+
+  const [formState, formAction, isPending] = useAppActionState(
+    async (formData) => {
+      const name = (formData.get('name') as string || '').trim();
+      const currentPriceType = (formData.get('priceType') as ComboPriceType) || 'FIXED';
+      const priceValueRaw = formData.get('priceValue');
+      const priceValue = priceValueRaw ? parseFloat(priceValueRaw.toString()) : 0;
+      const selectedDishesJson = formData.get('selectedDishesData') as string;
+      const parsedDishes = selectedDishesJson ? JSON.parse(selectedDishesJson) : [];
+
+      const payload = {
+        name,
+        priceType: currentPriceType,
+        priceValue: isNaN(priceValue) ? 0 : priceValue,
+        dishes: parsedDishes.map((d: ComboDishSelect) => ({ id: d.id, name: d.name, price: d.price })),
+      };
+
+      createComboSchema.parse(payload);
+
+      if (crud.editingId) {
+        await updateComboMutation.mutateAsync({ id: crud.editingId, data: payload as unknown as CreateComboDTO });
+      } else {
+        await createComboMutation.mutateAsync(payload as unknown as CreateComboDTO);
+      }
+    },
+    {
+      t,
+      onSuccess: () => crud.setIsModalOpen(false),
     }
-  };
+  );
 
-  const handleSave = async () => {
-    const payload = { 
-      name: name.trim(), 
-      priceType, 
-      priceValue: Number(priceValue), 
-      dishIds: selectedDishes.map((d) => d.id)
-    };
-    
-    const result = createComboSchema.safeParse(payload);
-    if (!result.success) {
-      const fieldErrors: Record<string, string> = {};
-      result.error.issues.forEach((issue) => {
-        if (issue.path[0]) fieldErrors[issue.path[0] as string] = t(issue.message);
-      });
-      setErrors(fieldErrors);
-      toast.error(t('errors.formValidation'));
-      return;
-    }
-
-    setErrors({});
-    const dtoPayload: CreateComboDTO = result.data;
-
-    if (editingCombo) {
-      updateComboMutation.mutate({ id: editingCombo.id, data: dtoPayload });
-    } else {
-      createComboMutation.mutate(dtoPayload);
-    }
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (deleteId) {
-      await deleteComboMutation.mutateAsync(deleteId);
-    }
-  };
-
-  const isMutationPending = createComboMutation.isPending || updateComboMutation.isPending || deleteComboMutation.isPending;
+  const isMutationPending = isCombosLoading || isDishesLoading || deleteComboMutation.isPending || isPending;
 
   return {
     t,
     combos,
     allDishes: availableDishes,
     isDishesLoading,
-    isLoading: isCombosLoading || isMutationPending || restaurantId === null,
+    isLoading: isMutationPending || restaurantId === null,
     isSubmitting: isMutationPending,
-    isModalOpen,
-    setIsModalOpen,
-    deleteId,
-    setDeleteId,
-    name,
-    setName,
+    isModalOpen: crud.isModalOpen,
+    setIsModalOpen: crud.setIsModalOpen,
+    deleteId: crud.deleteId,
+    setDeleteId: crud.setDeleteId,
     priceType,
     setPriceType,
-    priceValue,
-    setPriceValue,
     selectedDishes,
-    errors,
+    errors: formState?.errors || {},
     openCreateModal,
     openEditModal,
-    handleAddDish,
-    handleToggleDish,
-    handleSave,
-    handleDeleteConfirm,
-    editingCombo
+    toggleDishSelection,
+    removeDishFromCombo,
+    handleConfirmDelete: async () => {
+      await crud.confirmDelete();
+    },
+    formAction,
+    editingCombo: combos.find((c) => c.id === crud.editingId) || null,
+    modalSessionKey,
   };
 };

@@ -2,14 +2,14 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { inventoryApi } from '@/features/menu-builder/api/inventory.api';
-import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
+import { useActiveRestaurantId } from '@/shared/hooks/useActiveRestaurantId';
+import { QUERY_KEYS } from '@/shared/api/query-keys';
 import type { InventoryItem, CreateInventoryItemDTO, UpdateInventoryItemDTO } from '@/features/menu-builder/types/inventory.types';
 
 export const useInventory = () => {
   const queryClient = useQueryClient();
-  const restaurantId = useRestaurantStore((state) => state.activeRestaurant?.id ? Number(state.activeRestaurant.id) : null);
-
-  const queryKey = ['inventory', restaurantId];
+  const restaurantId = useActiveRestaurantId();
+  const queryKey = QUERY_KEYS.inventory(restaurantId);
 
   const { data: inventoryItems = [], isLoading } = useQuery<InventoryItem[]>({
     queryKey,
@@ -59,8 +59,8 @@ export const useInventory = () => {
   return {
     inventoryItems,
     isLoading: isLoading || restaurantId === null,
-    createItem: createMutation.mutate,
-    updateItem: updateMutation.mutate,
-    deleteItem: deleteMutation.mutate,
+    createItem: createMutation.mutateAsync,
+    updateItem: updateMutation.mutateAsync,
+    deleteItem: deleteMutation.mutateAsync,
   };
 };

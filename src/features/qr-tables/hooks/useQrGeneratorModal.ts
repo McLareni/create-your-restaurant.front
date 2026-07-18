@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useRef, useEffect, useTransition } from 'react';
+import { useState, useEffect, useRef, useTransition } from 'react';
 import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
-import { UseQrGeneratorModalProps } from '@/features/qr-tables/types/tables.types';
-import { drawStyledQr } from '@/features/qr-tables/utils/qrRenderer';
+import { drawStyledQr, getQrStyle, saveQrStyle } from '@/features/qr-tables/utils/qrRenderer';
+import type { UseQrGeneratorModalProps } from '@/features/qr-tables/types/tables.types';
 
 export const useQrGeneratorModal = ({
   isOpen,
@@ -14,53 +14,85 @@ export const useQrGeneratorModal = ({
   onStyleConfigured,
 }: UseQrGeneratorModalProps) => {
   const [isPending, startTransition] = useTransition();
-  const [patternType, setPatternType] = useState<'dots' | 'squares' | 'lines'>('dots');
-  const [logoOverlay, setLogoOverlay] = useState<boolean>(true);
+  const [patternType, setPatternType] = useState<'dots' | 'squares' | 'lines' | 'rounded' | 'diamonds'>(() => getQrStyle(editingTableId || 'new').patternType);
+  const [logoOverlay, setLogoOverlay] = useState<boolean>(() => getQrStyle(editingTableId || 'new').logoOverlay);
+  const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
   const [qrImage, setQrImage] = useState<string>('');
   const [isDragging, setIsDragging] = useState(false);
+  const [logoBase64, setLogoBase64] = useState<string | null>(null);
 
   const restaurantImageUrl = useRestaurantStore((state) => state.activeRestaurant?.imageUrl);
-
   const modalRef = useRef<HTMLDivElement | null>(null);
   const dragStartRef = useRef({ x: 0, y: 0 });
   const currentCoordsRef = useRef({ x: 0, y: 0 });
 
+  const [prevRestaurantImageUrl, setPrevRestaurantImageUrl] = useState(restaurantImageUrl);
+
+  if (restaurantImageUrl !== prevRestaurantImageUrl) {
+    setPrevRestaurantImageUrl(restaurantImageUrl);
+    setLogoBase64(null);
+  }
+
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem(`qr-style-${editingTableId || 'new'}`);
-      if (saved) {
-        try {
-          const parsed = JSON.parse(saved);
-          setTimeout(() => {
-            if (parsed.patternType) setPatternType(parsed.patternType);
-            if (parsed.logoOverlay !== undefined) setLogoOverlay(parsed.logoOverlay !== false);
-          }, 0);
-        } catch {}
-      }
+    if (!isOpen || !restaurantImageUrl) {
+      return;
     }
-  }, [editingTableId]);
+
+    let isCurrent = true;
+    const fetchLogoAsBase64 = async () => {
+      try {
+        const res = await fetch(restaurantImageUrl);
+        const blob = await res.blob();
+        const base64 = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(blob);
+        });
+        if (isCurrent) {
+          setLogoBase64(base64);
+        }
+      } catch (e) {
+        console.error(e);
+        if (isCurrent) {
+          setLogoBase64(restaurantImageUrl);
+        }
+      }
+    };
+
+    fetchLogoAsBase64();
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [restaurantImageUrl, isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
+    let isCurrent = true;
 
     const generatePreview = async () => {
-      const mockUrl = `https://gustio.menu/table-preview-${formData.tableNumber || '0'}`;
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '');
+      const mockUrl = `${baseUrl}/menu/preview/${formData.tableNumber || '0'}`;
       const activeTable = tables.find(t => t.id === editingTableId);
       const targetUrl = activeTable?.qrUrl || mockUrl;
 
-      const canvas = document.createElement('canvas');
       const dataUrl = await drawStyledQr({
-        canvas,
         url: targetUrl,
         patternType,
         logoOverlay,
-        logoUrl: restaurantImageUrl,
+        logoUrl: logoBase64,
       });
-      setQrImage(dataUrl);
+      if (isCurrent) {
+        setQrImage(dataUrl);
+      }
     };
 
     generatePreview();
-  }, [formData.tableNumber, patternType, logoOverlay, isOpen, editingTableId, tables, restaurantImageUrl]);
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [formData.tableNumber, patternType, logoOverlay, isOpen, editingTableId, tables, logoBase64]);
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
@@ -76,7 +108,6 @@ export const useQrGeneratorModal = ({
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging || !modalRef.current) return;
-    
     const nextX = e.clientX - dragStartRef.current.x;
     const nextY = e.clientY - dragStartRef.current.y;
     
@@ -90,10 +121,16 @@ export const useQrGeneratorModal = ({
     modalRef.current?.releasePointerCapture(e.pointerId);
   };
 
+  const handlePointerCancel = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    modalRef.current?.releasePointerCapture(e.pointerId);
+  };
+
   const handleFormAction = () => {
     startTransition(async () => {
       const config = { patternType, logoOverlay };
-      localStorage.setItem(`qr-style-${editingTableId || 'new'}`, JSON.stringify(config));
+      saveQrStyle(editingTableId || 'new', config);
       if (editingTableId && onStyleConfigured) {
         onStyleConfigured(editingTableId, config);
       }
@@ -106,6 +143,8 @@ export const useQrGeneratorModal = ({
     setPatternType,
     logoOverlay,
     setLogoOverlay,
+    isSidePanelOpen,
+    setIsSidePanelOpen,
     qrImage,
     isDragging,
     isPending,
@@ -113,6 +152,7 @@ export const useQrGeneratorModal = ({
     handlePointerDown,
     handlePointerMove,
     handlePointerUp,
+    handlePointerCancel,
     handleFormAction,
   };
 };

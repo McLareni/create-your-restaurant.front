@@ -1,7 +1,8 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 
 interface MinimalRestaurant {
-  id: number;
+  id: string | number;
   name: string;
   slug?: string;
   imageUrl?: string | null;
@@ -13,8 +14,15 @@ interface RestaurantStoreState {
   clearActiveRestaurant: () => void;
 }
 
-export const useRestaurantStore = create<RestaurantStoreState>()((set) => ({
-  activeRestaurant: null,
-  setActiveRestaurant: (restaurant) => set({ activeRestaurant: restaurant }),
-  clearActiveRestaurant: () => set({ activeRestaurant: null }),
-}));
+export const useRestaurantStore = create<RestaurantStoreState>()(
+  persist(
+    (set) => ({
+      activeRestaurant: null,
+      setActiveRestaurant: (restaurant) => set({ activeRestaurant: restaurant }),
+      clearActiveRestaurant: () => set({ activeRestaurant: null }),
+    }),
+    {
+      name: 'gustio-active-restaurant',
+    }
+  )
+);

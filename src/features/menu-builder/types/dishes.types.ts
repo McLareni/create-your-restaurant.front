@@ -1,5 +1,10 @@
-import type { ChangeEvent, Dispatch, SetStateAction } from 'react';
-import { DishFormValues } from '@/features/menu-builder/schemas/dishes.schema';
+import type { Dispatch, SetStateAction, ChangeEvent } from 'react';
+import type { DishFormValues } from '@/features/menu-builder/schemas/dishes.schema';
+
+export interface ModifierGroupLookup {
+  id: string;
+  name: string;
+}
 
 export interface IngredientItem {
   name: string;
@@ -8,9 +13,14 @@ export interface IngredientItem {
   inventoryItemId: string | null;
 }
 
-export interface ModifierGroupLookup {
-  id: string;
+export interface CharacteristicObject {
+  id?: string;
   name: string;
+}
+
+export interface GalleryItem {
+  url: string;
+  file?: File;
 }
 
 export interface Dish {
@@ -49,6 +59,23 @@ export interface IngredientsTabProps {
 export interface CharacteristicsTabProps {
   dishForm: DishFormValues;
   setDishForm: Dispatch<SetStateAction<DishFormValues>>;
+  onOpenSidePanel: (type: 'allergens' | 'tags') => void;
+  isSidePanelOpen: boolean;
+  activeType: 'allergens' | 'tags';
+}
+
+export interface UseDishMediaGalleryReturn {
+  dishImageUrls: string[];
+  dishPhotoFiles: File[];
+  activeDishImageIndex: number;
+  setDishPhotoFiles: Dispatch<SetStateAction<File[]>>;
+  handleLocalImageUpload: (e: ChangeEvent<HTMLInputElement>) => Promise<void>;
+  handlePrevDishImage: () => void;
+  handleNextDishImage: () => void;
+  handleSelectDishImage: (index: number) => void;
+  handleRemoveImage: (index: number) => void;
+  setAsMainImage: (index: number) => void;
+  clearGallery: () => void;
 }
 
 export interface UseDishModalReturn {
@@ -68,18 +95,16 @@ export interface UseDishModalReturn {
   handleNextDishImage: () => void;
   handleSelectDishImage: (index: number) => void;
   handleOpenDishModal: (categoryId: string, dish?: Dish | null) => void;
-  handleSaveDish: () => Promise<void>;
+  formAction: (payload: FormData) => void;
+  handleRemoveImage: (index: number) => void;
+  handleSetAsMainImage: (index: number) => void;
   modifierGroups: ModifierGroupLookup[];
+  modalSessionKey: string;
 }
 
 export interface DishModalProps {
   isOpen: boolean;
   onClose: () => void;
-  dish?: Dish | null;
+  dish: Dish | null;
   state: UseDishModalReturn;
-}
-
-export interface DishLivePreviewProps {
-  form: DishFormValues;
-  imageUrl?: string | null;
 }

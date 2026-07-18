@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useTransition } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { useUserStore } from '@/shared/store/useUserStore';
@@ -9,7 +9,20 @@ import { useAccessStore } from '@/shared/store/useAccessStore';
 import { useNavigation } from '@/shared/hooks/useNavigation';
 import { apiClient } from '@/shared/api/client';
 import toast from 'react-hot-toast';
-import type { SidebarRestaurant, SidebarUserProfile, RestaurantStoreState } from '../types/sidebar.types';
+import type { MouseEvent } from 'react';
+import type { SidebarRestaurant, SidebarUserProfile, RestaurantStoreState } from '@/app/(dashboard)/_components/types/sidebar.types';
+
+const setSidebarCookie = (name: string, value: string, days = 7): void => {
+  const expires = new Date(Date.now() + days * 864e5).toUTCString();
+  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/; SameSite=Lax`;
+};
+
+const getSidebarCookie = (name: string): string => {
+  return document.cookie.split('; ').reduce((r, v) => {
+    const parts = v.split('=');
+    return parts[0] === name ? decodeURIComponent(parts[1]) : r;
+  }, '');
+};
 
 export const useSidebarLogic = () => {
   const { t } = useTranslation();
@@ -22,37 +35,46 @@ export const useSidebarLogic = () => {
 
   const rawActiveRestaurant = useRestaurantStore((state) => state.activeRestaurant) as unknown as SidebarRestaurant | null;
   const setActiveRestaurant = useRestaurantStore((state) => state.setActiveRestaurant) as unknown as (restaurant: SidebarRestaurant | null) => void;
-
   const activeModules = useAccessStore((state) => state.activeModules);
   const purchasedModules = useAccessStore((state) => state.purchasedModules);
   const toggleModule = useAccessStore((state) => state.toggleModule);
   const fetchAccessData = useAccessStore((state) => state.fetchAccessData);
+  const isLoadingAccess = useAccessStore((state) => state.isLoadingAccess);
+  const mainRestaurantId = useAccessStore((state) => state.mainRestaurantId);
 
   const hasModule = (moduleKey: string) => activeModules.includes(moduleKey);
   const isPurchased = (moduleKey: string) => purchasedModules.includes(moduleKey);
-
   const { menuGroups } = useNavigation();
   
   const [isOrgDropdownOpen, setIsOrgDropdownOpen] = useState(false);
   const [expandedMenus, setExpandedMenus] = useState<Record<string, boolean>>({});
   const [isLockModalOpen, setIsLockModalOpen] = useState(false);
   const [lockedModule, setLockedModule] = useState<{ name: string; key: string } | null>(null);
-  
   const [restaurantToDelete, setRestaurantToDelete] = useState<SidebarRestaurant | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
-  const hasMultiModule = activeModules.includes('multi-restaurant');
-  const maxAllowed = hasMultiModule ? 3 : 1;
+  const hasMultiActive = activeModules.includes('multi-restaurant');
+  const maxAllowed = hasMultiActive ? 3 : 1;
 
   const restaurants = useMemo<SidebarRestaurant[]>(() => {
     if (!user || !user.restaurants) return [];
-    return user.restaurants.map((res: SidebarRestaurant) => ({
+    const list = user.restaurants.map((res: SidebarRestaurant) => ({
       id: res.id,
       name: res.name || res.title || '',
       slug: res.slug,
       imageUrl: res.imageUrl
     }));
-  }, [user]);
+
+    if (mainRestaurantId) {
+      return [...list].sort((a, b) => {
+        if (String(a.id) === String(mainRestaurantId)) return -1;
+        if (String(b.id) === String(mainRestaurantId)) return 1;
+        return 0;
+      });
+    }
+    return list;
+  }, [user, mainRestaurantId]);
 
   const activeRestaurant = useMemo<SidebarRestaurant | null>(() => {
     if (!rawActiveRestaurant) return null;
@@ -61,10 +83,31 @@ export const useSidebarLogic = () => {
   }, [rawActiveRestaurant, restaurants]);
 
   useEffect(() => {
-    if (restaurants.length > 0 && !activeRestaurant) {
-      setActiveRestaurant(restaurants[0]);
+    if (restaurants.length > 0) {
+      const savedId = getSidebarCookie('gustio_active_restaurant_id');
+      const activeIndex = restaurants.findIndex((r) => String(r.id) === String(savedId));
+
+      if (activeIndex !== -1) {
+        if (activeIndex >= maxAllowed && !isLoadingAccess) {
+          setActiveRestaurant(restaurants[0]);
+          setSidebarCookie('gustio_active_restaurant_id', String(restaurants[0].id));
+          router.refresh();
+          return;
+        }
+
+        const matched = restaurants[activeIndex];
+        if (!activeRestaurant || String(activeRestaurant.id) !== String(matched.id)) {
+          setActiveRestaurant(matched);
+        }
+        return;
+      }
+
+      if (!activeRestaurant) {
+        setActiveRestaurant(restaurants[0]);
+        setSidebarCookie('gustio_active_restaurant_id', String(restaurants[0].id));
+      }
     }
-  }, [restaurants, activeRestaurant, setActiveRestaurant]);
+  }, [restaurants, activeRestaurant, setActiveRestaurant, maxAllowed, router, isLoadingAccess]);
 
   useEffect(() => {
     if (activeRestaurant?.id) {
@@ -80,19 +123,24 @@ export const useSidebarLogic = () => {
     return currentOrgName ? currentOrgName[0].toUpperCase() : 'G';
   }, [currentOrgName]);
 
-  const handleRestaurantSwitch = (res: SidebarRestaurant, isLocked: boolean) => {
+  const handleRestaurantSwitch = (e: MouseEvent, res: SidebarRestaurant, isLocked: boolean) => {
     if (isLocked) {
-      toast.error(t('sidebar.locked.title'));
+      e.preventDefault();
+      setLockedModule({
+        name: t('marketplace.modules.multi-restaurant.title'),
+        key: 'multi-restaurant'
+      });
+      setIsLockModalOpen(true);
       setIsOrgDropdownOpen(false);
-      router.push('/dashboard/marketplace');
       return;
     }
+    setSidebarCookie('gustio_active_restaurant_id', String(res.id));
     setActiveRestaurant(res);
     setIsOrgDropdownOpen(false);
     router.refresh();
   };
 
-  const handleDeleteRestaurantClick = (e: React.MouseEvent, res: SidebarRestaurant) => {
+  const handleDeleteRestaurantClick = (e: MouseEvent, res: SidebarRestaurant) => {
     e.preventDefault();
     e.stopPropagation();
     setRestaurantToDelete(res);
@@ -103,11 +151,13 @@ export const useSidebarLogic = () => {
     setIsDeleting(true);
     
     const idToDelete = restaurantToDelete.id;
+    const previousActiveRestaurant = rawActiveRestaurant;
     const updatedRestaurants = restaurants.filter(r => String(r.id) !== String(idToDelete));
-    
+
     if (activeRestaurant && String(activeRestaurant.id) === String(idToDelete)) {
       if (updatedRestaurants.length > 0) {
         setActiveRestaurant(updatedRestaurants[0]);
+        setSidebarCookie('gustio_active_restaurant_id', String(updatedRestaurants[0].id));
       } else {
         const store = useRestaurantStore.getState() as unknown as RestaurantStoreState;
         if (store.clearActiveRestaurant) {
@@ -115,6 +165,7 @@ export const useSidebarLogic = () => {
         } else {
           setActiveRestaurant(null);
         }
+        document.cookie = 'gustio_active_restaurant_id=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
       }
     }
 
@@ -124,6 +175,12 @@ export const useSidebarLogic = () => {
       setIsOrgDropdownOpen(false);
       router.refresh();
     } catch {
+      if (previousActiveRestaurant) {
+        setActiveRestaurant(previousActiveRestaurant);
+        setSidebarCookie('gustio_active_restaurant_id', String(previousActiveRestaurant.id));
+      } else {
+        setActiveRestaurant(null);
+      }
       toast.error(t('auth.errors.defaultError'));
     } finally {
       setIsDeleting(false);
@@ -131,7 +188,7 @@ export const useSidebarLogic = () => {
     }
   };
 
-  const handleLockedClick = (e: React.MouseEvent, moduleName: string, moduleKey: string) => {
+  const handleLockedClick = (e: MouseEvent, moduleName: string, moduleKey: string) => {
     e.preventDefault();
     setLockedModule({ name: moduleName, key: moduleKey });
     setIsLockModalOpen(true);
@@ -139,8 +196,14 @@ export const useSidebarLogic = () => {
 
   const handleActivateLocked = () => {
     if (lockedModule) {
-      toggleModule(lockedModule.key, true);
-      setIsLockModalOpen(false);
+      startTransition(async () => {
+        try {
+          await toggleModule(lockedModule.key, true);
+          setIsLockModalOpen(false);
+        } catch {
+          toast.error(t('auth.errors.defaultError'));
+        }
+      });
     }
   };
 
@@ -165,6 +228,7 @@ export const useSidebarLogic = () => {
     restaurantToDelete,
     setRestaurantToDelete,
     isDeleting,
+    isPending,
     orgInitial,
     currentOrgName,
     maxAllowed,

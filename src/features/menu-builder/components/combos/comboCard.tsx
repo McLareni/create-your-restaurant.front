@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import { PackagePlus, Pencil, Trash2 } from 'lucide-react';
-import { Card } from '@/shared/ui';
+import { Pencil, Trash2 } from 'lucide-react';
+import { Card } from '@/shared/ui/card';
 import type { ComboCardProps } from '@/features/menu-builder/types/combos.types';
 
 export const ComboCard = ({ combo, allDishes, onEdit, onDelete }: ComboCardProps) => {
@@ -23,30 +23,28 @@ export const ComboCard = ({ combo, allDishes, onEdit, onDelete }: ComboCardProps
   const calculateFinalPrice = () => {
     const original = calculateComboOriginalPrice();
     if (combo.priceType === 'FIXED') return combo.priceValue;
-    return original - (original * combo.priceValue) / 100;
+    const final = original - (original * combo.priceValue) / 100;
+    return Math.round(final * 100) / 100;
   };
 
   return (
-    <Card className="p-5 bg-bg-surface border border-border-main/60 dark:border-border-main rounded-2xl shadow-table hover:shadow-md transition-all duration-300 flex flex-col h-full group select-none relative">
-      <div className="flex items-start justify-between mb-4 shrink-0 relative z-10">
-        <div className="flex items-center gap-2 min-w-0 flex-1">
-          <div className="p-2 bg-brand-emerald/10 text-brand-emerald rounded-lg shrink-0">
-            <PackagePlus className="h-5 w-5" />
-          </div>
-          <h3 className="font-bold text-text-main text-base truncate flex-1">{combo.name}</h3>
-        </div>
-        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button 
+    <Card className="p-5 bg-bg-surface border border-border-main/60 dark:border-border-main rounded-2xl shadow-table hover:shadow-md transition-all duration-300 flex flex-col h-full group select-none overflow-hidden relative z-0">
+      <div className="flex items-start justify-between gap-4 mb-3 relative z-10 h-8">
+        <h3 className="font-bold text-text-main text-base line-clamp-1 flex-1 self-center">
+          {combo.name}
+        </h3>
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-200 shrink-0 bg-bg-surface/90 backdrop-blur-xs p-0.5 rounded-lg border border-border-main/40">
+          <button
             type="button"
-            onClick={() => onEdit(combo)} 
-            className="p-1.5 text-text-muted hover:text-brand-emerald bg-bg-element rounded-md shadow-2xs border border-transparent transition-colors duration-200 cursor-pointer outline-none"
+            onClick={() => onEdit(combo)}
+            className="p-1.5 rounded-md text-text-muted hover:text-brand-emerald hover:bg-bg-element transition-colors duration-200 cursor-pointer outline-none border-0 bg-transparent"
           >
             <Pencil className="h-4 w-4" />
           </button>
-          <button 
+          <button
             type="button"
-            onClick={() => onDelete(combo.id)} 
-            className="p-1.5 text-text-muted hover:text-red-500 bg-bg-element rounded-md shadow-2xs border border-transparent transition-colors duration-200 cursor-pointer outline-none"
+            onClick={() => onDelete(combo.id)}
+            className="p-1.5 text-text-muted hover:text-red-500 hover:bg-red-500/5 rounded-md shadow-2xs border border-transparent transition-colors duration-200 cursor-pointer outline-none"
           >
             <Trash2 className="h-4 w-4" />
           </button>
@@ -71,10 +69,8 @@ export const ComboCard = ({ combo, allDishes, onEdit, onDelete }: ComboCardProps
             {calculateFinalPrice()} {t('menu.currency')}
           </span>
         </div>
-        <span className="text-[10px] font-bold bg-brand-emerald/10 text-brand-emerald px-2 py-0.5 rounded border border-brand-emerald/5 uppercase tracking-wide">
-          {combo.priceType === 'FIXED' 
-            ? t('menu.constructor.combos.modal.typeFixed') 
-            : `-${combo.priceValue}%`}
+        <span className="text-[10px] font-bold bg-brand-emerald/10 text-brand-emerald px-2 py-0.5 rounded-md shrink-0">
+          {combo.priceType === 'FIXED' ? t('menu.constructor.combos.modal.typeFixed') : `-${combo.priceValue}%`}
         </span>
       </div>
     </Card>

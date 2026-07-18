@@ -1,11 +1,25 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSortable, SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Edit, Trash2, Plus, FolderOpen, ChevronDown, ChevronRight } from 'lucide-react';
-import { DishCard } from '@/features/menu-builder/components/board/dishCard';
-import type { SortableCategoryProps } from '@/features/menu-builder/types/categories.types';
+import { DishCard } from '@/features/menu-builder/components/board/components/dishCard';
+import { useTranslation } from '@/shared/hooks/useTranslation';
+import { useActiveRestaurantId } from '@/shared/hooks/useActiveRestaurantId';
+import type { Dish } from '@/features/menu-builder/types/dishes.types';
+import type { FullCategory } from '@/features/menu-builder/types/menu-board.types';
+
+interface CleanSortableCategoryProps {
+  category: FullCategory;
+  categoryDishes: Dish[];
+  onEditCategory: (category: FullCategory) => void;
+  onDeleteCategory: (target: { type: 'category'; id: string }) => void;
+  onAddDish: (categoryId: string) => void;
+  onEditDish: (categoryId: string, dish: Dish) => void;
+  onDeleteCategoryDish: (target: { type: 'dish'; id: string }) => void;
+  onViewDish: (dish: Dish) => void;
+}
 
 export const SortableCategory = ({
   category,
@@ -15,9 +29,28 @@ export const SortableCategory = ({
   onAddDish,
   onEditDish,
   onDeleteCategoryDish,
-  t,
-}: SortableCategoryProps) => {
-  const [isExpanded, setIsExpanded] = useState(true);
+  onViewDish,
+}: CleanSortableCategoryProps) => {
+  const { t } = useTranslation();
+  const restaurantId = useActiveRestaurantId();
+  const storageKey = restaurantId ? `cat-expanded-${restaurantId}-${category.id}` : null;
+
+  const [isExpanded, setIsExpanded] = useState<boolean>(true);
+  const [shouldRenderContent, setShouldRenderContent] = useState<boolean>(true);
+
+  useEffect(() => {
+    if (storageKey) {
+      const saved = localStorage.getItem(storageKey);
+      if (saved !== null) {
+        const parsedValue = saved === 'true';
+        requestAnimationFrame(() => {
+          setIsExpanded(parsedValue);
+          setShouldRenderContent(parsedValue);
+        });
+      }
+    }
+  }, [storageKey]);
+
   const {
     attributes,
     listeners,
@@ -38,6 +71,23 @@ export const SortableCategory = ({
     transition,
   };
 
+  const handleToggleExpand = () => {
+    const nextState = !isExpanded;
+    setIsExpanded(nextState);
+    if (nextState) {
+      setShouldRenderContent(true);
+    }
+    if (storageKey) {
+      localStorage.setItem(storageKey, String(nextState));
+    }
+  };
+
+  const handleAnimationEnd = (e: React.TransitionEvent<HTMLDivElement>) => {
+    if (e.propertyName === 'grid-template-rows' && !isExpanded) {
+      setShouldRenderContent(false);
+    }
+  };
+
   if (isDragging) {
     return (
       <div
@@ -52,9 +102,13 @@ export const SortableCategory = ({
     <div
       ref={setNodeRef}
       style={style}
-      className="w-full bg-bg-surface rounded-md border border-solid border-neutral-300 dark:border-neutral-700 py-4 shadow-table overflow-hidden"
+      className="w-full bg-bg-surface rounded-md border border-solid border-neutral-300 dark:border-neutral-700 shadow-table overflow-hidden transition-all"
     >
-      <div className="flex items-center justify-between gap-2 mb-3 pb-2 border-b border-solid border-neutral-200 dark:border-neutral-800 group px-4">
+      <div
+        className={`flex items-center justify-between gap-2 border-solid border-neutral-200 dark:border-neutral-800 group px-4 pt-3.5 pb-3.5 ${
+          isExpanded ? 'border-b mb-3' : 'border-b-transparent mb-0'
+        }`}
+      >
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <div
             {...attributes}
@@ -63,10 +117,10 @@ export const SortableCategory = ({
           >
             <GripVertical className="h-4 w-4" />
           </div>
-          
-          <div 
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="flex items-center gap-2 min-w-0 cursor-pointer select-none flex-1 py-1 rounded-lg hover:bg-bg-hover/30 transition-colors px-1"
+
+          <div
+            onClick={handleToggleExpand}
+            className="flex items-center gap-2 min-w-0 cursor-pointer select-none flex-1 py-1 rounded-lg transition-colors px-1"
           >
             <div className="text-text-muted/60 shrink-0">
               {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
@@ -82,7 +136,7 @@ export const SortableCategory = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-150 shrink-0">
+        <div className="flex items-center gap-1 transition-opacity duration-150 shrink-0">
           <button
             type="button"
             onClick={() => onAddDish(category.id)}
@@ -110,10 +164,15 @@ export const SortableCategory = ({
         </div>
       </div>
 
-      <div className={`grid transition-all duration-300 ease-in-out overflow-hidden ${isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-        <div className="overflow-hidden min-h-0">
+      <div
+        onTransitionEnd={handleAnimationEnd}
+        className={`grid transition-[grid-template-rows,opacity] duration-200 ease-in-out overflow-hidden ${
+          isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0 pointer-events-none'
+        }`}
+      >
+        <div className="overflow-hidden min-h-0" style={{ display: shouldRenderContent ? 'block' : 'none' }}>
           <SortableContext items={categoryDishes.map((d) => d.id)} strategy={rectSortingStrategy}>
-            <div className="flex flex-wrap gap-4 min-h-16 rounded-xl custom-sortable-dropzone pt-1 justify-start items-start px-4">
+            <div className="flex flex-wrap gap-4 min-h-16 rounded-xl custom-sortable-dropzone pt-1 justify-start items-start px-4 pb-4">
               {categoryDishes.length === 0 ? (
                 <div className="w-full flex flex-col items-center justify-center py-8 text-center border border-dashed border-neutral-200 dark:border-neutral-800 rounded-xl bg-bg-main/30">
                   <FolderOpen className="h-5 w-5 text-text-muted/30 mb-1" />
@@ -129,6 +188,7 @@ export const SortableCategory = ({
                     categoryId={category.id}
                     onEdit={onEditDish}
                     onDelete={onDeleteCategoryDish}
+                    onView={onViewDish}
                   />
                 ))
               )}

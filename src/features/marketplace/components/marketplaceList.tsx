@@ -1,7 +1,7 @@
 'use client';
 
 import { FloatingPanel, Input } from '@/shared/ui';
-import { Zap, Info } from 'lucide-react';
+import { Zap, Info, Loader2 } from 'lucide-react';
 import { useMarketplace } from '@/features/marketplace/hooks/useMarketplace';
 import { ModuleCard } from '@/features/marketplace/components/moduleCard';
 
@@ -10,7 +10,6 @@ export const MarketplaceList = () => {
 
   return (
     <div className="flex min-h-screen w-full flex-col p-8 bg-bg-main text-text-main overflow-x-hidden transition-colors">
-      
       <div className="mb-8 flex items-center justify-between w-full">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-text-main flex items-center gap-2.5">
@@ -25,23 +24,27 @@ export const MarketplaceList = () => {
         </div>
       </div>
 
-      <div 
-        className="grid gap-6 pb-12 w-full"
-        style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}
-      >
-        {state.modules.map((mod) => (
-          <ModuleCard 
-            key={mod.key} 
-            moduleData={mod} 
-            isPurchased={state.isModulePurchased(mod.key)}
-            isActive={state.isModuleActive(mod.key)} 
-            onConnect={state.handleOpenConnectModal}
-            onToggle={state.handleToggleModule}
-            onSettingsClick={state.handleSettingsClick}
-            isDisabled={state.isPending}
-          />
-        ))}
-      </div>
+      {state.isLoading ? (
+        <div className="flex flex-1 items-center justify-center min-h-75">
+          <Loader2 className="h-10 w-10 animate-spin text-brand-emerald" />
+        </div>
+      ) : (
+        <div className="grid gap-6 pb-12 w-full grid-cols-[repeat(auto-fill,minmax(280px,1fr))]">
+          {state.modules.map((mod) => (
+            <ModuleCard 
+              key={mod.key} 
+              moduleData={mod} 
+              isPurchased={state.isModulePurchased(mod.key)}
+              isActive={state.isModuleActive(mod.key)} 
+              onConnect={state.handleOpenConnectModal}
+              onToggle={state.handleToggleModule}
+              onSettingsClick={state.handleSettingsClick}
+              isDisabled={state.isPending}
+              isManagedFromMain={mod.key === 'multi-restaurant' && state.isModulePurchased('multi-restaurant') && !state.isMainForMultiRestaurant}
+            />
+          ))}
+        </div>
+      )}
 
       {!!state.selectedModule && (
         <FloatingPanel
@@ -60,10 +63,9 @@ export const MarketplaceList = () => {
             <div className="p-0.5">
               <Input
                 id="activation-code-input"
+                name="activationCode"
                 label={state.t('marketplace.connectModal.activationCodeLabel')}
                 placeholder={state.t('marketplace.connectModal.activationCodePlaceholder')}
-                value={state.activationCode}
-                onChange={(e) => state.setActivationCode(e.target.value)}
                 disabled={state.isPending}
                 className="rounded-lg h-11 border-border-main bg-bg-element text-text-main placeholder:text-text-muted/40"
               />
@@ -74,14 +76,14 @@ export const MarketplaceList = () => {
                 type="button"
                 onClick={state.handleCloseConnectModal}
                 disabled={state.isPending}
-                className="px-3.5 h-9 text-xs font-semibold text-text-muted hover:text-text-main hover:bg-bg-element rounded-lg transition-all cursor-pointer"
+                className="px-3.5 h-9 text-xs font-semibold text-text-muted hover:text-text-main hover:bg-bg-element rounded-xl transition-all cursor-pointer"
               >
                 {state.t('confirmModal.cancel')}
               </button>
               <button
                 type="submit"
                 disabled={state.isPending}
-                className="px-4 h-9 text-xs font-bold text-white bg-brand-emerald hover:bg-brand-emerald-hover active:scale-98 rounded-lg transition-all cursor-pointer"
+                className="h-10 px-5 text-xs font-bold text-white bg-brand-emerald hover:bg-brand-emerald-hover active:scale-98 rounded-xl shadow-md transition-all cursor-pointer border border-brand-emerald/10 select-none flex items-center justify-center gap-2"
               >
                 {state.t('marketplace.connectModal.confirmBtn')}
               </button>

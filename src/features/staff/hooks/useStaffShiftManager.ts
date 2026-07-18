@@ -1,21 +1,49 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { staffApi } from '@/features/staff/api/staff.api';
-import type { ClockInResponse, WaiterZReport, ShiftMode } from '@/features/staff/types/staff.types';
+import { useStaffMutations } from '@/features/staff/hooks/useStaffMutations';
+import { useTranslation } from '@/shared/hooks/useTranslation';
+import toast from 'react-hot-toast';
+import type { WaiterZReport, ShiftMode } from '@/features/staff/types/staff.types';
 
 export const useStaffShiftManager = (restaurantId: number) => {
-  const queryClient = useQueryClient();
-  const [mode, setMode] = useState<ShiftMode>('SELECT');
+  const { t } = useTranslation();
+  const mutations = useStaffMutations();
+
+  const [mode, setMode] = useState<ShiftMode>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(`gustio_shift_mode_${restaurantId}`);
+      return (saved as ShiftMode) || 'SELECT';
+    }
+    return 'SELECT';
+  });
+
   const [zReport, setZReport] = useState<WaiterZReport | null>(null);
-  const [activeShift, setActiveShift] = useState<{ startTime: string; waiterName: string } | null>(null);
+
+  const [activeShift, setActiveShift] = useState<{ startTime: string; waiterName: string } | null>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(`gustio_active_shift_${restaurantId}`);
+      return saved ? JSON.parse(saved) : null;
+    }
+    return null;
+  });
+
   const [elapsedTime, setElapsedTime] = useState('00:00:00');
 
   useEffect(() => {
-    if (!activeShift?.startTime) {
-      return;
+    localStorage.setItem(`gustio_shift_mode_${restaurantId}`, mode);
+  }, [mode, restaurantId]);
+
+  useEffect(() => {
+    if (activeShift) {
+      localStorage.setItem(`gustio_active_shift_${restaurantId}`, JSON.stringify(activeShift));
+    } else {
+      localStorage.removeItem(`gustio_active_shift_${restaurantId}`);
     }
+  }, [activeShift, restaurantId]);
+
+  useEffect(() => {
+    if (!activeShift?.startTime) return;
 
     const start = new Date(activeShift.startTime).getTime();
     if (isNaN(start)) return;
@@ -34,24 +62,31 @@ export const useStaffShiftManager = (restaurantId: number) => {
     return () => clearInterval(intervalId);
   }, [activeShift]);
 
-  const clockInMutation = useMutation({
-    mutationFn: async (pinCode: string) => staffApi.clockIn(restaurantId, pinCode),
-    onSuccess: (data: ClockInResponse) => {
+  const handleClockInConfirm = async (pinCode: string) => {
+    try {
+      const data = await mutations.clockInAsync(pinCode);
       setActiveShift({ startTime: new Date().toISOString(), waiterName: data.firstName });
       setMode('SELECT');
-    },
-  });
+      toast.success(`${t('staff.ops.welcome')}, ${data.firstName}!`);
+    } catch (err: unknown) {
+      const error = err as Error;
+      toast.error(error.message || t('auth.errors.defaultError'));
+    }
+  };
 
-  const clockOutMutation = useMutation({
-    mutationFn: async (pinCode: string) => staffApi.clockOut(restaurantId, pinCode),
-    onSuccess: (data: WaiterZReport) => {
+  const handleClockOutConfirm = async (pinCode: string) => {
+    try {
+      const data = await mutations.clockOutAsync(pinCode);
       setZReport(data);
       setActiveShift(null);
       setElapsedTime('00:00:00');
       setMode('SELECT');
-      queryClient.invalidateQueries({ queryKey: ['staffList', restaurantId] });
-    },
-  });
+      toast.success(t('staff.ops.clockOutSuccess'));
+    } catch (err: unknown) {
+      const error = err as Error;
+      toast.error(error.message || t('auth.errors.defaultError'));
+    }
+  };
 
   return {
     mode,
@@ -60,9 +95,9 @@ export const useStaffShiftManager = (restaurantId: number) => {
     setZReport,
     activeShift,
     elapsedTime,
-    isClockingIn: clockInMutation.isPending,
-    isClockingOut: clockOutMutation.isPending,
-    handleClockInConfirm: clockInMutation.mutate,
-    handleClockOutConfirm: clockOutMutation.mutate,
+    isClockingIn: mutations.isClockingIn,
+    isClockingOut: mutations.isClockingOut,
+    handleClockInConfirm,
+    handleClockOutConfirm,
   };
 };

@@ -1,14 +1,9 @@
 import { apiClient } from '@/shared/api/client';
-import { Dish } from '../types/dishes.types';
-import { DishFormValues } from '../schemas/dishes.schema';
+import type { Dish } from '../types/dishes.types';
+import type { DishFormValues } from '../schemas/dishes.schema';
 import { menuApi } from './menu.api';
 
 export const dishesApi = {
-  getAll: async (restaurantId: number): Promise<Dish[]> => {
-    const response = await menuApi.getFullMenu(restaurantId);
-    return response.categories.flatMap(cat => cat.dishes);
-  },
-
   getTagsLookup: async (restaurantId: number): Promise<string[]> => {
     return await apiClient.get<string[]>(`/menu/owner/${restaurantId}/dishes/lookups/tags`);
   },

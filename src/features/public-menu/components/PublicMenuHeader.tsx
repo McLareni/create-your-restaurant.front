@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
+import { Search, Loader2 } from 'lucide-react';
 import { PublicMenuCategory } from '../types/publicMenu.types';
 
 interface PublicMenuHeaderProps {
@@ -30,74 +31,79 @@ export const PublicMenuHeader = ({
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
     const normalized = orderNumber.trim();
-    if (!normalized) {
-      return;
-    }
-
+    if (!normalized) return;
     onGoToOrder(normalized);
   };
 
   return (
-    <div className="sticky top-0 z-30 bg-brand-cream/95 backdrop-blur">
-      <header className="w-full bg-white/90 px-4 py-4 md:px-6 md:py-5">
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <h1 className="text-3xl font-black leading-none text-brand-espresso md:text-4xl">
-            {restaurantName}
-          </h1>
+    <div className="sticky top-0 z-30 bg-brand-cream/90 backdrop-blur-xl border-b border-solid border-brand-copper/10 transition-all duration-300">
+      <header className="w-full bg-transparent px-4 py-4 md:px-6">
+        <div className="mx-auto flex max-w-5xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-0.5">
+            <h1 className="text-xl font-extrabold tracking-tight text-brand-espresso md:text-2xl font-serif">
+              {restaurantName}
+            </h1>
+            <p className="text-xs font-medium text-brand-gray/80">
+              {t('menu.public.subtitle')}
+            </p>
+          </div>
 
-          {showOrderLookup ? (
-            <form
-              onSubmit={handleSubmit}
-              className="flex w-full gap-2 md:w-auto md:min-w-90"
-            >
-              <input
-                type="text"
-                value={orderNumber}
-                onChange={(event) => setOrderNumber(event.target.value)}
-                placeholder={t('menu.public.findOrderPlaceholder')}
-                disabled={isOrderLookupLoading}
-                className="h-11 w-full rounded-lg border border-brand-gray/30 px-3 text-sm text-brand-espresso outline-none transition focus:border-brand-copper md:min-w-60"
-              />
-              <button
-                type="submit"
-                disabled={isOrderLookupLoading}
-                className="h-11 shrink-0 rounded-lg bg-brand-copper px-4 text-sm font-semibold text-white transition hover:bg-brand-gold disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {isOrderLookupLoading
-                  ? t('menu.public.findingOrder')
-                  : t('menu.public.goToOrder')}
-              </button>
+          {showOrderLookup && (
+            <form onSubmit={handleSubmit} className="relative w-full max-w-xs shrink-0">
+              <div className="relative flex items-center">
+                <input
+                  type="text"
+                  value={orderNumber}
+                  onChange={(e) => setOrderNumber(e.target.value)}
+                  placeholder={t('menu.public.findOrderPlaceholder')}
+                  className="w-full rounded-full border border-solid border-brand-gray/20 bg-white/60 pl-4 pr-24 py-2.5 text-xs font-semibold text-brand-espresso placeholder:text-brand-gray/50 outline-none focus:border-brand-copper/60 focus:bg-white focus:ring-2 focus:ring-brand-copper/10 transition-all"
+                />
+                <button
+                  type="submit"
+                  disabled={isOrderLookupLoading}
+                  className="absolute right-1.5 inline-flex h-8 items-center gap-1.5 rounded-full bg-brand-espresso px-4 text-[11px] font-bold text-white hover:bg-brand-copper transition-colors disabled:opacity-50 select-none cursor-pointer border-0"
+                >
+                  {isOrderLookupLoading ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Search className="h-3 w-3" />
+                  )}
+                  <span>{t('menu.public.goToOrder')}</span>
+                </button>
+              </div>
             </form>
-          ) : null}
+          )}
         </div>
       </header>
 
-      {categories.length > 0 ? (
-        <div className="w-full border-brand-copper/20 px-4 md:px-6 pb-4">
-          <div className="flex gap-0 overflow-x-auto md:justify-center">
+      {categories.length > 0 && (
+        <div className="w-full px-4 pb-4 md:px-6">
+          <div className="mx-auto max-w-5xl flex gap-2 overflow-x-auto scrollbar-none py-1 mask-linear-r">
             <button
               type="button"
               onClick={() => onSelectTab(allDishesTabId)}
-              className={activeTabId === allDishesTabId
-                ? 'whitespace-nowrap rounded-none border border-brand-copper bg-brand-copper px-4 py-2 text-sm font-semibold text-white'
-                : 'whitespace-nowrap rounded-none border border-brand-gray/30 bg-white px-4 py-2 text-sm font-semibold text-brand-espresso'}
+              className={`whitespace-nowrap rounded-full px-5 py-2 text-xs font-bold border border-solid transition-all duration-200 select-none cursor-pointer outline-none active:scale-95 ${
+                activeTabId === allDishesTabId
+                  ? 'border-brand-copper bg-brand-copper text-white shadow-sm shadow-brand-copper/20'
+                  : 'border-brand-gray/15 bg-white text-brand-espresso hover:bg-brand-gray/5 hover:border-brand-gray/30'
+              }`}
             >
               {t('menu.public.allDishes')}
             </button>
 
             {categories.map((category) => {
               const isActive = category.id === activeTabId;
-
               return (
                 <button
                   key={category.id}
                   type="button"
                   onClick={() => onSelectTab(category.id)}
-                  className={isActive
-                    ? 'whitespace-nowrap rounded-none border border-brand-copper bg-brand-copper px-4 py-2 text-sm font-semibold text-white'
-                    : 'whitespace-nowrap rounded-none border border-brand-gray/30 bg-white px-4 py-2 text-sm font-semibold text-brand-espresso'}
+                  className={`whitespace-nowrap rounded-full px-5 py-2 text-xs font-bold border border-solid transition-all duration-200 select-none cursor-pointer outline-none active:scale-95 ${
+                    isActive
+                      ? 'border-brand-copper bg-brand-copper text-white shadow-sm shadow-brand-copper/20'
+                      : 'border-brand-gray/15 bg-white text-brand-espresso hover:bg-brand-gray/5 hover:border-brand-gray/30'
+                  }`}
                 >
                   {category.name}
                 </button>
@@ -105,7 +111,7 @@ export const PublicMenuHeader = ({
             })}
           </div>
         </div>
-      ) : null}
+      )}
     </div>
   );
 };

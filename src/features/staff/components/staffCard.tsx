@@ -9,10 +9,14 @@ import type { StaffCardProps } from '@/features/staff/types/staff.types';
 export const StaffCard = ({ member, onEdit, onDelete, onStatusChange }: StaffCardProps) => {
   const { t } = useTranslation();
   const initials = `${member.firstName?.[0] || ''}${member.lastName?.[0] || ''}`.toUpperCase();
+  
+  const displayRole = ['OWNER', 'STAFF', 'CUSTOMER'].includes(member.role)
+    ? t(`roles.${member.role}`)
+    : member.role;
 
   return (
     <div 
-      className={`p-5 flex flex-col justify-between w-full h-63.75 rounded-2xl bg-bg-surface border transition-all duration-300 group select-none relative shadow-table ${
+      className={`p-5 flex flex-col justify-between w-full h-64 rounded-2xl bg-bg-surface border transition-all duration-300 group select-none relative shadow-table ${
         !member.isActive 
           ? 'border-border-main/40 dark:border-border-main/30 opacity-70' 
           : 'border-border-main/60 dark:border-border-main hover:border-border-main'
@@ -20,20 +24,26 @@ export const StaffCard = ({ member, onEdit, onDelete, onStatusChange }: StaffCar
     >
       <div className="flex justify-between items-center w-full h-7 shrink-0 mb-3">
         <span className="text-[10px] font-bold text-brand-emerald uppercase tracking-wider bg-brand-emerald/10 px-2.5 py-0.5 rounded-lg border border-brand-emerald/5">
-          {member.role}
+          {displayRole}
         </span>
         
         <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-bg-element/60 dark:bg-neutral-900/40 px-1 py-0.5 rounded-xl border border-neutral-200/20 dark:border-neutral-700/20">
           <button 
             type="button"
-            onClick={(e) => { e.stopPropagation(); onEdit(member); }} 
+            onClick={(e) => { 
+              e.stopPropagation();
+              onEdit(member); 
+            }} 
             className="p-1.5 rounded-lg text-text-muted hover:text-brand-emerald transition-colors cursor-pointer border-0 bg-transparent"
           >
             <Pencil className="h-3.5 w-3.5" />
           </button>
           <button 
             type="button"
-            onClick={(e) => { e.stopPropagation(); onDelete(member.id); }} 
+            onClick={(e) => { 
+              e.stopPropagation();
+              onDelete(member.id); 
+            }} 
             className="p-1.5 rounded-lg text-text-muted hover:text-red-500 transition-colors cursor-pointer border-0 bg-transparent"
           >
             <Trash2 className="h-3.5 w-3.5" />
@@ -73,7 +83,7 @@ export const StaffCard = ({ member, onEdit, onDelete, onStatusChange }: StaffCar
       </div>
 
       <div className="mt-auto border-t border-solid border-border-main pt-3 flex items-center justify-between w-full relative z-10 shrink-0 h-9">
-        <span className={`text-[10px] font-bold uppercase tracking-widest font-mono ${
+        <span className={`text-[10px] font-bold uppercase tracking-widest ${
           member.isActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'
         }`}>
           {member.isActive ? t('staff.statusActive') : t('staff.statusInactive')}

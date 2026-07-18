@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 
 interface UseCrudModalProps<F> {
@@ -31,17 +33,18 @@ export const useCrudModal = <F>({
     setIsModalOpen(true);
   };
 
-  const handleSave = async () => {
+  const handleSave = async (directData?: F) => {
     setIsSubmitting(true);
     try {
+      const dataToSave = directData !== undefined ? directData : formData;
       if (editingId) {
-        await updateItem({ id: editingId, data: formData });
+        await updateItem({ id: editingId, data: dataToSave });
       } else {
-        await createItem(formData);
+        await createItem(dataToSave);
       }
       setIsModalOpen(false);
     } catch (error) {
-      console.error('CRUD operation failed:', error);
+      throw error;
     } finally {
       setIsSubmitting(false);
     }
@@ -53,7 +56,7 @@ export const useCrudModal = <F>({
         await deleteItem(deleteId);
         setDeleteId(null);
       } catch (error) {
-        console.error('Delete operation failed:', error);
+        throw error;
       }
     }
   };

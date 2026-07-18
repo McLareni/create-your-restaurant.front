@@ -9,6 +9,8 @@ export { FloatingPanel } from './floatingPanel';
 export { Modal } from './modal';
 export { ConfirmModal } from './confirmModal';
 export { ModuleGuard } from './moduleGuard';
+export { FloatingSidePanel } from '@/shared/ui/floatingSidePanel';
+export { SearchInput } from './forms/SearchInput';
 
 // Іконки
 export { GoogleIcon } from './icons/googleIcon';

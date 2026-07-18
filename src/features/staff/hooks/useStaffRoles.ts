@@ -1,8 +1,11 @@
-import { useState, MouseEvent } from 'react';
+import { useState } from 'react';
+import type { MouseEvent } from 'react';
 import { useStaff } from '@/features/staff/hooks/useStaff';
+import { useStaffMutations } from '@/features/staff/hooks/useStaffMutations';
 
 export const useStaffRoles = () => {
-  const { createRole, deleteRole, permissions } = useStaff();
+  const { permissions } = useStaff();
+  const mutations = useStaffMutations();
   const [newRoleName, setNewRoleName] = useState('');
   const [isCreatingRole, setIsCreatingRole] = useState(false);
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
@@ -17,7 +20,7 @@ export const useStaffRoles = () => {
     if (!newRoleName.trim() || isCreatingRole) return;
     setIsCreatingRole(true);
     try {
-      await createRole({ name: newRoleName.trim(), permissions: selectedPermissions });
+      await mutations.createRoleAsync({ name: newRoleName.trim(), permissions: selectedPermissions });
       setNewRoleName('');
       setSelectedPermissions([]);
     } catch {} finally {
@@ -29,7 +32,7 @@ export const useStaffRoles = () => {
     e.preventDefault();
     e.stopPropagation();
     try {
-      await deleteRole(id);
+      await mutations.deleteRoleAsync(id);
     } catch {}
   };
 

@@ -1,11 +1,13 @@
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { marketplaceApi } from '@/features/marketplace/api/marketplace.api';
 import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 import { useAccessStore } from '@/shared/store/useAccessStore';
+import { useUserStore } from '@/shared/store/useUserStore';
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import { ConnectModuleArgs } from '../types/marketplace.types';
+import { connectModuleSchema } from '@/features/marketplace/schemas/marketplace.schema';
+import type { ConnectModuleArgs } from '../types/marketplace.types';
 import toast from 'react-hot-toast';
 
 export const useMarketplace = () => {
@@ -14,31 +16,35 @@ export const useMarketplace = () => {
   const queryClient = useQueryClient();
   const activeRestaurant = useRestaurantStore((state) => state.activeRestaurant);
   const restaurantId = activeRestaurant?.id ? Number(activeRestaurant.id) : null;
-
   const activeModules = useAccessStore((state) => state.activeModules);
   const purchasedModules = useAccessStore((state) => state.purchasedModules);
+  const isLoadingAccess = useAccessStore((state) => state.isLoadingAccess);
   const toggleModuleState = useAccessStore((state) => state.toggleModule);
-  const purchaseModuleState = useAccessStore((state) => state.purchaseModule);
+  const fetchAccessData = useAccessStore((state) => state.fetchAccessData);
+  const isMainForMultiRestaurant = useAccessStore((state) => state.isMainForMultiRestaurant);
   
   const [selectedModule, setSelectedModule] = useState<string | null>(null);
   const [activationCode, setActivationCode] = useState('');
   const [isPending, startTransition] = useTransition();
 
-  const { data: modules = [], isLoading } = useQuery({
-    queryKey: ['marketplace-modules', restaurantId],
-    queryFn: () => marketplaceApi.getModules(restaurantId!),
-    enabled: !!restaurantId,
-  });
+  const modules = useMemo(() => {
+    return marketplaceApi.getModules(purchasedModules, activeModules);
+  }, [purchasedModules, activeModules]);
 
   const connectMutation = useMutation({
     mutationFn: ({ moduleKey, activationCode }: ConnectModuleArgs) => 
       marketplaceApi.connectModule(restaurantId!, moduleKey, activationCode),
-    onSuccess: (_, variables) => {
+    onSuccess: async (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['marketplace-modules', restaurantId] });
-      if (variables.moduleKey === 'multi-restaurant') {
-        queryClient.invalidateQueries({ queryKey: ['/users/me'] });
+      
+      if (restaurantId) {
+        await fetchAccessData(String(restaurantId)).catch(() => {});
       }
-      purchaseModuleState(variables.moduleKey);
+      
+      if (variables.moduleKey === 'multi-restaurant') {
+        useUserStore.getState().fetchUser(true);
+      }
+      
       toast.success(t('marketplace.status.active'));
     },
     onError: () => {
@@ -52,34 +58,39 @@ export const useMarketplace = () => {
   };
 
   const handleCloseConnectModal = () => {
-    if (isPending) return;
+    if (connectMutation.isPending) return;
     setSelectedModule(null);
     setActivationCode('');
   };
 
-  const handleConfirmConnectionAction = () => {
-    if (!selectedModule || isPending) return;
+  const handleConfirmConnectionAction = async () => {
+    if (!selectedModule || connectMutation.isPending) return;
+    const result = connectModuleSchema.safeParse({ activationCode });
+    if (!result.success) {
+      const issue = result.error.issues[0];
+      toast.error(issue ? t(issue.message) : t('errors.formValidation'));
+      return;
+    }
 
-    startTransition(async () => {
-      try {
-        await connectMutation.mutateAsync({
-          moduleKey: selectedModule,
-          activationCode: activationCode.trim() || undefined,
-        });
-        setSelectedModule(null);
-        setActivationCode('');
-      } catch {
-        // Error handling inside useMutation onError
-      }
-    });
+    try {
+      await connectMutation.mutateAsync({
+        moduleKey: selectedModule,
+        activationCode: activationCode.trim() || undefined,
+      });
+      setSelectedModule(null);
+      setActivationCode('');
+    } catch {
+    }
   };
 
-  const handleToggleModule = async (moduleKey: string, isActive: boolean) => {
-    try {
-      await toggleModuleState(moduleKey, isActive);
-    } catch {
-      toast.error(t('auth.errors.defaultError'));
-    }
+  const handleToggleModule = (moduleKey: string, isActive: boolean) => {
+    startTransition(async () => {
+      try {
+        await toggleModuleState(moduleKey, isActive);
+      } catch {
+        toast.error(t('auth.errors.defaultError'));
+      }
+    });
   };
 
   const handleSettingsClick = (moduleKey: string) => {
@@ -94,22 +105,24 @@ export const useMarketplace = () => {
 
   const currentMod = modules.find(m => m.key === selectedModule);
   const priceText = currentMod ? 
-    (currentMod.price === 0 ? t('marketplace.price.free') : t('marketplace.price.monthly').replace('{{price}}', currentMod.price.toString())) : '';
+    (currentMod.price === 0 ? t('marketplace.price.free') : t('marketplace.price.monthly', { price: currentMod.price.toString() })) : '';
   
   const modalDescription = selectedModule ? 
-    t('marketplace.connectModal.description')
-      .replace('{{module}}', t(`marketplace.modules.${selectedModule}.title`))
-      .replace('{{price}}', priceText) : '';
-
+    t('marketplace.connectModal.description', {
+      module: t(`marketplace.modules.${selectedModule}.title`),
+      price: priceText
+    }) : '';
+  
   return {
     t,
     modules,
-    isLoading: isLoading || restaurantId === null,
+    isLoading: isLoadingAccess || restaurantId === null,
     selectedModule,
     activationCode,
     setActivationCode,
-    isPending,
+    isPending: isPending || connectMutation.isPending,
     modalDescription,
+    isMainForMultiRestaurant,
     handleOpenConnectModal,
     handleCloseConnectModal,
     handleConfirmConnectionAction,

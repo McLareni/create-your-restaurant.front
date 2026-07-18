@@ -17,7 +17,7 @@ const toUiStaff = (staff: BackendStaff): StaffMember => ({
   lastName: staff.lastName || '',
   email: staff.email,
   phone: staff.phone || '',
-  role: staff.role === 'STAFF' ? 'Працівник' : staff.role,
+  role: staff.role,
   isActive: staff.isActive,
   photo: staff.photo,
   avatarColor: 'bg-brand-copper',

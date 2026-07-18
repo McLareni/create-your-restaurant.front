@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useTranslation } from '@/shared/hooks/useTranslation';
+import { Plus, Minus, ImageOff } from 'lucide-react';
 import { PublicMenuDish } from '../types/publicMenu.types';
 
 interface PublicMenuDishCardProps {
@@ -35,71 +36,83 @@ export const PublicMenuDishCard = ({
 
   return (
     <article
-      className="cursor-pointer overflow-hidden rounded-2xl border border-brand-gray/20 bg-white shadow-sm transition hover:border-brand-copper/40"
       onClick={() => onOpenDetails(dish)}
+      className="group relative flex flex-col overflow-hidden rounded-2xl border border-solid border-brand-gray/10 bg-white p-3 shadow-xs transition-all duration-300 hover:border-brand-copper/30 hover:shadow-md hover:shadow-brand-espresso/5 cursor-pointer"
       role="button"
-      tabIndex={0}
-      onKeyDown={(event) => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          onOpenDetails(dish);
-        }
-      }}
     >
-      <div className="relative h-36 w-full bg-brand-cream/40">
+      <div className="relative aspect-4/3 w-full overflow-hidden rounded-xl bg-brand-cream/40">
         {dishImage ? (
           <Image
             src={dishImage}
             alt={dish.name}
             fill
-            unoptimized
-            sizes="(max-width: 768px) 100vw, 320px"
-            className="object-cover"
+            sizes="(max-w-7xl) 33vw, 50vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            priority={false}
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-xs text-brand-gray">
-            {t('menu.public.noPhoto')}
+          <div className="flex h-full w-full flex-col items-center justify-center text-brand-gray/30">
+            <ImageOff className="h-6 w-6 stroke-[1.5]" />
+            <span className="mt-1 text-[10px] font-medium">{t('menu.public.noPhoto')}</span>
           </div>
+        )}
+
+        {dish.badge && dish.badge !== 'NONE' && (
+          <span className="absolute left-2.5 top-2.5 rounded-full bg-brand-espresso/80 backdrop-blur-md px-2.5 py-1 text-[9px] font-extrabold tracking-wider text-white uppercase">
+            {t(`menu.constructor.badges.${dish.badge}`) || dish.badge}
+          </span>
         )}
       </div>
 
-      <div className="flex h-40 flex-col p-3">
-        <h3 className="line-clamp-1 text-sm font-bold">{dish.name}</h3>
-        <p className="mt-1 line-clamp-2 text-xs text-brand-gray">
+      <div className="mt-3 flex flex-1 flex-col">
+        <h3 className="text-sm font-bold text-brand-espresso group-hover:text-brand-copper transition-colors line-clamp-1">
+          {dish.name}
+        </h3>
+        <p className="mt-1 line-clamp-2 text-xs font-light leading-relaxed text-brand-gray/80 min-h-8">
           {dish.description || t('menu.public.noDescription')}
         </p>
 
-        <div className="mt-auto flex items-center justify-between pt-2">
-          <span className="text-base font-bold text-brand-copper">
+        <div className="mt-auto flex items-center justify-between pt-3 border-t border-solid border-brand-gray/5">
+          <span className="text-base font-extrabold text-brand-copper font-mono">
             {dish.price} {t('menu.currency')}
           </span>
-          {canUseCart ? (
-            <div className="flex items-center gap-2">
+
+          {canUseCart && (
+            <div 
+              onClick={(e) => e.stopPropagation()} 
+              className={`flex items-center gap-1 rounded-full p-0.5 transition-all duration-200 ${
+                quantity > 0 ? 'bg-brand-cream border border-solid border-brand-copper/20' : 'bg-transparent'
+              }`}
+            >
+              {quantity > 0 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => onRemoveDish(dish.id)}
+                    disabled={isPlacingOrder}
+                    className="flex h-7 w-7 items-center justify-center rounded-full border-0 bg-white text-brand-espresso hover:bg-brand-copper hover:text-white shadow-xs transition-all active:scale-90 disabled:opacity-40 cursor-pointer outline-none"
+                  >
+                    <Minus className="h-3 w-3" />
+                  </button>
+                  <span className="w-6 text-center text-xs font-bold text-brand-espresso font-mono">
+                    {quantity}
+                  </span>
+                </>
+              )}
               <button
                 type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onRemoveDish(dish.id);
-                }}
-                className="h-7 w-7 rounded-full border border-brand-gray/30 text-sm disabled:opacity-40"
-                disabled={quantity === 0 || isPlacingOrder}
-              >
-                -
-              </button>
-              <span className="w-5 text-center text-sm font-semibold">{quantity}</span>
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onAddDish(dish.id);
-                }}
-                className="h-7 w-7 rounded-full bg-brand-copper text-sm font-bold text-white disabled:opacity-40"
+                onClick={() => onAddDish(dish.id)}
                 disabled={isPlacingOrder}
+                className={`flex h-7 w-7 items-center justify-center rounded-full border-0 shadow-xs transition-all active:scale-90 disabled:opacity-40 cursor-pointer outline-none ${
+                  quantity > 0 
+                    ? 'bg-white text-brand-espresso hover:bg-brand-copper hover:text-white' 
+                    : 'bg-brand-copper text-white hover:bg-brand-espresso'
+                }`}
               >
-                +
+                <Plus className="h-3.5 w-3.5" />
               </button>
             </div>
-          ) : null}
+          )}
         </div>
       </div>
     </article>

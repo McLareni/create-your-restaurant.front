@@ -1,29 +1,11 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 
-export async function GET(request: Request) {
-  const cookieHeader = request.headers.get('cookie') ?? '';
-  const chunks = cookieHeader
-    .split(';')
-    .map((chunk) => chunk.trim())
-    .filter(Boolean);
-
-  const sessionCookie = chunks.find((chunk) =>
-    chunk.startsWith('gustio_session='),
-  );
-
-  if (!sessionCookie) {
+export async function GET() {
+  const cookieStore = await cookies();
+  const sessionToken = cookieStore.get('gustio_session')?.value;
+  if (!sessionToken) {
     return NextResponse.json({ errorCode: 'unauthorized' }, { status: 401 });
   }
-
-  const rawToken = sessionCookie.slice('gustio_session='.length);
-
-  if (!rawToken) {
-    return NextResponse.json({ errorCode: 'unauthorized' }, { status: 401 });
-  }
-
-  try {
-    return NextResponse.json({ token: decodeURIComponent(rawToken) });
-  } catch {
-    return NextResponse.json({ token: rawToken });
-  }
+  return NextResponse.json({ token: sessionToken });
 }

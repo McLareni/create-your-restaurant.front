@@ -1,34 +1,38 @@
 import { z } from 'zod';
+import { strictPriceSchema } from '@/shared/domain/validation/common.schema';
 
-const safeNumberPreprocess = z.preprocess(
-  (val) => (val === '' || val === null || val === undefined ? null : Number(val)),
-  z.number().min(0, 'menu.constructor.dishes.modal.errors.valueMin').nullable()
-);
-
-const pricePreprocess = z.preprocess(
-  (val) => (val === '' || val === null || val === undefined ? 0 : Number(val)),
-  z.number().min(0, 'menu.constructor.dishes.modal.errors.priceNegative')
-);
+const strictNumericPreprocess = (defaultValue: number | null, maxVal: number) => 
+  z.preprocess((val) => {
+    if (val === '' || val === null || val === undefined) return defaultValue;
+    const parsed = Number(val);
+    return isNaN(parsed) ? defaultValue : parsed;
+  }, z.number().min(0, 'menu.constructor.dishes.modal.errors.valueMin').max(maxVal, 'errors.valueExceeded').nullable());
 
 export const dishSchema = z.object({
-  name: z.string().min(1, 'menu.constructor.dishes.modal.errors.nameRequired'),
-  description: z.string().default(''),
-  price: pricePreprocess,
-  weight: safeNumberPreprocess,
-  cookingTime: safeNumberPreprocess,
-  calories: safeNumberPreprocess,
+  name: z.string()
+    .trim()
+    .min(1, 'menu.constructor.dishes.modal.errors.nameRequired')
+    .max(100, 'menu.constructor.dishes.modal.errors.nameTooLong'),
+  description: z.string()
+    .trim()
+    .max(1000, 'menu.constructor.dishes.modal.errors.descriptionTooLong')
+    .default(''),
+  price: strictPriceSchema.pipe(z.number().max(500000, 'menu.constructor.dishes.modal.errors.priceTooHigh')),
+  weight: strictNumericPreprocess(null, 100000),
+  cookingTime: strictNumericPreprocess(null, 1440),
+  calories: strictNumericPreprocess(null, 50000),
   isVegan: z.boolean().default(false),
   isSpicy: z.boolean().default(false),
   isLactoseFree: z.boolean().default(false),
   badge: z.string().default('NONE'),
-  allergens: z.array(z.string()).default([]),
-  tags: z.array(z.string()).default([]),
+  allergens: z.array(z.string().trim().min(1).max(50)).default([]),
+  tags: z.array(z.string().trim().min(1).max(50)).default([]),
   modifierIds: z.array(z.string()).default([]),
   isAvailable: z.boolean().default(true),
   ingredients: z.array(
     z.object({
-      name: z.string(),
-      quantity: z.number().min(0),
+      name: z.string().trim().min(1, 'menu.constructor.dishes.modal.errors.ingredientNameRequired').max(100),
+      quantity: z.number().min(0, 'menu.constructor.dishes.modal.errors.ingredientQtyNegative').max(100000),
       unit: z.string(),
       inventoryItemId: z.string().nullable(),
     })
