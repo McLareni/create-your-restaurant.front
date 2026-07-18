@@ -1,125 +1,104 @@
 'use client';
 
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, startTransition } from 'react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
+import { useActiveRestaurantId } from '@/shared/hooks/useActiveRestaurantId';
 import { modifiersApi } from '@/features/menu-builder/api/modifiers.api';
-import { modifierGroupSchema, modifierOptionSchema, INITIAL_GROUP_FORM, INITIAL_OPTION_FORM } from '@/features/menu-builder/schemas/modifiers.schema';
-import type { ModifierGroup, ModifierOption, ModifierTabDeleteTarget, GroupFormState, OptionFormState, CreateModifierGroupDTO, UpdateModifierGroupDTO } from '@/features/menu-builder/types/modifiers.types';
+import { modifierGroupSchema, modifierOptionSchema, INITIAL_OPTION_FORM } from '@/features/menu-builder/schemas/modifiers.schema';
+import { useModifierGroupsQuery } from '@/features/menu-builder/hooks/modifiers/useModifierGroupsQuery';
+import { QUERY_KEYS } from '@/shared/api/query-keys';
+import { useAppActionState } from '@/shared/hooks/useAppActionState';
+import type { ModifierGroup, ModifierOption, ModifierTabDeleteTarget, OptionFormState, CreateModifierGroupDTO, UpdateModifierGroupDTO } from '@/features/menu-builder/types/modifiers.types';
 import toast from 'react-hot-toast';
 
 export const useModifiersManagement = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const restaurantId = useRestaurantStore((state) => state.activeRestaurant?.id ? Number(state.activeRestaurant.id) : null);
+  const restaurantId = useActiveRestaurantId();
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState<ModifierGroup | null>(null);
-  const [groupForm, setGroupForm] = useState<GroupFormState>(INITIAL_GROUP_FORM);
-  const [groupErrors, setGroupErrors] = useState<Record<string, string>>({});
 
   const [isOptionModalOpen, setIsOptionModalOpen] = useState(false);
   const [editingOption, setEditingOption] = useState<ModifierOption | null>(null);
-  const [activeGroupId, setActiveGroupId] = useState<string>('');
+  const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
   const [optionForm, setOptionForm] = useState<OptionFormState>(INITIAL_OPTION_FORM);
-  const [deleteTarget, setDeleteTarget] = useState<ModifierTabDeleteTarget>(null);
-
-  const { data: groups = [], isLoading: isGroupsLoading } = useQuery<ModifierGroup[]>({
-    queryKey: ['modifierGroups', restaurantId],
-    queryFn: () => modifiersApi.getGroups(restaurantId!),
-    enabled: !!restaurantId,
-  });
-
-  const invalidateAll = async (): Promise<void> => {
-    await queryClient.invalidateQueries({ queryKey: ['modifierGroups', restaurantId] });
-    await queryClient.invalidateQueries({ queryKey: ['fullMenu', restaurantId] });
-  };
-
-  const createGroupMutation = useMutation({
-    mutationFn: (data: CreateModifierGroupDTO) => modifiersApi.createGroup(restaurantId!, data),
-    onSuccess: async () => {
-      await invalidateAll();
-      setIsGroupModalOpen(false);
-      toast.success(t('menu.constructor.modifiers.notifications.groupSaveSuccess'));
-    },
-    onError: (err: { response?: { data?: { message?: string } } }) => {
-      toast.error(err?.response?.data?.message || t('auth.errors.defaultError'));
-    }
-  });
-
-  const updateGroupMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateModifierGroupDTO }) => modifiersApi.updateGroup(restaurantId!, id, data),
-    onSuccess: async () => {
-      await invalidateAll();
-      setIsGroupModalOpen(false);
-      setIsOptionModalOpen(false);
-      toast.success(t('menu.constructor.modifiers.notifications.groupUpdateSuccess'));
-    },
-    onError: (err: { response?: { data?: { message?: string } } }) => {
-      toast.error(err?.response?.data?.message || t('auth.errors.defaultError'));
-    }
-  });
-
-  const deleteGroupMutation = useMutation({
-    mutationFn: (id: string) => modifiersApi.deleteGroup(restaurantId!, id),
-    onSuccess: async () => {
-      await invalidateAll();
-      toast.success(t('menu.constructor.modifiers.notifications.groupDeleteSuccess'));
-    },
-    onError: (err: { response?: { data?: { message?: string } } }) => {
-      toast.error(err?.response?.data?.message || t('auth.errors.defaultError'));
-    }
-  });
+  const [deleteTarget, setDeleteTarget] = useState<ModifierTabDeleteTarget | null>(null);
+  const { data: groups = [], isLoading: isGroupsLoading } = useModifierGroupsQuery();
 
   const toggleGroup = (id: string): void => {
     setExpandedGroups((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
+  const createGroupMutation = useMutation({
+    mutationFn: (data: CreateModifierGroupDTO) => {
+      if (!restaurantId) throw new Error('Restaurant ID is required');
+      return modifiersApi.createGroup(restaurantId, data);
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.modifierGroups(restaurantId) });
+      toast.success(t('menu.constructor.modifiers.notifications.createGroupSuccess'));
+    },
+  });
+
+  const updateGroupMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateModifierGroupDTO }) => {
+      if (!restaurantId) throw new Error('Restaurant ID is required');
+      return modifiersApi.updateGroup(restaurantId, id, data);
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.modifierGroups(restaurantId) });
+      toast.success(t('menu.constructor.modifiers.notifications.updateGroupSuccess'));
+    },
+  });
+
+  const deleteGroupMutation = useMutation({
+    mutationFn: (id: string) => {
+      if (!restaurantId) throw new Error('Restaurant ID is required');
+      return modifiersApi.deleteGroup(restaurantId, id);
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.modifierGroups(restaurantId) });
+      toast.success(t('menu.constructor.modifiers.notifications.deleteSuccess'));
+    },
+  });
+
   const handleOpenGroupModal = (group?: ModifierGroup): void => {
-    setGroupErrors({});
-    if (group) {
-      setEditingGroup(group);
-      setGroupForm({
-        name: group.name,
-        isRequired: group.isRequired,
-        minSelections: group.minSelections.toString(),
-        maxSelections: group.maxSelections ? group.maxSelections.toString() : ''
-      });
-    } else {
-      setEditingGroup(null);
-      setGroupForm(INITIAL_GROUP_FORM);
-    }
+    setEditingGroup(group || null);
     setIsGroupModalOpen(true);
   };
 
-  const handleSaveGroup = (): void => {
-    const validationPayload = {
-      name: groupForm.name,
-      isRequired: groupForm.isRequired,
-      minSelections: groupForm.minSelections ? parseInt(groupForm.minSelections, 10) : 0,
-      maxSelections: groupForm.maxSelections ? parseInt(groupForm.maxSelections, 10) : null,
-      options: editingGroup ? editingGroup.options : []
-    };
+  const [groupFormState, groupFormAction, isGroupPending] = useAppActionState(
+    async (formData) => {
+      const name = (formData.get('name') as string || '').trim();
+      const isRequired = formData.get('isRequired') === 'on';
+      
+      const minSelectionsRaw = parseInt(formData.get('minSelections') as string, 10);
+      const minSelections = isNaN(minSelectionsRaw) ? 0 : minSelectionsRaw;
+      
+      const maxSelectionsRaw = formData.get('maxSelections') as string;
+      const maxSelectionsParsed = maxSelectionsRaw ? parseInt(maxSelectionsRaw, 10) : null;
+  
+      const maxSelections = (maxSelectionsParsed === null || isNaN(maxSelectionsParsed)) ? null : maxSelectionsParsed;
 
-    const result = modifierGroupSchema.safeParse(validationPayload);
-    if (!result.success) {
-      const fieldErrors: Record<string, string> = {};
-      result.error.issues.forEach((issue) => {
-        if (issue.path[0]) fieldErrors[issue.path[0] as string] = t(issue.message);
-      });
-      setGroupErrors(fieldErrors);
-      toast.error(t('errors.formValidation'));
-      return;
-    }
-    setGroupErrors({});
+      const validationPayload = {
+        name,
+        isRequired,
+        minSelections: isRequired && minSelections < 1 ? 1 : minSelections,
+        maxSelections,
+        options: editingGroup ? (editingGroup.options || []) : [],
+      };
 
-    if (editingGroup) {
-      updateGroupMutation.mutate({ id: editingGroup.id, data: result.data });
-    } else {
-      createGroupMutation.mutate(result.data);
-    }
-  };
+      modifierGroupSchema.parse(validationPayload);
+      if (editingGroup) {
+        await updateGroupMutation.mutateAsync({ id: editingGroup.id, data: validationPayload as UpdateModifierGroupDTO });
+      } else {
+        await createGroupMutation.mutateAsync(validationPayload as CreateModifierGroupDTO);
+      }
+    },
+    { t, onSuccess: () => setIsGroupModalOpen(false) }
+  );
 
   const handleOpenOptionModal = (groupId: string, option?: ModifierOption): void => {
     setActiveGroupId(groupId);
@@ -134,68 +113,78 @@ export const useModifiersManagement = () => {
   };
 
   const handleSaveOption = (): void => {
+    if (!activeGroupId) return;
     const group = groups.find((g) => g.id === activeGroupId);
     if (!group) return;
-
-    const parsedPrice = optionForm.price ? parseFloat(optionForm.price) : 0;
-    const validationPayload = { name: optionForm.name, price: parsedPrice, isAvailable: optionForm.isAvailable };
-    const validationResult = modifierOptionSchema.safeParse(validationPayload);
-    if (!validationResult.success) {
-      toast.error(t('errors.formValidation'));
+    const newOptionPayload = {
+      name: optionForm.name,
+      price: parseFloat(optionForm.price) || 0,
+      isAvailable: optionForm.isAvailable,
+    };
+    if (!modifierOptionSchema.safeParse(newOptionPayload).success) {
+      toast.error(t('menu.constructor.modifiers.notifications.formValidation'));
       return;
     }
 
-    const formattedOption: ModifierOption = {
-      id: editingOption?.id || crypto.randomUUID(),
-      name: optionForm.name,
-      price: parsedPrice,
-      isAvailable: optionForm.isAvailable
-    };
+    const currentOptions = group.options || [];
+    let updatedOptions = currentOptions.map(opt => ({ ...opt }));
 
-    let newOptions = [...group.options];
     if (editingOption) {
-      newOptions = newOptions.map((opt) => opt.id === editingOption.id ? formattedOption : opt);
+      updatedOptions = updatedOptions.map((opt) => (opt.id === editingOption.id ? { ...opt, ...newOptionPayload } : opt));
     } else {
-      newOptions.push(formattedOption);
+      updatedOptions.push({ id: `temp-${Date.now()}`, ...newOptionPayload });
     }
 
-    updateGroupMutation.mutate({
-      id: activeGroupId,
-      data: {
-        name: group.name,
-        isRequired: group.isRequired,
-        minSelections: group.minSelections,
-        maxSelections: group.maxSelections,
-        options: newOptions
-      }
-    });
-  };
-
-  const handleConfirmDelete = (): void => {
-    if (!deleteTarget) return;
-    if (deleteTarget.type === 'group') {
-      deleteGroupMutation.mutate(deleteTarget.id);
-    } else if (deleteTarget.type === 'option' && deleteTarget.groupId) {
-      const group = groups.find((g) => g.id === deleteTarget.groupId);
-      if (group) {
-        const newOptions = group.options.filter((opt) => opt.id !== deleteTarget.id);
-        updateGroupMutation.mutate({
+    startTransition(async () => {
+      try {
+        await updateGroupMutation.mutateAsync({
           id: group.id,
           data: {
             name: group.name,
             isRequired: group.isRequired,
             minSelections: group.minSelections,
             maxSelections: group.maxSelections,
-            options: newOptions
-          }
+            options: updatedOptions.map(({ id, ...opt }) => id.startsWith('temp-') ? opt : { id, ...opt })
+          },
         });
+        setIsOptionModalOpen(false);
+      } catch {
+        toast.error(t('menu.constructor.modifiers.notifications.error'));
       }
-    }
-    setDeleteTarget(null);
+    });
   };
 
-  const isMutationPending = createGroupMutation.isPending || updateGroupMutation.isPending || deleteGroupMutation.isPending;
+  const handleConfirmDelete = (): void => {
+    if (!deleteTarget) return;
+    startTransition(async () => {
+      try {
+        if (deleteTarget.type === 'group') {
+          await deleteGroupMutation.mutateAsync(deleteTarget.id);
+        } else if (deleteTarget.type === 'option' && deleteTarget.groupId) {
+          const group = groups.find((g) => g.id === deleteTarget.groupId);
+          if (group) {
+            const currentOptions = group.options || [];
+            const newOptions = currentOptions.filter((opt) => opt.id !== deleteTarget.id);
+            await updateGroupMutation.mutateAsync({
+              id: group.id,
+              data: {
+                name: group.name,
+                isRequired: group.isRequired,
+                minSelections: group.minSelections,
+                maxSelections: group.maxSelections,
+                options: newOptions.map(({ id, ...opt }) => id.startsWith('temp-') ? opt : { id, ...opt })
+              },
+            });
+          }
+        }
+        setDeleteTarget(null);
+      } catch {
+        toast.error(t('menu.constructor.modifiers.notifications.error'));
+      }
+    });
+  };
 
+  const isMutationPending = createGroupMutation.isPending || updateGroupMutation.isPending || deleteGroupMutation.isPending || isGroupPending;
   return {
     t,
     groups,
@@ -205,21 +194,19 @@ export const useModifiersManagement = () => {
     toggleGroup,
     isGroupModalOpen,
     setIsGroupModalOpen,
-    groupForm,
-    setGroupForm,
-    groupErrors,
+    editingGroup,
+    groupErrors: groupFormState?.errors || {},
     isOptionModalOpen,
     setIsOptionModalOpen,
+    editingOption,
     optionForm,
-    setFormData: setOptionForm,
+    setOptionForm,
     deleteTarget,
     setDeleteTarget,
     handleOpenGroupModal,
-    handleSaveGroup,
     handleOpenOptionModal,
     handleSaveOption,
     handleConfirmDelete,
-    editingGroup,
-    editingOption,
+    groupFormAction,
   };
 };

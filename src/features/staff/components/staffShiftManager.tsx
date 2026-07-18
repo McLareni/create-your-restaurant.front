@@ -2,7 +2,7 @@
 
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { Button } from '@/shared/ui/button';
-import { LogIn, LogOut, Clock, CheckCircle2 } from 'lucide-react';
+import { LogIn, LogOut, Clock, CheckCircle2, UserCheck } from 'lucide-react';
 import { PinPad } from '@/features/staff/components/pinPad';
 import { useStaffShiftManager } from '@/features/staff/hooks/useStaffShiftManager';
 import type { StaffShiftManagerProps } from '@/features/staff/types/staff.types';
@@ -14,11 +14,14 @@ export const StaffShiftManager = ({ restaurantId }: StaffShiftManagerProps) => {
     setMode,
     zReport,
     setZReport,
+    activeShift,
+    elapsedTime,
     isClockingIn,
     isClockingOut,
     handleClockInConfirm,
     handleClockOutConfirm,
   } = useStaffShiftManager(restaurantId);
+
   const currencyToken = t('menu.currency');
 
   if (zReport) {
@@ -70,17 +73,28 @@ export const StaffShiftManager = ({ restaurantId }: StaffShiftManagerProps) => {
     <div className="flex flex-col h-full items-center justify-center p-4 min-h-[60vh]">
       {mode === 'SELECT' && (
         <div className="flex flex-col items-center bg-bg-surface border border-solid border-neutral-200 dark:border-neutral-800 p-8 rounded-3xl shadow-xs w-full max-w-sm text-center">
-          <Clock className="h-12 w-12 text-brand-emerald mb-4 animate-pulse" />
-          <h1 className="text-xl font-bold text-text-main mb-2">{t('staff.ops.terminalTitle')}</h1>
-          <p className="text-xs text-text-muted mb-6 leading-relaxed font-light">{t('staff.ops.terminalDesc')}</p>
+          {activeShift ? (
+            <UserCheck className="h-12 w-12 text-brand-emerald mb-4" />
+          ) : (
+            <Clock className="h-12 w-12 text-brand-gray/40 mb-4" />
+          )}
+          <h1 className="text-xl font-bold text-text-main mb-2">
+            {activeShift ? t('staff.statusActive') : t('staff.ops.terminalTitle')}
+          </h1>
+          <p className="text-xs text-text-muted mb-6 leading-relaxed font-light">
+            {activeShift ? `${activeShift.waiterName} • ${elapsedTime}` : t('staff.ops.terminalDesc')}
+          </p>
           
           <div className="flex flex-col gap-3 w-full">
-            <Button variant="brand" className="h-12 text-sm font-bold bg-brand-emerald hover:bg-brand-emerald-hover text-white rounded-xl transition-all" icon={<LogIn className="h-4 w-4" />} onClick={() => setMode('IN')}>
-              {t('staff.ops.clockInBtn')}
-            </Button>
-            <Button variant="outline" className="h-12 text-sm font-bold border border-solid border-neutral-200 dark:border-border-main rounded-xl transition-all text-text-main hover:bg-bg-element bg-transparent" icon={<LogOut className="h-4 w-4" />} onClick={() => setMode('OUT')}>
-              {t('staff.ops.clockOutBtn')}
-            </Button>
+            {!activeShift ? (
+              <Button variant="brand" className="h-12 text-sm font-bold bg-brand-emerald hover:bg-brand-emerald-hover text-white rounded-xl transition-all" icon={<LogIn className="h-4 w-4" />} onClick={() => setMode('IN')}>
+                {t('staff.ops.clockInBtn')}
+              </Button>
+            ) : (
+              <Button variant="outline" className="h-12 text-sm font-bold border border-red-500/20 rounded-xl transition-all text-red-500 hover:bg-red-500/5 bg-transparent" icon={<LogOut className="h-4 w-4" />} onClick={() => setMode('OUT')}>
+                {t('staff.ops.clockOutBtn')}
+              </Button>
+            )}
           </div>
         </div>
       )}

@@ -9,13 +9,19 @@ import { useRouter } from 'next/navigation';
 import { useCreateOrganization } from '../hooks/useCreateOrganization';
 import { CreateOrgAnimation } from './createOrgAnimation';
 import { CreateOrgForm } from './createOrgForm';
+import type { SidebarRestaurant } from '@/app/(dashboard)/_components/types/sidebar.types';
+import type { User } from '@/shared/store/useUserStore';
+
+type ExtendedUser = User & {
+  restaurants?: SidebarRestaurant[];
+};
 
 export const CreateOrganizationView = () => {
   const { t } = useTranslation();
   const router = useRouter();
   const organizationState = useCreateOrganization();
   
-  const user = useUserStore((state) => state.user);
+  const user = useUserStore((state) => state.user) as ExtendedUser | null;
   const activeModules = useAccessStore((state) => state.activeModules);
 
   const restaurants = user?.restaurants || [];

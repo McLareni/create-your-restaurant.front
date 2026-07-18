@@ -4,24 +4,24 @@ export const staffSchema = z.object({
   firstName: z
     .string()
     .min(1, 'staff.errors.firstNameRequired')
-    .max(50, 'staff.errors.firstNameTooLong'),
+    .max(50, 'staff.errors.firstNameTooLong')
+    .regex(/^[a-zA-Zа-яА-ЯіІїЇєЄґҐ\s'’-]+$/, 'staff.errors.firstNameInvalid'),
   lastName: z
     .string()
+    .min(1, 'staff.errors.lastNameRequired')
     .max(50, 'staff.errors.lastNameTooLong')
-    .optional()
-    .or(z.literal(''))
-    .default(''),
+    .regex(/^[a-zA-Zа-яА-ЯіІїЇєЄґҐ\s'’-]+$/, 'staff.errors.lastNameInvalid'),
   email: z
     .string()
-    .email('staff.errors.emailInvalid')
     .min(1, 'staff.errors.emailRequired')
-    .max(100, 'staff.errors.emailTooLong'),
+    .email('staff.errors.emailInvalid')
+    .max(100, 'staff.errors.emailTooLong')
+    .regex(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, 'staff.errors.emailCyrillic'),
   phone: z
     .string()
+    .min(1, 'staff.errors.phoneRequired')
     .max(30, 'staff.errors.phoneTooLong')
-    .optional()
-    .or(z.literal(''))
-    .default(''),
+    .regex(/^\+?[0-9\s()-]{7,20}$/, 'staff.errors.phoneInvalid'),
   role: z
     .string()
     .min(1, 'staff.errors.roleRequired')

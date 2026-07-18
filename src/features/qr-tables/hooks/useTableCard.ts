@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
-import { TableCardProps } from '@/features/qr-tables/types/tables.types';
-import { drawStyledQr } from '@/features/qr-tables/utils/qrRenderer';
+import { drawStyledQr, getQrStyle } from '@/features/qr-tables/utils/qrRenderer';
+import type { TableCardProps } from '@/features/qr-tables/types/tables.types';
 
 export const useTableCard = ({
   table,
@@ -20,32 +20,28 @@ export const useTableCard = ({
 
   useEffect(() => {
     if (!table.qrUrl) return;
+    let isCurrent = true;
 
     const generateCardCode = async () => {
-      let patternType: 'dots' | 'squares' | 'lines' = 'dots';
-      let logoOverlay = true;
+      const style = getQrStyle(table.id);
 
-      const savedStyle = localStorage.getItem(`qr-style-${table.id}`);
-      if (savedStyle) {
-        try {
-          const parsed = JSON.parse(savedStyle);
-          patternType = parsed.patternType || 'dots';
-          logoOverlay = parsed.logoOverlay !== false;
-        } catch {}
-      }
-
-      const canvas = document.createElement('canvas');
       const dataUrl = await drawStyledQr({
-        canvas,
         url: table.qrUrl,
-        patternType,
-        logoOverlay,
+        patternType: style.patternType,
+        logoOverlay: style.logoOverlay,
         logoUrl: restaurantImageUrl,
       });
-      setStyledQr(dataUrl);
+
+      if (isCurrent) {
+        setStyledQr(dataUrl);
+      }
     };
 
     generateCardCode();
+
+    return () => {
+      isCurrent = false;
+    };
   }, [table.qrUrl, table.id, styleVersion, restaurantImageUrl]);
 
   const zoneLabel = t(`tables.types.${table.type}`) !== `tables.types.${table.type}`

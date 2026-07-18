@@ -64,7 +64,9 @@ export default function ProfilePage() {
               <div className="flex items-center gap-3 text-sm text-text-main">
                 <Mail className="h-4 w-4 text-brand-emerald shrink-0" />
                 <div>
-                  <span className="block text-[10px] uppercase font-bold text-text-muted tracking-wider">Email</span>
+                  <span className="block text-[10px] uppercase font-bold text-text-muted tracking-wider">
+                    {t('profile.emailLabel')}
+                  </span>
                   <span className="font-medium">{user.email}</span>
                 </div>
               </div>
@@ -72,7 +74,9 @@ export default function ProfilePage() {
               <div className="flex items-center gap-3 text-sm text-text-main">
                 <Phone className="h-4 w-4 text-brand-emerald shrink-0" />
                 <div>
-                  <span className="block text-[10px] uppercase font-bold text-text-muted tracking-wider">{t('profile.phoneLabel')}</span>
+                  <span className="block text-[10px] uppercase font-bold text-text-muted tracking-wider">
+                    {t('profile.phoneLabel')}
+                  </span>
                   <span className="font-medium">{user.phone || '—'}</span>
                 </div>
               </div>

@@ -1,4 +1,5 @@
 import { MenuItem } from '@/shared/hooks/useNavigation';
+import type { MouseEvent } from 'react';
 
 export type UserRole = 'OWNER' | 'STAFF' | 'CUSTOMER';
 
@@ -42,12 +43,14 @@ export interface SidebarState {
   restaurantToDelete: SidebarRestaurant | null;
   setRestaurantToDelete: (value: SidebarRestaurant | null) => void;
   isDeleting: boolean;
+  isPending: boolean;
   orgInitial: string;
   currentOrgName: string;
-  handleRestaurantSwitch: (res: SidebarRestaurant) => void;
-  handleDeleteRestaurantClick: (e: React.MouseEvent, res: SidebarRestaurant) => void;
+  maxAllowed: number;
+  handleRestaurantSwitch: (e: MouseEvent, res: SidebarRestaurant, isLocked: boolean) => void;
+  handleDeleteRestaurantClick: (e: MouseEvent, res: SidebarRestaurant) => void;
   handleConfirmDeleteRestaurant: () => Promise<void>;
-  handleLockedClick: (e: React.MouseEvent, moduleName: string, moduleKey: string) => void;
+  handleLockedClick: (e: MouseEvent, moduleName: string, moduleKey: string) => void;
   handleActivateLocked: () => void;
   toggleSubMenu: (id: string) => void;
   isPurchased: (moduleKey: string) => boolean;

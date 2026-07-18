@@ -1,4 +1,3 @@
-// src/app/api/proxy/[...path]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { getApiBaseUrl } from '@/shared/api/base-url';
 
@@ -28,23 +27,23 @@ async function handleProxy(
     headers.set('Cookie', `gustio_session=${token}`);
   }
 
-  try {
-    let body: ArrayBuffer | undefined = undefined;
-    if (request.method !== 'GET' && request.method !== 'HEAD') {
-      body = await request.arrayBuffer();
-    }
+  const hasBody = !['GET', 'HEAD'].includes(request.method);
 
+  try {
     const response = await fetch(`${API_URL}/${path}${url.search}`, {
       method: request.method,
       cache: 'no-store',
       headers,
-      body,
-    });
-    const data = await response.text();
-    
-    return new NextResponse(data, {
+      body: hasBody ? request.body : undefined,
+      duplex: hasBody ? 'half' : undefined,
+    } as RequestInit);
+
+    return new NextResponse(response.body, {
       status: response.status,
-      headers: { 'Content-Type': response.headers.get('Content-Type') || 'application/json' }
+      headers: {
+        'Content-Type': response.headers.get('Content-Type') || 'application/json',
+        'Cache-Control': 'no-store, max-age=0, must-revalidate',
+      },
     });
   } catch {
     return NextResponse.json({ errorCode: 'serverError' }, { status: 500 });

@@ -1,4 +1,4 @@
-import { ChangeEvent } from 'react';
+import type { ChangeEvent } from 'react';
 
 export type ShiftMode = 'SELECT' | 'IN' | 'OUT';
 
@@ -65,18 +65,31 @@ export interface StaffModalViewProps {
   roles: CustomStaffRole[];
   validationError: string | null;
   isFormPending: boolean;
-  onFormSuccess: (submitData: CreateStaffDTO, photoFile: File | null, previewUrl: string) => void;
+  onFormSuccess: (submitData: CreateStaffDTO, photoFile: File | null, previewUrl: string) => void | Promise<void>;
+}
+
+export interface FormActionState {
+  errors: Record<string, string>;
+  values: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    password: string;
+  };
 }
 
 export interface UseStaffFormReturn {
-  fields: Record<string, string>;
-  handleFieldChange: (name: string, value: string) => void;
+  selectedRole: string;
+  setSelectedRole: (role: string) => void;
   isActiveStatus: boolean;
   setIsActiveStatus: (value: boolean) => void;
   photoPreview: string;
   handlePhotoChange: (e: ChangeEvent<HTMLInputElement>) => void;
   errors: Record<string, string>;
+  formValues: FormActionState['values'];
   formAction: (formData: FormData) => void;
+  isPending: boolean;
 }
 
 export interface ClockInResponse {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { Button } from '@/shared/ui/button';
 import type { PinPadProps } from '@/features/staff/types/staff.types';
@@ -44,7 +44,7 @@ export const PinPad = ({ onConfirm, isLoading }: PinPadProps) => {
           onClick={handleClear}
           disabled={isLoading}
         >
-          {t('actions.cancel')}
+          {t('confirmModal.cancel')}
         </Button>
         <Button
           type="button"

@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import Image from 'next/image';
 import { Switch, Checkbox } from '@/shared/ui';
 import { Pencil, Trash2, ExternalLink, QrCode } from 'lucide-react';
@@ -19,7 +18,6 @@ export const TableCard = (props: TableCardProps) => {
   } = useTableCard(props);
 
   let cardClasses = "pt-4 px-5 pb-5 flex flex-col justify-between w-full h-[360px] rounded-3xl border transition-all duration-300 group select-none relative bg-bg-surface shadow-table";
-  
   if (isSelected) {
     cardClasses += " border-brand-emerald scale-[1.01] z-10 shadow-table-selected";
   } else {
@@ -103,7 +101,7 @@ export const TableCard = (props: TableCardProps) => {
 
       <div className="pt-3 border-t border-solid border-border-main flex items-center justify-between w-full relative z-10 shrink-0">
         <div className="flex items-center">
-          <span className={`text-[10px] font-bold uppercase tracking-widest font-mono ${
+          <span className={`text-[10px] font-bold uppercase tracking-widest ${
             table.isActive ? 'text-brand-emerald' : 'text-text-muted'
           }`}>
             {table.isActive ? t('qr.statusActive') : t('qr.statusInactive')}

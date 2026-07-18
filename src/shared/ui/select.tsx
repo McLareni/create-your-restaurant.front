@@ -15,29 +15,29 @@ export const Select = ({
   ...props
 }: SelectProps) => {
   return (
-    <div className="flex w-full flex-col gap-1.5">
+    <div className="flex w-full flex-col gap-1.5 text-left">
       {label && (
-        <label htmlFor={id} className="text-sm font-medium text-brand-espresso dark:text-brand-cream">
+        <label htmlFor={id} className="text-xs font-bold uppercase tracking-wider text-text-muted">
           {label}
         </label>
       )}
-      <div className="relative flex items-center">
+      <div className="relative flex items-center w-full">
         <select
           id={id}
-          className={`h-12 w-full rounded-md border bg-white dark:bg-brand-mocha px-3 py-2 text-sm text-brand-espresso dark:text-brand-cream outline-none transition-colors focus:border-brand-copper focus:ring-1 focus:ring-brand-copper disabled:cursor-not-allowed disabled:opacity-50 appearance-none ${
-            error ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-brand-gray/30 dark:border-brand-gray/50'
+          className={`h-11 w-full rounded-xl border bg-bg-main/40 px-3.5 pr-10 text-sm text-text-main outline-none transition-all focus:border-brand-emerald focus:ring-1 focus:ring-brand-emerald/20 disabled:cursor-not-allowed disabled:opacity-50 appearance-none ${
+            error ? 'border-red-500 focus:border-red-500' : 'border-neutral-300 dark:border-neutral-700'
           } ${className}`}
           {...props}
         >
           {children}
         </select>
-        <div className="pointer-events-none absolute right-3 flex items-center text-brand-gray">
+        <div className="pointer-events-none absolute right-3.5 flex items-center text-text-muted/60">
           <svg className="h-4 w-4 fill-current" viewBox="0 0 20 20">
             <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
           </svg>
         </div>
       </div>
-      {error && <span className="text-xs text-red-500">{error}</span>}
+      {error && <span className="text-xs font-semibold text-red-500 mt-0.5">{error}</span>}
     </div>
   );
 };

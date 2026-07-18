@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useMemo, useTransition, useOptimistic, useEffect } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useState, useMemo, useOptimistic, useEffect } from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { useStaff } from '@/features/staff/hooks/useStaff';
-import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
+import { useStaffMutations } from '@/features/staff/hooks/useStaffMutations';
 import toast from 'react-hot-toast';
 import type { StaffMember, CreateStaffDTO } from '@/features/staff/types/staff.types';
 
@@ -16,21 +15,9 @@ type OptimisticAction =
 
 export const useStaffList = () => {
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
-  const activeRestaurantId = useRestaurantStore((state) => state.activeRestaurant?.id);
-  const restaurantId = activeRestaurantId ? Number(activeRestaurantId) : null;
+  const { staff, roles, isLoading } = useStaff();
+  const mutations = useStaffMutations();
 
-  const {
-    staff,
-    roles,
-    createStaffAsync,
-    updateStaffAsync,
-    deleteStaff,
-    uploadStaffPhotoAsync,
-    updateStaff,
-  } = useStaff();
-
-  const [isPending, startTransition] = useTransition();
   const [localSearch, setLocalSearch] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -84,82 +71,70 @@ export const useStaffList = () => {
     setIsModalOpen(true);
   };
 
-  const executeFormSubmit = (submitData: CreateStaffDTO, photoFile: File | null, previewUrl: string) => {
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingMember(null);
     setGlobalError(null);
-    startTransition(async () => {
-      const temporaryId = Date.now().toString();
-      const mockStaffMember: StaffMember = {
-        id: editingMember?.id || temporaryId,
-        firstName: submitData.firstName,
-        lastName: submitData.lastName || '',
-        email: submitData.email,
-        phone: submitData.phone || '',
-        role: submitData.role || 'Працівник',
-        isActive: submitData.isActive ?? true,
-        photo: previewUrl || null,
-        avatarColor: 'bg-brand-copper',
-      };
+  };
 
-      if (editingMember) {
-        setOptimisticStaff({ type: 'UPDATE', payload: mockStaffMember });
-      } else {
-        setOptimisticStaff({ type: 'CREATE', payload: mockStaffMember });
+  const executeFormSubmit = async (submitData: CreateStaffDTO, photoFile: File | null, previewUrl: string) => {
+    setGlobalError(null);
+    const temporaryId = Date.now().toString();
+    const mockStaffMember: StaffMember = {
+      id: editingMember?.id || temporaryId,
+      firstName: submitData.firstName,
+      lastName: submitData.lastName || '',
+      email: submitData.email,
+      phone: submitData.phone || '',
+      role: submitData.role || 'STAFF',
+      isActive: submitData.isActive ?? true,
+      photo: previewUrl || null,
+      avatarColor: 'bg-brand-copper',
+    };
+
+    if (editingMember) {
+      setOptimisticStaff({ type: 'UPDATE', payload: mockStaffMember });
+    } else {
+      setOptimisticStaff({ type: 'CREATE', payload: mockStaffMember });
+    }
+
+    try {
+      const savedStaff = editingMember
+        ? await mutations.updateStaffAsync({ id: editingMember.id, data: submitData })
+        : await mutations.createStaffAsync(submitData);
+
+      closeModal();
+
+      if (photoFile && savedStaff?.id) {
+        await mutations.uploadStaffPhotoAsync({ staffId: savedStaff.id, file: photoFile });
       }
-
-      try {
-        const savedStaff = editingMember
-          ? await updateStaffAsync({ id: editingMember.id, data: submitData })
-          : await createStaffAsync(submitData);
-
-        if (photoFile && savedStaff?.id) {
-          await uploadStaffPhotoAsync({ staffId: savedStaff.id, file: photoFile });
-        }
-
-        if (restaurantId) {
-          await queryClient.invalidateQueries({ queryKey: ['staffList', restaurantId] });
-        }
-
-        setIsModalOpen(false);
-        toast.success(editingMember ? t('staff.notifications.updateSuccess') : t('staff.notifications.createSuccess'));
-      } catch (error: unknown) {
-        const err = error as Error;
-        const backendMessage = err.message || t('auth.errors.defaultError');
-        toast.error(backendMessage);
-        setGlobalError(backendMessage);
-      }
-    });
+    } catch (error: unknown) {
+      const err = error as Error;
+      const backendMessage = err.message || t('auth.errors.defaultError');
+      setGlobalError(backendMessage);
+      throw error;
+    }
   };
 
   const confirmDelete = async () => {
     if (deleteId) {
-      startTransition(async () => {
-        setOptimisticStaff({ type: 'DELETE', payload: deleteId });
-        try {
-          await deleteStaff(deleteId);
-          if (restaurantId) {
-            await queryClient.invalidateQueries({ queryKey: ['staffList', restaurantId] });
-          }
-          setDeleteId(null);
-          toast.success(t('staff.notifications.deleteSuccess'));
-        } catch {
-          toast.error(t('auth.errors.defaultError'));
-        }
-      });
-    }
-  };
-
-  const toggleStaffStatus = (id: string, isActive: boolean) => {
-    startTransition(async () => {
-      setOptimisticStaff({ type: 'TOGGLE_STATUS', payload: { id, isActive } });
+      setOptimisticStaff({ type: 'DELETE', payload: deleteId });
       try {
-        await updateStaff({ id, data: { isActive } });
-        if (restaurantId) {
-          await queryClient.invalidateQueries({ queryKey: ['staffList', restaurantId] });
-        }
+        await mutations.deleteStaffAsync(deleteId);
+        setDeleteId(null);
       } catch {
         toast.error(t('auth.errors.defaultError'));
       }
-    });
+    }
+  };
+
+  const toggleStaffStatus = async (id: string, isActive: boolean) => {
+    setOptimisticStaff({ type: 'TOGGLE_STATUS', payload: { id, isActive } });
+    try {
+      await mutations.updateStaffAsync({ id, data: { isActive } });
+    } catch {
+      toast.error(t('auth.errors.defaultError'));
+    }
   };
 
   const filteredStaff = useMemo(() => {
@@ -173,12 +148,12 @@ export const useStaffList = () => {
     t,
     staff: filteredStaff,
     roles,
-    isLoading: isPending,
+    isLoading,
     localSearch,
     setLocalSearch,
     validationError: globalError,
     isModalOpen,
-    setIsModalOpen,
+    closeModal,
     editingMember,
     deleteId,
     setDeleteId,
@@ -186,7 +161,7 @@ export const useStaffList = () => {
     openEditModal,
     confirmDelete,
     onFormSuccess: executeFormSubmit,
-    isFormPending: isPending,
+    isFormPending: false,
     updateStaffStatus: toggleStaffStatus,
   };
 };

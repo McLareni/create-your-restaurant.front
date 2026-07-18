@@ -46,9 +46,8 @@ export interface ModifierGroupModalProps {
   isOpen: boolean;
   onClose: () => void;
   isEditing: boolean;
-  form: GroupFormState;
-  setForm: Dispatch<SetStateAction<GroupFormState>>;
-  onSave: () => void;
+  editingGroup: ModifierGroup | null;
+  groupFormAction: (formData: FormData) => void;
   errors?: Record<string, string>;
   isLoading?: boolean;
 }

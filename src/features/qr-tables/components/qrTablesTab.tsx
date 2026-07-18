@@ -2,22 +2,21 @@
 
 import React, { useState } from 'react';
 import { Button, Checkbox, EmptyState } from '@/shared/ui';
-import { Plus, Printer, QrCode, RefreshCw } from 'lucide-react';
+import { Plus, Printer, QrCode, RefreshCw, AlertTriangle } from 'lucide-react';
 import { TableCard } from '@/features/qr-tables/components/tableCard';
 import { QrPrintSection } from '@/features/qr-tables/components/qrPrintSection';
 import { useQrTablesManagement } from '@/features/qr-tables/hooks/useQrTablesManagement';
-import { Table } from '@/features/qr-tables/types/tables.types';
 import { QrGeneratorModal } from './qrGeneratorModal';
 import { ConfirmModal } from '@/shared/ui/confirmModal';
+import type { Table } from '@/features/qr-tables/types/tables.types';
 
 export const QrTablesTab = () => {
   const {
-    t, tables, isLoading, selectedIds, isModalOpen, setIsModalOpen, 
+    t, tables, isLoading, isError, selectedIds, isModalOpen, setIsModalOpen, 
     editingTable, formData, deleteId, setDeleteId, onOpenCreate, onOpenEdit, onSave, onDeleteConfirm,
     handleToggleSelect, handleSelectAll, handlePrint, handleStatusChange, handleFormDataChange,
     filteredTypes, showTypeSuggestions, setShowTypeSuggestions, errorMsg
   } = useQrTablesManagement();
-
   const [styleUpdates, setStyleUpdates] = useState<Record<string, number>>({});
 
   const handleStyleConfigured = (tableId: string) => {
@@ -36,25 +35,34 @@ export const QrTablesTab = () => {
     );
   }
 
+  if (isError) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center p-12 text-red-500 font-medium min-h-125 gap-2">
+        <AlertTriangle className="h-8 w-8 text-red-500" />
+        <span>{t('auth.errors.serverError')}</span>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-1 flex-col bg-bg-surface border border-border-main rounded-3xl p-5 md:p-6 shadow-md overflow-hidden">
+    <div className="flex flex-1 flex-col bg-bg-main w-full h-full overflow-hidden">
       
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 pb-5 border-b border-border-main print:hidden shrink-0">
         <div>
-          <h1 className="text-xl md:text-2xl font-bold text-text-main">{t('qr.title')}</h1>
-          <p className="text-xs md:text-sm text-text-muted mt-1">{t('qr.subtitle')}</p>
+          <h1 className="text-2xl md:text-3xl font-bold text-text-main tracking-tight">{t('qr.title')}</h1>
+          <p className="text-xs md:text-sm text-text-muted font-light mt-1.5">{t('qr.subtitle')}</p>
         </div>
         
         <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-          {selectedIds.length > 0 && (
+          {selectedIds.size > 0 && (
             <Button 
               variant="outline" 
               icon={<Printer className="h-4 w-4" />} 
               onClick={handlePrint} 
               disabled={isLoading}
-              className="flex-1 sm:flex-none text-xs md:text-sm h-11 px-4 font-bold rounded-xl border border-border-main bg-bg-surface text-text-main hover:border-brand-emerald hover:text-brand-emerald transition-all shadow-sm"
+              className="flex-1 sm:flex-none text-xs md:text-sm h-11 px-4 font-bold rounded-xl border border-brand-emerald/30 bg-brand-emerald/10 text-brand-emerald hover:bg-brand-emerald/20 dark:bg-brand-emerald/20 dark:text-brand-emerald dark:hover:bg-brand-emerald/30 transition-all shadow-sm flex items-center justify-center gap-1.5"
             >
-              <span className="hidden xs:inline mr-1">{t('qr.printBtn')}</span> ({selectedIds.length})
+              <span className="hidden xs:inline mr-1">{t('qr.printBtn')}</span> ({selectedIds.size})
             </Button>
           )}
           <Button 
@@ -62,7 +70,7 @@ export const QrTablesTab = () => {
             icon={<Plus className="h-4 w-4" />} 
             onClick={onOpenCreate} 
             disabled={isLoading}
-            className="flex-1 sm:flex-none text-xs md:text-sm h-11 px-5 font-bold shadow-md rounded-xl bg-brand-emerald hover:bg-brand-emerald-hover text-white border border-border-main transition-all active:scale-98 flex items-center justify-center gap-1.5"
+            className="flex-1 sm:flex-none text-xs md:text-sm h-11 px-5 font-bold shadow-md rounded-xl bg-brand-emerald hover:bg-brand-emerald-hover text-white border-0 transition-all active:scale-98 flex items-center justify-center gap-1.5"
           >
             {t('qr.addBtn')}
           </Button>
@@ -84,26 +92,26 @@ export const QrTablesTab = () => {
             <div className="mb-4 flex items-center gap-3 px-1 shrink-0 select-none">
               <Checkbox 
                 id="selectAll" 
-                checked={selectedIds.length === tables.length && tables.length > 0} 
+                checked={selectedIds.size === tables.length && tables.length > 0} 
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSelectAll(e.target.checked)} 
                 disabled={isLoading} 
                 className="scale-105 accent-brand-emerald pointer-events-auto z-10" 
               />
               <span 
-                className="text-xs md:text-sm font-semibold text-text-main cursor-pointer tracking-wide hover:text-brand-emerald transition-colors" 
-                onClick={() => handleSelectAll(selectedIds.length !== tables.length)}
+                className="text-sm font-semibold text-text-main cursor-pointer tracking-wide hover:text-brand-emerald transition-colors" 
+                onClick={() => handleSelectAll(selectedIds.size !== tables.length)}
               >
                 {t('qr.selectAll')}
               </span>
             </div>
             
             <div className="flex-1 overflow-y-auto custom-scrollbar pb-6" style={{ scrollbarGutter: 'stable' }}>
-              <div className="qr-tables-grid px-6 py-4">
+              <div className="qr-tables-grid px-1 py-2">
                 {tables.map((table: Table) => (
                   <TableCard 
                     key={table.id} 
                     table={table} 
-                    isSelected={selectedIds.includes(table.id)} 
+                    isSelected={selectedIds.has(table.id)} 
                     onToggleSelect={handleToggleSelect} 
                     onEdit={onOpenEdit} 
                     onDelete={setDeleteId} 

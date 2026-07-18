@@ -1,20 +1,24 @@
 'use client';
 
-import React from 'react';
-import { ConfirmModal } from '@/shared/ui';
+import React, { useState } from 'react';
 import { Plus, LayoutList } from 'lucide-react';
-import { DndContext, pointerWithin, DragOverlay } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { SortableCategory } from '@/features/menu-builder/components/board/sortableCategory';
-import { CategoryModal } from '@/features/menu-builder/components/board/categoryModal';
-import { DishModal } from '@/features/menu-builder/components/board/dishModal';
-import { DishCard } from '@/features/menu-builder/components/board/dishCard';
+import { DragOverlay } from '@dnd-kit/core';
+import { ConfirmModal, EmptyState } from '@/shared/ui';
+import { MenuDndProvider, useMenuDnd } from '@/features/menu-builder/providers/MenuDndProvider';
+import { SortableCategory } from '@/features/menu-builder/components/board/components/sortableCategory';
+import { CategoryModal } from '@/features/menu-builder/components/board/modals/categoryModal';
+import { DishModal } from '@/features/menu-builder/components/board/modals/dish-modal/dishModal';
+import { DishCard } from '@/features/menu-builder/components/board/components/dishCard';
+import { DishDetailsModal } from '@/features/menu-builder/components/board/modals/DishDetailsModal';
 import { useMenuBoard } from '@/features/menu-builder/hooks/board/useMenuBoard';
 import type { Dish } from '@/features/menu-builder/types/dishes.types';
 import type { FullCategory } from '@/features/menu-builder/types/menu-board.types';
 
-export const MenuBoard = () => {
+const MenuBoardContent = () => {
   const board = useMenuBoard();
+  const dnd = useMenuDnd();
+  const [viewingDish, setViewingDish] = useState<Dish | null>(null);
 
   if (board.isLoading) {
     return (
@@ -26,112 +30,112 @@ export const MenuBoard = () => {
   }
 
   return (
-    <DndContext 
-      sensors={board.sensors} 
-      collisionDetection={pointerWithin} 
-      onDragStart={board.handleDragStart} 
-      onDragOver={board.handleDragOver}
-      onDragEnd={board.handleDragEnd}
-    >
-      <div className="relative min-h-[400px] pb-6 flex flex-col w-full px-0 select-none text-text-main overflow-hidden">
-        <div className="sticky top-0 z-30 flex items-center justify-between mb-4 bg-bg-surface/80 backdrop-blur-md py-3 border-b border-neutral-200 dark:border-neutral-800 -mx-6 px-6">
-          <div>
-            <h2 className="text-xl font-bold text-text-main tracking-tight flex items-center gap-2">
-              {board.t('menu.constructor.categories.title')}
-            </h2>
-          </div>
-          <button 
-            type="button"
-            onClick={() => board.categoryModal.handleOpenCategoryModal(undefined)} 
-            className="h-10 px-4 text-xs font-bold text-white bg-brand-emerald hover:bg-brand-emerald-hover active:scale-98 rounded-xl flex items-center justify-center gap-1.5 shadow-md border border-brand-emerald/10 cursor-pointer select-none transition-all outline-none"
-          >
-            <Plus className="h-4 w-4" />
-            {board.t('menu.constructor.categories.addBtn')}
-          </button>
+    <div className="relative min-h-100 pb-6 flex flex-col w-full px-0 select-none text-text-main overflow-hidden">
+      <div className="sticky top-0 z-30 flex items-center justify-between mb-4 bg-bg-surface/80 backdrop-blur-md py-3 border-b border-neutral-200 dark:border-neutral-800 -mx-6 px-6">
+        <div>
+          <h2 className="text-xl font-bold text-text-main tracking-tight flex items-center gap-2">
+            {board.t('menu.constructor.categories.title')}
+          </h2>
         </div>
-
-        {board.categories.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center p-12 mt-4 rounded-3xl border border-dashed border-neutral-300 dark:border-neutral-700 bg-bg-element/10 text-center shadow-3xs animate-in fade-in duration-200">
-            <div className="h-14 w-14 bg-brand-emerald/10 rounded-full flex items-center justify-center mb-4">
-              <LayoutList className="h-6 w-6 text-brand-emerald" />
-            </div>
-            <h3 className="text-lg font-bold text-text-main mb-1">
-              {board.t('menu.constructor.categories.emptyTitle')}
-            </h3>
-            <p className="text-xs text-text-muted max-w-sm mb-5">
-              {board.t('menu.constructor.categories.emptyDesc')}
-            </p>
-            <button 
-              type="button"
-              onClick={() => board.categoryModal.handleOpenCategoryModal(undefined)} 
-              className="h-10 px-6 text-xs font-bold text-white bg-brand-emerald hover:bg-brand-emerald-hover active:scale-98 rounded-xl shadow-md transition-all cursor-pointer border border-brand-emerald/10 select-none flex items-center justify-center gap-1.5"
-            >
-              <Plus className="h-4 w-4" />
-              {board.t('menu.constructor.categories.addBtn')}
-            </button>
-          </div>
-        ) : (
-          <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
-            <SortableContext items={board.categories.map((c: FullCategory) => c.id)} strategy={verticalListSortingStrategy}>
-              <div className="flex flex-col gap-4 w-full">
-                {board.categories.map((category: FullCategory) => (
-                  <SortableCategory
-                    key={category.id} 
-                    category={category} 
-                    categoryDishes={category.dishes || []}
-                    onEditCategory={board.categoryModal.handleOpenCategoryModal} 
-                    onDeleteCategory={board.setDeleteTarget}
-                    onAddDish={(catId) => board.dishModal.handleOpenDishModal(catId, null)} 
-                    onEditDish={board.dishModal.handleOpenDishModal}
-                    onDeleteCategoryDish={board.setDeleteTarget} 
-                    t={board.t}
-                  />
-                ))}
-              </div>
-            </SortableContext>
-          </div>
-        )}
-
-        <DragOverlay adjustScale={false}>
-          {board.activeId && board.activeType === 'Dish' && board.activeDishData ? (
-            <div className="opacity-95 scale-[1.02] -rotate-1 cursor-grabbing shadow-2xl w-60 pointer-events-none block z-50">
-              <DishCard 
-                dish={board.activeDishData as Dish} 
-                categoryId="" 
-                onEdit={() => {}} 
-                onDelete={() => {}} 
-                isOverlay={true} 
-              />
-            </div>
-          ) : null}
-        </DragOverlay>
-
-        <CategoryModal 
-          isOpen={board.categoryModal.isCatModalOpen} 
-          onClose={() => board.categoryModal.setIsCatModalOpen(false)} 
-          isEditing={!!board.categoryModal.editingCategory}
-          catName={board.categoryModal.catName}
-          setCatName={board.categoryModal.setCatName}
-          onSave={board.categoryModal.handleSaveCategory}
-          error={board.categoryModal.error}
-        />
-        
-        <DishModal 
-          isOpen={board.dishModal.isDishModalOpen} 
-          onClose={() => board.dishModal.setIsDishModalOpen(false)} 
-          dish={board.dishModal.editingDish}
-          state={board.dishModal}
-        />
-      
-        <ConfirmModal 
-          isOpen={!!board.deleteTarget} 
-          onClose={() => board.setDeleteTarget(null)} 
-          onConfirm={board.handleConfirmDelete} 
-          description={board.deleteTarget?.type === 'category' 
-            ? board.t('menu.constructor.categories.deleteConfirm') 
-            : board.t('menu.constructor.dishes.deleteConfirm')} 
-        />
+        <button 
+          type="button"
+          onClick={() => board.categoryModal.handleOpenCategoryModal(undefined)} 
+          className="h-10 px-4 text-xs font-bold text-white bg-brand-emerald hover:bg-brand-emerald-hover rounded-xl flex items-center justify-center gap-1.5 shadow-md border border-brand-emerald/10 cursor-pointer transition-all active:scale-98 select-none tracking-wide"
+        >
+          <Plus className="h-4 w-4" />
+          {board.t('menu.constructor.categories.addBtn')}
+        </button>
       </div>
-    </DndContext>
+
+      {board.categories.length === 0 ? (
+        <EmptyState
+          icon={<LayoutList className="h-6 w-6 text-brand-emerald" />}
+          title={board.t('menu.constructor.categories.emptyTitle')}
+          description={board.t('menu.constructor.categories.emptyDesc')}
+          actionLabel={board.t('menu.constructor.categories.addBtn')}
+          onAction={() => board.categoryModal.handleOpenCategoryModal(undefined)}
+        />
+      ) : (
+        <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+          <SortableContext items={board.categories.map((c: FullCategory) => c.id)} strategy={verticalListSortingStrategy}>
+            <div className="flex flex-col gap-4 w-full">
+              {board.categories.map((category: FullCategory) => (
+                <SortableCategory
+                  key={category.id} 
+                  category={category} 
+                  categoryDishes={category.dishes || []}
+                  onEditCategory={board.categoryModal.handleOpenCategoryModal} 
+                  onDeleteCategory={board.setDeleteTarget}
+                  onAddDish={(catId) => board.dishModal.handleOpenDishModal(catId, null)} 
+                  onEditDish={board.dishModal.handleOpenDishModal}
+                  onDeleteCategoryDish={board.setDeleteTarget} 
+                  onViewDish={(dish) => setViewingDish(dish)}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </div>
+      )}
+
+      <DragOverlay adjustScale={false}>
+        {dnd.activeId && dnd.activeType === 'Dish' && dnd.activeDishData ? (
+          <div className="opacity-95 scale-[1.02] -rotate-1 cursor-grabbing shadow-2xl w-60 pointer-events-none block z-50">
+            <DishCard 
+              dish={dnd.activeDishData as Dish} 
+              categoryId="" 
+              onEdit={() => {}} 
+              onDelete={() => {}} 
+              onView={() => {}}
+              isOverlay={true} 
+              isLiveDnd={true}
+            />
+          </div>
+        ) : null}
+      </DragOverlay>
+
+      <CategoryModal 
+        isOpen={board.categoryModal.isCatModalOpen} 
+        onClose={() => board.categoryModal.setIsCatModalOpen(false)} 
+        isEditing={!!board.categoryModal.editingCategory}
+        catName={board.categoryModal.catName}
+        setCatName={board.categoryModal.setCatName}
+        onSave={board.categoryModal.handleSaveCategory}
+        error={board.categoryModal.error}
+        isLoading={board.isLoading}
+      />
+      
+      <DishModal 
+        key={board.dishModal.editingDish?.id || 'new-dish'}
+        isOpen={board.dishModal.isDishModalOpen} 
+        onClose={() => board.dishModal.setIsDishModalOpen(false)} 
+        dish={board.dishModal.editingDish}
+        state={board.dishModal}
+      />
+    
+      <ConfirmModal 
+        isOpen={!!board.deleteTarget} 
+        onClose={() => board.setDeleteTarget(null)} 
+        onConfirm={board.handleConfirmDelete} 
+        description={board.deleteTarget?.type === 'category' 
+          ? board.t('menu.constructor.categories.deleteConfirm') 
+          : board.t('menu.constructor.dishes.deleteConfirm')} 
+      />
+
+      {viewingDish && (
+        <DishDetailsModal 
+          isOpen={!!viewingDish}
+          onClose={() => setViewingDish(null)}
+          dish={viewingDish}
+        />
+      )}
+    </div>
+  );
+};
+
+export const MenuBoard = () => {
+  return (
+    <MenuDndProvider>
+      <MenuBoardContent />
+    </MenuDndProvider>
   );
 };

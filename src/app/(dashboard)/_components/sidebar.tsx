@@ -1,26 +1,36 @@
 'use client';
 
+import React, { useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Modal, Button, ConfirmModal } from '@/shared/ui';
-import { ChevronsUpDown, Plus, Lock, LogOut, Store, ChevronDown, Trash2 } from 'lucide-react';
-import { useSidebarLogic } from './hooks/useSidebar';
-import type { SidebarRestaurant, SubMenuItem } from './types/sidebar.types';
+import { Modal, ConfirmModal } from '@/shared/ui';
+import { ChevronsUpDown, Plus, Lock, LogOut, Store, ChevronDown, Trash2, Loader2 } from 'lucide-react';
+import { useSidebarLogic } from '@/app/(dashboard)/_components/hooks/useSidebar';
+import { useClickOutside } from '@/shared/hooks/useClickOutside';
+import type { MouseEvent } from 'react';
+import type { SidebarRestaurant } from '@/app/(dashboard)/_components/types/sidebar.types';
 import type { MenuItem } from '@/shared/hooks/useNavigation';
 
 export const Sidebar = () => {
   const board = useSidebarLogic();
+  const orgDropdownContainerRef = useRef<HTMLDivElement>(null);
+
+  useClickOutside(orgDropdownContainerRef, () => {
+    if (board.isOrgDropdownOpen) {
+      board.setIsOrgDropdownOpen(false);
+    }
+  });
 
   return (
-    <aside className="flex w-72 flex-col bg-bg-main text-text-main border-r border-border-main h-screen sticky top-0 transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1) z-30">
-      
-      <div className="relative p-4 border-b border-border-main">
+    <aside className="flex w-72 flex-col bg-bg-main text-text-main border-r border-border-main h-screen sticky top-0 transition-all duration-300 z-30">
+      <div ref={orgDropdownContainerRef} className="relative p-4 border-b border-border-main">
         <button 
+          type="button"
           onClick={() => board.setIsOrgDropdownOpen(!board.isOrgDropdownOpen)} 
-          className="flex w-full items-center justify-between rounded-xl bg-bg-surface p-3 border border-border-main transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1) hover:border-brand-copper/30 shadow-xs outline-none cursor-pointer"
+          className="flex w-full items-center justify-between rounded-xl bg-bg-surface p-3 border border-border-main transition-all duration-300 hover:border-brand-copper/30 shadow-xs outline-none cursor-pointer"
         >
           <div className="flex items-center gap-3 overflow-hidden flex-1">
-            <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-copper text-white text-base font-bold shadow-sm transition-transform duration-300 overflow-hidden">
+            <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-copper text-white text-base font-bold shadow-sm overflow-hidden">
               {board.activeRestaurant?.imageUrl ? (
                 <Image 
                   src={board.activeRestaurant.imageUrl} 
@@ -44,7 +54,7 @@ export const Sidebar = () => {
           <ChevronsUpDown className="h-4 w-4 text-text-muted shrink-0 ml-2" />
         </button>
 
-        <div className={`absolute left-4 right-4 top-full z-50 mt-2 rounded-xl border border-border-main bg-bg-surface shadow-xl max-h-64 overflow-y-auto custom-scrollbar transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1) ${
+        <div className={`absolute left-4 right-4 top-full z-50 mt-2 rounded-xl border border-border-main bg-bg-surface shadow-xl max-h-64 overflow-y-auto custom-scrollbar transition-all duration-300 ${
           board.isOrgDropdownOpen 
             ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto' 
             : 'opacity-0 -translate-y-2 scale-95 pointer-events-none'
@@ -57,7 +67,7 @@ export const Sidebar = () => {
               return (
                 <div 
                   key={res.id} 
-                  className={`flex w-full items-center justify-between rounded-lg p-1 border transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1) ${
+                  className={`flex w-full items-center justify-between rounded-lg p-1 border transition-all duration-300 ${
                     isActive 
                       ? 'bg-bg-hover border border-brand-copper/20' 
                       : isLocked
@@ -66,12 +76,13 @@ export const Sidebar = () => {
                   }`}
                 >
                   <button 
-                    onClick={() => board.handleRestaurantSwitch(res, isLocked)} 
+                    type="button"
+                    onClick={(e: MouseEvent) => board.handleRestaurantSwitch(e, res, isLocked)} 
                     className={`flex flex-1 items-center gap-2.5 p-1.5 text-left overflow-hidden cursor-pointer text-sm font-medium transition-colors duration-300 ${
                       isActive 
                         ? 'text-brand-copper font-bold' 
                         : isLocked 
-                          ? 'text-text-muted cursor-not-allowed' 
+                          ? 'text-text-muted cursor-default' 
                           : 'text-text-main/90'
                     }`}
                   >
@@ -87,7 +98,8 @@ export const Sidebar = () => {
                   </button>
 
                   <button 
-                    onClick={(e) => board.handleDeleteRestaurantClick(e, res)} 
+                    type="button"
+                    onClick={(e: MouseEvent) => board.handleDeleteRestaurantClick(e, res)} 
                     className="p-1.5 text-text-muted hover:text-red-500 transition-all duration-300 rounded-md hover:bg-red-500/10 shrink-0 cursor-pointer"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -133,7 +145,8 @@ export const Sidebar = () => {
                   return (
                     <div key={item.id} className="flex flex-col">
                       <button 
-                        onClick={(e) => isLocked ? board.handleLockedClick(e, item.label, item.moduleKey!) : board.toggleSubMenu(item.id)} 
+                        type="button"
+                        onClick={(e: MouseEvent) => isLocked ? board.handleLockedClick(e, item.label, item.moduleKey!) : board.toggleSubMenu(item.id)} 
                         className={`flex w-full items-center justify-between rounded-xl px-3 h-11 text-sm font-medium transition-all duration-300 outline-none cursor-pointer ${
                           isLocked 
                             ? 'opacity-30 hover:bg-bg-hover' 
@@ -151,7 +164,7 @@ export const Sidebar = () => {
                       
                       <div className={`grid transition-all duration-300 ${isExpanded && !isLocked ? 'grid-rows-[1fr] opacity-100 mt-0.5' : 'grid-rows-[0fr] opacity-0'}`}>
                         <div className="overflow-hidden flex flex-col gap-0.5 pl-4 border-l border-border-main ml-5">
-                          {item.subItems.map((sub: SubMenuItem) => (
+                          {item.subItems.map((sub) => (
                             <Link 
                               key={sub.id} 
                               href={sub.href} 
@@ -174,7 +187,8 @@ export const Sidebar = () => {
                   return (
                     <button 
                       key={item.id} 
-                      onClick={(e) => board.handleLockedClick(e, item.label, item.moduleKey!)} 
+                      type="button"
+                      onClick={(e: MouseEvent) => board.handleLockedClick(e, item.label, item.moduleKey!)} 
                       className="flex w-full items-center justify-between rounded-xl px-3 h-11 text-sm font-medium opacity-30 transition-all duration-300 hover:bg-bg-hover outline-none cursor-pointer"
                     >
                       <div className="flex items-center gap-3">
@@ -190,6 +204,7 @@ export const Sidebar = () => {
                   return (
                     <button 
                       key={item.id} 
+                      type="button"
                       onClick={item.onClick} 
                       className="flex w-full items-center justify-between rounded-xl px-3 h-11 text-sm font-medium transition-all duration-300 outline-none text-text-main/80 hover:bg-bg-hover hover:text-text-main cursor-pointer"
                     >
@@ -247,6 +262,7 @@ export const Sidebar = () => {
             </div>
           </Link>
           <button 
+            type="button"
             onClick={board.logout} 
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-text-muted transition-all duration-300 hover:bg-red-500/10 hover:text-red-500 outline-none cursor-pointer"
           >
@@ -262,8 +278,24 @@ export const Sidebar = () => {
           </div>
           <p className="text-xs text-text-muted leading-relaxed">{board.t('sidebar.locked.modalDesc')}</p>
           <div className="flex justify-end pt-3 border-t border-border-main mt-1 gap-2">
-            <Button variant="ghost" onClick={() => board.setIsLockModalOpen(false)}>{board.t('confirmModal.cancel')}</Button>
-            <Button variant="brand" onClick={board.handleActivateLocked}>{board.t('sidebar.locked.activateBtn')}</Button>
+            <button 
+              type="button" 
+              onClick={() => board.setIsLockModalOpen(false)}
+              className="px-4 h-10 text-xs font-semibold text-text-muted hover:text-text-main hover:bg-bg-element rounded-xl transition-all border-0 bg-transparent cursor-pointer"
+            >
+              {board.t('confirmModal.cancel')}
+            </button>
+            <button 
+              type="button" 
+              onClick={board.handleActivateLocked}
+              disabled={board.isPending}
+              className="h-10 px-5 text-xs font-bold text-white bg-brand-emerald hover:bg-brand-emerald-hover active:scale-98 rounded-xl shadow-md transition-all cursor-pointer border border-brand-emerald/10 select-none flex items-center justify-center gap-2 disabled:opacity-50"
+            >
+              {board.isPending ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-white" />
+              ) : null}
+              <span>{board.t('sidebar.locked.activateBtn')}</span>
+            </button>
           </div>
         </div>
       </Modal>

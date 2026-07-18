@@ -3,56 +3,51 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
-import { QrPrintSectionProps } from '@/features/qr-tables/types/tables.types';
-import { drawStyledQr } from '@/features/qr-tables/utils/qrRenderer';
+import { drawStyledQr, getQrStyle } from '@/features/qr-tables/utils/qrRenderer';
+import type { QrPrintSectionProps } from '@/features/qr-tables/types/tables.types';
 
 export const useQrPrint = ({ tables, selectedIds }: QrPrintSectionProps) => {
   const { t } = useTranslation();
   const [printQrImages, setPrintQrImages] = useState<Record<string, string>>({});
-  
+
   const restaurantImageUrl = useRestaurantStore((state) => state.activeRestaurant?.imageUrl);
 
   useEffect(() => {
     let isCurrent = true;
-    const currentTablesToPrint = tables.filter((table) => selectedIds.includes(table.id));
+    const currentTablesToPrint = tables.filter((table) => selectedIds.has(table.id));
     if (currentTablesToPrint.length === 0) return;
 
     const loadAllPrintCodes = async () => {
-      const compiledImages: Record<string, string> = {};
+      try {
+        const promises = currentTablesToPrint.map(async (table) => {
+          if (!table.qrUrl) return null;
 
-      for (const table of currentTablesToPrint) {
-        if (!table.qrUrl) continue;
+          const style = getQrStyle(table.id);
+          
+          const dataUrl = await drawStyledQr({
+            url: table.qrUrl,
+            patternType: style.patternType,
+            logoOverlay: style.logoOverlay,
+            logoUrl: restaurantImageUrl,
+            isDark: true,
+          });
 
-        let patternType: 'dots' | 'squares' | 'lines' = 'dots';
-        let logoOverlay = true;
-
-        const savedStyle = localStorage.getItem(`qr-style-${table.id}`);
-        if (savedStyle) {
-          try {
-            const parsed = JSON.parse(savedStyle);
-            patternType = parsed.patternType || 'dots';
-            logoOverlay = parsed.logoOverlay !== false;
-          } catch {
-            patternType = 'dots';
-            logoOverlay = true;
-          }
-        }
-
-        const canvas = document.createElement('canvas');
-        const dataUrl = await drawStyledQr({
-          canvas,
-          url: table.qrUrl,
-          patternType,
-          logoOverlay,
-          logoUrl: restaurantImageUrl,
-          isDark: true,
+          return { id: table.id, dataUrl };
         });
-        compiledImages[table.id] = dataUrl;
-      }
 
-      if (isCurrent) {
-        setPrintQrImages(compiledImages);
-      }
+        const results = await Promise.all(promises);
+        const compiledImages: Record<string, string> = {};
+
+        results.forEach((res) => {
+          if (res) {
+            compiledImages[res.id] = res.dataUrl;
+          }
+        });
+
+        if (isCurrent) {
+          setPrintQrImages(compiledImages);
+        }
+      } catch {}
     };
 
     loadAllPrintCodes();
@@ -62,7 +57,7 @@ export const useQrPrint = ({ tables, selectedIds }: QrPrintSectionProps) => {
     };
   }, [selectedIds, tables, restaurantImageUrl]);
 
-  const tablesToPrint = tables.filter((table) => selectedIds.includes(table.id));
+  const tablesToPrint = tables.filter((table) => selectedIds.has(table.id));
 
   return {
     t,

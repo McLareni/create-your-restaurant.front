@@ -3,6 +3,14 @@ interface RequestOptions extends RequestInit {
   timeout?: number;
 }
 
+type UnauthorizedCallback = () => void;
+
+let onUnauthorizedHandler: UnauthorizedCallback | null = null;
+
+export const registerUnauthorizedHandler = (callback: UnauthorizedCallback): void => {
+  onUnauthorizedHandler = callback;
+};
+
 async function fetchClient<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
   const { params, headers, timeout = 10000, ...customConfig } = options;
   const isLocalAuth = endpoint.startsWith('/api/auth');
@@ -22,6 +30,7 @@ async function fetchClient<T>(endpoint: string, options: RequestOptions = {}): P
   const timeoutId = setTimeout(() => controller.abort(), timeout);
   const isFormData = customConfig.body instanceof FormData;
   const finalHeaders: HeadersInit = { ...headers };
+
   if (!isFormData) {
     (finalHeaders as Record<string, string>)['Content-Type'] = 'application/json';
   }
@@ -35,9 +44,10 @@ async function fetchClient<T>(endpoint: string, options: RequestOptions = {}): P
   try {
     const response = await fetch(urlStr, config);
     clearTimeout(timeoutId);
+
     if (response.status === 401) {
-      if (typeof window !== 'undefined') {
-        window.location.href = '/login';
+      if (onUnauthorizedHandler) {
+        onUnauthorizedHandler();
       }
       throw new Error('unauthorized');
     }
@@ -47,9 +57,7 @@ async function fetchClient<T>(endpoint: string, options: RequestOptions = {}): P
       try {
         const errorData = await response.json();
         errorMessage = errorData.message || errorData.errorCode || errorMessage;
-      } catch {
-        // ВИПРАВЛЕНО: Видалено невикористану змінну 'e'
-      }
+      } catch {}
       throw new Error(errorMessage);
     }
 
@@ -59,7 +67,6 @@ async function fetchClient<T>(endpoint: string, options: RequestOptions = {}): P
 
     return await response.json();
   } catch (error: unknown) {
-    // ВИПРАВЛЕНО: Переведено з 'any' на 'unknown' з валідацією типу
     clearTimeout(timeoutId);
     if (error instanceof Error && error.name === 'AbortError') {
       throw new Error('serverError');

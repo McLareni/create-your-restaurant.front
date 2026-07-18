@@ -21,7 +21,7 @@ export const Button = ({
   
   const variants = {
     primary: 'bg-text-main text-bg-surface hover:opacity-90 dark:bg-bg-surface dark:text-text-main',
-    brand: 'bg-brand-gold text-white hover:bg-brand-gold-hover shadow-sm',
+    brand: 'bg-brand-copper text-white hover:bg-brand-emerald-hover shadow-sm',
     outline: 'border border-solid border-neutral-200 dark:border-border-main bg-transparent text-text-main hover:bg-bg-element',
     outlineDark: 'border border-solid border-border-main bg-transparent text-text-main hover:bg-bg-element/50',
     ghost: 'bg-transparent text-text-main hover:bg-bg-element',

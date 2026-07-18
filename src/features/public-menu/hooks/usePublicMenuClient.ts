@@ -6,11 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import toast from 'react-hot-toast';
 import { publicMenuApi } from '../api/publicMenu.api';
-import {
-  PublicMenuDish,
-  PublicOrderSummary,
-  UsePublicMenuClientReturn,
-} from '../types/publicMenu.types';
+import { PublicMenuDish, PublicOrderSummary, UsePublicMenuClientReturn } from '../types/publicMenu.types';
 
 export const usePublicMenuClient = (
   restaurantSlug: string,
@@ -38,74 +34,39 @@ export const usePublicMenuClient = (
     enabled: hasTableId && Boolean(resolvedRestaurantId),
   });
 
-  const tableExists = useMemo(() => {
-    return tableExistsData?.exists === true;
-  }, [tableExistsData]);
+  const tableExists = useMemo(() => tableExistsData?.exists === true, [tableExistsData]);
 
   const { data: activeOrderResponse } = useQuery({
     queryKey: ['public-order', resolvedRestaurantId, tableId, orderId],
-    queryFn: () =>
-      publicMenuApi.getOrderById(
-        resolvedRestaurantId as number,
-        tableId as string,
-        orderId as string,
-      ),
-    enabled:
-      Boolean(orderId) &&
-      hasTableId &&
-      Boolean(resolvedRestaurantId) &&
-      tableExists === true,
+    queryFn: () => publicMenuApi.getOrderById(resolvedRestaurantId as number, tableId as string, orderId as string),
+    enabled: Boolean(orderId) && hasTableId && Boolean(resolvedRestaurantId) && tableExists,
   });
 
   const createOrderMutation = useMutation({
     mutationFn: () => {
       if (!tableId) throw new Error('tableId is required');
       if (!resolvedRestaurantId) throw new Error('Restaurant was not resolved');
-
-      const items = Object.entries(cart).map(([dishId, quantity]) => ({
-        dishId,
-        quantity,
-      }));
-
+      const items = Object.entries(cart).map(([dishId, quantity]) => ({ dishId, quantity }));
       if (orderId) {
-        return publicMenuApi.appendItemsToOrder(resolvedRestaurantId, orderId, {
-          items,
-        });
+        return publicMenuApi.appendItemsToOrder(resolvedRestaurantId, orderId, { items });
       }
-
-      return publicMenuApi.createOrder(resolvedRestaurantId, {
-        tableId,
-        type: 'DINE_IN',
-        items,
-      });
+      return publicMenuApi.createOrder(resolvedRestaurantId, { tableId, type: 'DINE_IN', items });
     },
     onSuccess: (response) => {
       setCart({});
       toast.success(t('menu.public.orderSuccessNotification') || 'Замовлення надіслано!');
-
       const createdOrder = response?.order;
-      const createdOrderId = createdOrder?.id;
-
-      if (!createdOrderId) {
-        return;
-      }
-
+      if (!createdOrder?.id) return;
       if (typeof window !== 'undefined') {
-        window.sessionStorage.setItem(
-          `public-active-order:${createdOrderId}`,
-          JSON.stringify(createdOrder),
-        );
+        window.sessionStorage.setItem(`public-active-order:${createdOrder.id}`, JSON.stringify(createdOrder));
       }
-
       setLastOrderSnapshot(createdOrder);
-
       if (!orderId && tableId) {
-        router.push(`/menu/${restaurantSlug}/${tableId}/${createdOrderId}`);
+        router.push(`/menu/${restaurantSlug}/${tableId}/${createdOrder.id}`);
       }
     },
     onError: (error: unknown) => {
-      const errorMessage =
-        error instanceof Error ? error.message : t('errors.unknown');
+      const errorMessage = error instanceof Error ? error.message : t('errors.unknown');
       toast.error(errorMessage);
     },
   });
@@ -114,25 +75,19 @@ export const usePublicMenuClient = (
     mutationFn: () => {
       if (!tableId) throw new Error('tableId is required');
       if (!resolvedRestaurantId) throw new Error('Restaurant was not resolved');
-
       return publicMenuApi.callWaiter(resolvedRestaurantId, tableId);
     },
     onSuccess: () => {
       toast.success(t('menu.public.waiterCallSuccess') || 'Офіціанта викликано');
     },
     onError: (error: unknown) => {
-      const errorMessage =
-        error instanceof Error ? error.message : t('errors.unknown');
+      const errorMessage = error instanceof Error ? error.message : t('errors.unknown');
       toast.error(errorMessage);
     },
   });
 
-  const canUseCart = hasTableId && tableExists === true;
-
-  const totalItems = useMemo(
-    () => Object.values(cart).reduce((sum, value) => sum + value, 0),
-    [cart],
-  );
+  const canUseCart = hasTableId && tableExists;
+  const totalItems = useMemo(() => Object.values(cart).reduce((sum, value) => sum + value, 0), [cart]);
 
   const dishesById = useMemo(() => {
     const source = menuData?.categories ?? [];
@@ -153,23 +108,11 @@ export const usePublicMenuClient = (
   }, [cart, dishesById]);
 
   const activeOrder = useMemo(() => {
-    if (activeOrderResponse?.order) {
-      return activeOrderResponse.order;
-    }
-
-    if (lastOrderSnapshot && lastOrderSnapshot.id === orderId) {
-      return lastOrderSnapshot;
-    }
-
-    if (!activeOrderStorageKey || typeof window === 'undefined') {
-      return null;
-    }
-
+    if (activeOrderResponse?.order) return activeOrderResponse.order;
+    if (lastOrderSnapshot && lastOrderSnapshot.id === orderId) return lastOrderSnapshot;
+    if (!activeOrderStorageKey || typeof window === 'undefined') return null;
     const storedOrderJson = window.sessionStorage.getItem(activeOrderStorageKey);
-    if (!storedOrderJson) {
-      return null;
-    }
-
+    if (!storedOrderJson) return null;
     try {
       return JSON.parse(storedOrderJson);
     } catch {

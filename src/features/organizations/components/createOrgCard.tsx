@@ -41,9 +41,9 @@ export const CreateOrgCard = ({ formData }: CreateOrgCardProps) => {
       ? 'bg-zinc-950 text-[#F5EFE6] border-zinc-800/80 shadow-2xl relative' 
       : 'bg-[#FAF9F6] text-zinc-900 border-zinc-300 shadow-2xl relative',
     titleText: 'text-lg font-black tracking-tight truncate leading-none relative z-10 text-white',
-    goldText: isElegant ? 'text-brand-emerald font-semibold tracking-wide relative z-10' : 'text-brand-emerald font-semibold tracking-wide relative z-10',
-    badge: isElegant ? 'bg-white/5 border-white/10 text-brand-emerald backdrop-blur-md relative z-10' : 'bg-brand-emerald/5 border-brand-emerald/10 text-brand-emerald relative z-10',
-    iconColor: isElegant ? 'text-brand-emerald relative z-10' : 'text-brand-emerald relative z-10',
+    goldText: 'text-brand-emerald font-semibold tracking-wide relative z-10',
+    badge: 'bg-white/5 border-white/10 text-brand-emerald backdrop-blur-md relative z-10',
+    iconColor: 'text-brand-emerald relative z-10',
   };
 
   const fullAddress = [
@@ -98,7 +98,6 @@ export const CreateOrgCard = ({ formData }: CreateOrgCardProps) => {
       <div className="w-100 h-64 group cursor-pointer perspective-[1000px] print:w-[85mm] print:h-[55mm]">
         <div className={`w-full h-full relative transition-transform duration-500 transform-3d ${isFlipped ? 'transform-[rotateY(180deg)]' : ''} print:transform-none`}>
           <div className={`absolute inset-0 w-full h-full rounded-3xl border p-6 flex flex-col justify-between overflow-hidden backface-hidden print:inset-auto ${styles.cardBg}`}>
-            
             {isElegant && formData.imageUrl && (
               <>
                 <div 
