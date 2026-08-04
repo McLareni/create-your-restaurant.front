@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { X, ChevronLeft, ChevronRight, ImageOff, Leaf, Flame, ShieldAlert } from 'lucide-react';
 import { PublicMenuDish } from '../types/publicMenu.types';
@@ -23,6 +23,16 @@ export const PublicMenuDishDetailsModal = ({ dish, onClose }: PublicMenuDishDeta
   const dishImages = useMemo(() => getDishImages(dish), [dish]);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const currentImage = dishImages[selectedImageIndex] ?? dishImages[0] ?? '';
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   return (
     <div

@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import Image from 'next/image';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { Plus, Minus, ImageOff } from 'lucide-react';
@@ -34,10 +35,19 @@ export const PublicMenuDishCard = ({
   const { t } = useTranslation();
   const dishImage = getDishPreview(dish);
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onOpenDetails(dish);
+    }
+  };
+
   return (
     <article
       onClick={() => onOpenDetails(dish)}
-      className="group relative flex flex-col overflow-hidden rounded-2xl border border-solid border-brand-gray/10 bg-white p-3 shadow-xs transition-all duration-300 hover:border-brand-copper/30 hover:shadow-md hover:shadow-brand-espresso/5 cursor-pointer"
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
+      className="group relative flex flex-col overflow-hidden rounded-2xl border border-solid border-brand-gray/10 bg-white p-3 shadow-xs transition-all duration-300 hover:border-brand-copper/30 hover:shadow-md hover:shadow-brand-espresso/5 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-brand-copper/50"
       role="button"
     >
       <div className="relative aspect-4/3 w-full overflow-hidden rounded-xl bg-brand-cream/40">

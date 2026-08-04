@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useSyncExternalStore } from 'react';
 import { useSortable, SortableContext, rectSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Edit, Trash2, Plus, FolderOpen, ChevronDown, ChevronRight } from 'lucide-react';
 import { DishCard } from '@/features/menu-builder/components/board/components/dishCard';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { useActiveRestaurantId } from '@/shared/hooks/useActiveRestaurantId';
+import { usePermissions } from '@/shared/hooks/usePermissions';
 import type { Dish } from '@/features/menu-builder/types/dishes.types';
 import type { FullCategory } from '@/features/menu-builder/types/menu-board.types';
 
@@ -21,6 +22,8 @@ interface CleanSortableCategoryProps {
   onViewDish: (dish: Dish) => void;
 }
 
+const emptySubscribe = () => () => {};
+
 export const SortableCategory = ({
   category,
   categoryDishes,
@@ -33,22 +36,32 @@ export const SortableCategory = ({
 }: CleanSortableCategoryProps) => {
   const { t } = useTranslation();
   const restaurantId = useActiveRestaurantId();
+  const { canCreateMenu, canEditMenu, canDeleteMenu } = usePermissions();
   const storageKey = restaurantId ? `cat-expanded-${restaurantId}-${category.id}` : null;
 
+  const isMounted = useSyncExternalStore(emptySubscribe, () => true, () => false);
   const [isExpanded, setIsExpanded] = useState<boolean>(true);
   const [shouldRenderContent, setShouldRenderContent] = useState<boolean>(true);
 
   useEffect(() => {
-    if (storageKey) {
-      const saved = localStorage.getItem(storageKey);
-      if (saved !== null) {
-        const parsedValue = saved === 'true';
-        requestAnimationFrame(() => {
+    if (!storageKey) return;
+    let isCancelled = false;
+
+    Promise.resolve().then(() => {
+      if (isCancelled) return;
+      try {
+        const saved = localStorage.getItem(storageKey);
+        if (saved !== null) {
+          const parsedValue = saved === 'true';
           setIsExpanded(parsedValue);
           setShouldRenderContent(parsedValue);
-        });
-      }
-    }
+        }
+      } catch {}
+    });
+
+    return () => {
+      isCancelled = true;
+    };
   }, [storageKey]);
 
   const {
@@ -64,6 +77,7 @@ export const SortableCategory = ({
       type: 'Category',
       category,
     },
+    disabled: !canEditMenu,
   });
 
   const style = {
@@ -78,7 +92,9 @@ export const SortableCategory = ({
       setShouldRenderContent(true);
     }
     if (storageKey) {
-      localStorage.setItem(storageKey, String(nextState));
+      try {
+        localStorage.setItem(storageKey, String(nextState));
+      } catch {}
     }
   };
 
@@ -87,6 +103,10 @@ export const SortableCategory = ({
       setShouldRenderContent(false);
     }
   };
+
+  if (!isMounted) {
+    return <div className="w-full h-16 rounded-md bg-bg-surface border border-solid border-neutral-300 dark:border-neutral-700 shadow-table animate-pulse mb-3" />;
+  }
 
   if (isDragging) {
     return (
@@ -110,13 +130,15 @@ export const SortableCategory = ({
         }`}
       >
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          <div
-            {...attributes}
-            {...listeners}
-            className="p-1 text-text-muted/50 hover:text-brand-emerald cursor-grab active:cursor-grabbing transition-colors shrink-0"
-          >
-            <GripVertical className="h-4 w-4" />
-          </div>
+          {canEditMenu && (
+            <div
+              {...attributes}
+              {...listeners}
+              className="p-1 text-text-muted/50 hover:text-brand-emerald cursor-grab active:cursor-grabbing transition-colors shrink-0"
+            >
+              <GripVertical className="h-4 w-4" />
+            </div>
+          )}
 
           <div
             onClick={handleToggleExpand}
@@ -137,30 +159,33 @@ export const SortableCategory = ({
         </div>
 
         <div className="flex items-center gap-1 transition-opacity duration-150 shrink-0">
-          <button
-            type="button"
-            onClick={() => onAddDish(category.id)}
-            className="p-1.5 rounded-lg text-brand-emerald hover:bg-brand-emerald/10 transition-colors cursor-pointer border-0 bg-transparent outline-none"
-            title={t('menu.constructor.dishes.addBtn')}
-          >
-            <Plus className="h-3.5 w-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => onEditCategory(category)}
-            className="p-1.5 rounded-lg text-text-muted hover:text-brand-emerald hover:bg-bg-element transition-colors cursor-pointer border-0 bg-transparent outline-none"
-            title={t('menu.constructor.categories.editBtn')}
-          >
-            <Edit className="h-3.5 w-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => onDeleteCategory({ type: 'category', id: category.id })}
-            className="p-1.5 rounded-lg text-text-muted hover:text-red-500 hover:bg-red-50/5 transition-colors cursor-pointer border-0 bg-transparent outline-none"
-            title={t('menu.constructor.categories.deleteBtn')}
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
+          {canCreateMenu && (
+            <button
+              type="button"
+              onClick={() => onAddDish(category.id)}
+              className="p-1.5 rounded-lg text-brand-emerald hover:bg-brand-emerald/10 transition-colors cursor-pointer border-0 bg-transparent outline-none"
+            >
+              <Plus className="h-3.5 w-3.5" />
+            </button>
+          )}
+          {canEditMenu && (
+            <button
+              type="button"
+              onClick={() => onEditCategory(category)}
+              className="p-1.5 rounded-lg text-text-muted hover:text-brand-emerald hover:bg-bg-element transition-colors cursor-pointer border-0 bg-transparent outline-none"
+            >
+              <Edit className="h-3.5 w-3.5" />
+            </button>
+          )}
+          {canDeleteMenu && (
+            <button
+              type="button"
+              onClick={() => onDeleteCategory({ type: 'category', id: category.id })}
+              className="p-1.5 rounded-lg text-text-muted hover:text-red-500 hover:bg-red-50/5 transition-colors cursor-pointer border-0 bg-transparent outline-none"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -189,6 +214,8 @@ export const SortableCategory = ({
                     onEdit={onEditDish}
                     onDelete={onDeleteCategoryDish}
                     onView={onViewDish}
+                    canEdit={canEditMenu}
+                    canDelete={canDeleteMenu}
                   />
                 ))
               )}

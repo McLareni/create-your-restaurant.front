@@ -1,10 +1,16 @@
 import type { ChangeEvent } from 'react';
 
-export type ShiftMode = 'SELECT' | 'IN' | 'OUT';
+export type Permission = string;
 
-export interface Permission {
+export interface PermissionAction {
   id: string;
   label: string;
+}
+
+export interface PermissionGroup {
+  moduleKey: string;
+  moduleName: string;
+  actions: PermissionAction[];
 }
 
 export interface CreateStaffDTO {
@@ -24,6 +30,7 @@ export interface CustomStaffRole {
   id: string;
   restaurantId: number;
   name: string;
+  permissions?: string[];
   createdAt: string;
 }
 
@@ -33,7 +40,7 @@ export interface BackendStaff {
   lastName: string | null;
   email: string;
   phone: string | null;
-  role: 'OWNER' | 'STAFF' | 'CUSTOMER';
+  role: string;
   isActive: boolean;
   photo: string | null;
   pinCode: string | null;
@@ -92,11 +99,6 @@ export interface UseStaffFormReturn {
   isPending: boolean;
 }
 
-export interface ClockInResponse {
-  status: string;
-  firstName: string;
-}
-
 export interface WaiterZReport {
   waiterId: number;
   waiterName: string;
@@ -115,15 +117,6 @@ export interface AuthorizeVoidResponse {
   voidedBy: string;
 }
 
-export interface StaffShiftManagerProps {
-  restaurantId: number;
-}
-
 export interface ApiErrorResponse {
   message?: string;
-}
-
-export interface PinPadProps {
-  onConfirm: (pin: string) => void;
-  isLoading: boolean;
 }

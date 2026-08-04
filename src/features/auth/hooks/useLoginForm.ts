@@ -5,11 +5,14 @@ import { useTranslation } from '@/shared/hooks/useTranslation';
 import { authApi } from '@/features/auth/api/auth.api';
 import { useUserStore } from '@/shared/store/useUserStore';
 import { useRouter } from 'next/navigation';
-import { emailSchema, verifySchema } from '@/features/auth/schemas/login.schema';
-import { LoginFormState, AuthApiError } from '@/features/auth/types/auth.types';
+import {
+  emailSchema,
+  verifySchema,
+} from '@/features/auth/schemas/login.schema';
+import type { AuthApiError } from '@/features/auth/types/auth.types';
 import toast from 'react-hot-toast';
 
-export const useLoginForm = (): LoginFormState => {
+export const useLoginForm = () => {
   const { t } = useTranslation();
   const router = useRouter();
   const fetchUser = useUserStore((state) => state.fetchUser);
@@ -36,29 +39,25 @@ export const useLoginForm = (): LoginFormState => {
     return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
-  const formatDisplayCode = (rawCode: string): string => {
-    const clean = rawCode.replace(/\D/g, '').slice(0, 6);
-    if (clean.length > 3) {
-      return `${clean.slice(0, 3)} ${clean.slice(3)}`;
-    }
-    return clean;
-  };
-
   const handleResendCode = async () => {
     if (timeLeft > 0 || isPending) return;
     setEmailError('');
     setCodeError('');
-    
+
     startTransition(async () => {
       try {
         await authApi.requestLoginCode(email);
-        setTimeLeft(60);
+        setTimeLeft(120);
         toast.success(t('auth.login.codeResent'));
       } catch (error: unknown) {
         const err = error as AuthApiError;
         const errorKey = `auth.errors.${err.message}`;
         const translated = t(errorKey);
-        setEmailError(translated === errorKey ? t('auth.errors.defaultError') : translated);
+        setEmailError(
+          translated === errorKey
+            ? t('auth.errors.defaultError')
+            : translated,
+        );
       }
     });
   };
@@ -77,10 +76,13 @@ export const useLoginForm = (): LoginFormState => {
           }
           await authApi.requestLoginCode(email);
           setStep(2);
-          setTimeLeft(60);
+          setTimeLeft(120);
         } else {
           const cleanCode = code.replace(/\D/g, '');
-          const validation = verifySchema.safeParse({ email, code: cleanCode });
+          const validation = verifySchema.safeParse({
+            email,
+            code: cleanCode,
+          });
           if (!validation.success) {
             setCodeError(t(validation.error.issues[0].message));
             return;
@@ -94,7 +96,10 @@ export const useLoginForm = (): LoginFormState => {
         const err = error as AuthApiError;
         const errorKey = `auth.errors.${err.message}`;
         const translated = t(errorKey);
-        const fallback = step === 1 ? t('auth.errors.defaultError') : t('auth.errors.verifyFailed');
+        const fallback =
+          step === 1
+            ? t('auth.errors.defaultError')
+            : t('auth.errors.verifyFailed');
         const finalMessage = translated === errorKey ? fallback : translated;
 
         if (step === 1) {
@@ -117,17 +122,13 @@ export const useLoginForm = (): LoginFormState => {
   return {
     t,
     email,
-    setEmail,
     code,
-    setCode,
     step,
     emailError,
     codeError,
     isEmailSyntacticallyValid,
     timeLeft,
-    setIsEmailDirty: () => {},
     formatTime,
-    formatDisplayCode,
     handleResendCode,
     handleFormAction,
     isSubmitting: isPending,

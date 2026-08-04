@@ -2,16 +2,18 @@
 
 import { useState, useEffect, useRef, useActionState } from 'react';
 import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import { createOrganizationSchema, CreateOrganizationValues, RESERVED_SLUGS } from '../schemas/organization.schema';
-import { organizationApi } from '../api/organizations.api';
+import { createOrganizationSchema, RESERVED_SLUGS } from '@/features/organizations/schemas/organization.schema';
+import { organizationApi } from '@/features/organizations/api/organizations.api';
 import { useUserStore } from '@/shared/store/useUserStore';
 import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 import { useAccessStore } from '@/shared/store/useAccessStore';
-import { UseCreateOrganizationReturn } from '../types/organization.types';
 import { apiClient } from '@/shared/api/client';
 import { formatZodErrors } from '@/shared/utils/validation';
 import { transliterate } from '@/shared/utils/transliterate';
+import type { CreateOrganizationValues } from '@/features/organizations/schemas/organization.schema';
+import type { UseCreateOrganizationReturn } from '@/features/organizations/types/organization.types';
 import type { SidebarRestaurant } from '@/app/(dashboard)/_components/types/sidebar.types';
 import type { User } from '@/shared/store/useUserStore';
 
@@ -48,6 +50,7 @@ export const useCreateOrganization = (): UseCreateOrganizationReturn => {
   const [slugAvailable, setSlugAvailable] = useState<boolean | null>(null);
   const [animationStep, setAnimationStep] = useState<number>(0);
   const [imageError, setImageError] = useState<string | undefined>(undefined);
+  const createdRestaurantIdRef = useRef<number | null>(null);
   
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const timersRef = useRef<NodeJS.Timeout[]>([]);
@@ -89,7 +92,11 @@ export const useCreateOrganization = (): UseCreateOrganizationReturn => {
       try {
         await useUserStore.getState().fetchUser(true); 
         const updatedUser = useUserStore.getState().user as ExtendedUser | null;
-        const newRes = updatedUser?.restaurants?.find((r: SidebarRestaurant) => r.name === formData.name);
+        
+        const newRes = updatedUser?.restaurants?.find((r) => 
+          createdRestaurantIdRef.current ? Number(r.id) === createdRestaurantIdRef.current : r.name === formData.name
+        );
+
         if (newRes) {
           useRestaurantStore.getState().setActiveRestaurant({
             id: Number(newRes.id),
@@ -104,7 +111,7 @@ export const useCreateOrganization = (): UseCreateOrganizationReturn => {
   };
 
   const [actionState, formAction, isPending] = useActionState(
-    async (prevState: { errors: Partial<Record<keyof CreateOrganizationValues, string>> }) => {
+    async (prevState: { errors: Partial<Record<keyof CreateOrganizationValues | 'global', string>> }) => {
       if (isCheckingSlug || slugAvailable === false) return prevState;
 
       const userState = useUserStore.getState().user as ExtendedUser | null;
@@ -114,7 +121,8 @@ export const useCreateOrganization = (): UseCreateOrganizationReturn => {
       const maxAllowed = hasMultiModule ? 3 : 1;
 
       if (restaurants.length >= maxAllowed) {
-        return { errors: { name: t('sidebar.limitReached') } };
+        toast.error(t('sidebar.limitReached'));
+        return { errors: { global: t('sidebar.limitReached') } };
       }
 
       const validation = createOrganizationSchema.safeParse(formData);
@@ -124,11 +132,15 @@ export const useCreateOrganization = (): UseCreateOrganizationReturn => {
       }
 
       try {
-        await organizationApi.create(validation.data);
+        const response = await organizationApi.create(validation.data);
+        if (response.restaurant?.id) {
+          createdRestaurantIdRef.current = response.restaurant.id;
+        }
         playSuccessAnimation();
         return { errors: {} };
       } catch {
-        return { errors: { name: t('organization.errors.serverError') } };
+        toast.error(t('organization.errors.serverError'));
+        return { errors: { global: t('organization.errors.serverError') } };
       }
     },
     { errors: {} }
@@ -201,7 +213,7 @@ export const useCreateOrganization = (): UseCreateOrganizationReturn => {
 
   return {
     formData,
-    errors: combinedErrors,
+    errors: combinedErrors as Partial<Record<keyof CreateOrganizationValues, string>>,
     isCheckingSlug,
     slugAvailable,
     animationStep,

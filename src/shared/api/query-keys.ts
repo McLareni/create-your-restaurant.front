@@ -9,4 +9,9 @@ export const QUERY_KEYS = {
   staffList: (restaurantId: number | null) => ['staffList', restaurantId] as const,
   staffRoles: (restaurantId: number | null) => ['staffRoles', restaurantId] as const,
   orders: (restaurantId: number | null) => ['orders', restaurantId] as const,
+  tables: (restaurantId: number | null) => ['tables', restaurantId] as const,
+  liveMonitor: (restaurantId: number | null) => ['live-monitor-tables', restaurantId] as const,
+  posStatus: (restaurantId: number | null) => ['pos-status', restaurantId] as const,
+  analyticsSummary: (restaurantId: number | null) => ['analytics-summary', restaurantId] as const,
+  liveCalls: (restaurantId: number | null) => ['live-calls-list', restaurantId] as const,
 } as const;

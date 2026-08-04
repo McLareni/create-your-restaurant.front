@@ -2,20 +2,19 @@
 
 import React from 'react';
 import { useModifiersManagement } from '@/features/menu-builder/hooks/modifiers/useModifiersManagement';
+import { usePermissions } from '@/shared/hooks/usePermissions';
 import { ModifierGroupModal } from '@/features/menu-builder/components/modifiers/modifierGroupModal';
 import { ModifierOptionModal } from '@/features/menu-builder/components/modifiers/modifierOptionModal';
 import { ConfirmModal } from '@/shared/ui';
+import { PageLoader } from '@/shared/ui/pageLoader';
 import { ChevronDown, ChevronRight, Plus, Edit2, Trash2, SlidersHorizontal, Settings2 } from 'lucide-react';
 
 export const ModifiersTab = () => {
   const state = useModifiersManagement();
+  const { canCreateMenu, canEditMenu, canDeleteMenu } = usePermissions();
 
   if (state.isLoading && state.groups.length === 0) {
-    return (
-      <div className="p-8 text-center text-text-muted font-medium animate-pulse">
-        {state.t('menu.constructor.modifiers.loading')}
-      </div>
-    );
+    return <PageLoader />;
   }
 
   return (
@@ -30,14 +29,16 @@ export const ModifiersTab = () => {
             {state.t('menu.constructor.modifiers.subtitle')}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => state.handleOpenGroupModal()}
-          className="h-11 px-5 rounded-full bg-brand-emerald hover:bg-brand-emerald-hover text-white text-sm font-bold shadow-md transition-all cursor-pointer border-0 flex items-center justify-center gap-1.5 self-start sm:self-auto"
-        >
-          <Plus className="h-4 w-4" />
-          {state.t('menu.constructor.modifiers.addBtn')}
-        </button>
+        {canCreateMenu && (
+          <button
+            type="button"
+            onClick={() => state.handleOpenGroupModal()}
+            className="h-11 px-5 rounded-full bg-brand-emerald hover:bg-brand-emerald-hover text-white text-sm font-bold shadow-md transition-all cursor-pointer border-0 flex items-center justify-center gap-1.5 self-start sm:self-auto"
+          >
+            <Plus className="h-4 w-4" />
+            {state.t('menu.constructor.modifiers.addBtn')}
+          </button>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto space-y-3 pr-1 custom-scrollbar">
@@ -81,28 +82,34 @@ export const ModifiersTab = () => {
                   </div>
 
                   <div className="flex items-center gap-1 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => state.handleOpenOptionModal(group.id)}
-                      className="p-2 text-brand-emerald hover:bg-brand-emerald/10 rounded-lg transition-colors cursor-pointer border-0 bg-transparent"
-                      title={state.t('menu.constructor.modifiers.addOptionBtn')}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => state.handleOpenGroupModal(group)}
-                      className="p-2 text-text-muted hover:text-brand-emerald hover:bg-bg-element rounded-lg transition-colors cursor-pointer border-0 bg-transparent"
-                    >
-                      <Edit2 className="h-4 w-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => state.setDeleteTarget({ type: 'group', id: group.id })}
-                      className="p-2 text-text-muted hover:text-red-500 hover:bg-red-500/5 rounded-lg transition-colors cursor-pointer border-0 bg-transparent"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                    {canCreateMenu && (
+                      <button
+                        type="button"
+                        onClick={() => state.handleOpenOptionModal(group.id)}
+                        className="p-2 text-brand-emerald hover:bg-brand-emerald/10 rounded-lg transition-colors cursor-pointer border-0 bg-transparent"
+                        title={state.t('menu.constructor.modifiers.addOptionBtn')}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </button>
+                    )}
+                    {canEditMenu && (
+                      <button
+                        type="button"
+                        onClick={() => state.handleOpenGroupModal(group)}
+                        className="p-2 text-text-muted hover:text-brand-emerald hover:bg-bg-element rounded-lg transition-colors cursor-pointer border-0 bg-transparent"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </button>
+                    )}
+                    {canDeleteMenu && (
+                      <button
+                        type="button"
+                        onClick={() => state.setDeleteTarget({ type: 'group', id: group.id })}
+                        className="p-2 text-text-muted hover:text-red-500 hover:bg-red-500/5 rounded-lg transition-colors cursor-pointer border-0 bg-transparent"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -133,20 +140,24 @@ export const ModifiersTab = () => {
                               {option.price > 0 ? `+ ${option.price} ${state.t('menu.currency')}` : state.t('menu.constructor.modifiers.free')}
                             </span>
                             <div className="flex items-center gap-1">
-                              <button
-                                type="button"
-                                onClick={() => state.handleOpenOptionModal(group.id, option)}
-                                className="p-1 text-text-muted hover:text-brand-emerald hover:bg-bg-element rounded transition-colors cursor-pointer border-0 bg-transparent"
-                              >
-                                <Edit2 className="h-3.5 w-3.5" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => state.setDeleteTarget({ type: 'option', id: option.id, groupId: group.id })}
-                                className="p-1 text-text-muted hover:text-red-500 hover:bg-red-500/5 rounded transition-colors cursor-pointer border-0 bg-transparent"
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </button>
+                              {canEditMenu && (
+                                <button
+                                  type="button"
+                                  onClick={() => state.handleOpenOptionModal(group.id, option)}
+                                  className="p-1 text-text-muted hover:text-brand-emerald hover:bg-bg-element rounded transition-colors cursor-pointer border-0 bg-transparent"
+                                >
+                                  <Edit2 className="h-3.5 w-3.5" />
+                                </button>
+                              )}
+                              {canDeleteMenu && (
+                                <button
+                                  type="button"
+                                  onClick={() => state.setDeleteTarget({ type: 'option', id: option.id, groupId: group.id })}
+                                  className="p-1 text-text-muted hover:text-red-500 hover:bg-red-500/5 rounded transition-colors cursor-pointer border-0 bg-transparent"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                              )}
                             </div>
                           </div>
                         </div>

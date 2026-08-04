@@ -11,6 +11,7 @@ interface AccessResponse {
 }
 
 interface AccessState {
+  loadedRestaurantId: string | null;
   purchasedModules: string[];
   activeModules: string[];
   permissions: string[];
@@ -18,7 +19,7 @@ interface AccessState {
   isMainForMultiRestaurant: boolean;
   mainRestaurantId: string | number | null;
   clearAccessData: () => void;
-  fetchAccessData: (restaurantId: string) => Promise<void>;
+  fetchAccessData: (restaurantId: string, force?: boolean) => Promise<void>;
   hasModule: (moduleKey: string) => boolean;
   isPurchased: (moduleKey: string) => boolean;
   hasPermission: (permissionKey: string) => boolean;
@@ -27,6 +28,7 @@ interface AccessState {
 }
 
 export const useAccessStore = create<AccessState>((set, get) => ({
+  loadedRestaurantId: null,
   purchasedModules: [],
   activeModules: [],
   permissions: [],
@@ -36,6 +38,7 @@ export const useAccessStore = create<AccessState>((set, get) => ({
 
   clearAccessData: () =>
     set({
+      loadedRestaurantId: null,
       purchasedModules: [],
       activeModules: [],
       permissions: [],
@@ -43,14 +46,23 @@ export const useAccessStore = create<AccessState>((set, get) => ({
       mainRestaurantId: null,
     }),
 
-  fetchAccessData: async (restaurantId: string) => {
-    set({
-      isLoadingAccess: true,
-      purchasedModules: [],
-      activeModules: [],
-      permissions: [],
-      isMainForMultiRestaurant: false,
-    });
+  fetchAccessData: async (restaurantId: string, force = false) => {
+    const currentLoadedId = get().loadedRestaurantId;
+    const hasData = get().purchasedModules.length > 0 || get().permissions.length > 0;
+
+    if (currentLoadedId === restaurantId && hasData && !force) {
+      return;
+    }
+
+    if (currentLoadedId !== restaurantId) {
+      set({
+        isLoadingAccess: true,
+        purchasedModules: [],
+        activeModules: [],
+        permissions: [],
+        isMainForMultiRestaurant: false,
+      });
+    }
 
     try {
       const response = await apiClient.get<AccessResponse>(
@@ -58,6 +70,7 @@ export const useAccessStore = create<AccessState>((set, get) => ({
       );
 
       set({
+        loadedRestaurantId: restaurantId,
         purchasedModules: response.purchasedModules || [],
         activeModules: response.activeModules || [],
         permissions: response.permissions || [],
@@ -67,6 +80,7 @@ export const useAccessStore = create<AccessState>((set, get) => ({
       });
     } catch {
       set({
+        loadedRestaurantId: null,
         purchasedModules: [],
         activeModules: [],
         permissions: [],
@@ -96,7 +110,7 @@ export const useAccessStore = create<AccessState>((set, get) => ({
     set({
       activeModules: nextModules,
     });
-    
+
     const restaurantId = useRestaurantStore.getState().activeRestaurant?.id;
     if (!restaurantId) {
       return;

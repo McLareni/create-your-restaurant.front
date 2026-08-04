@@ -4,8 +4,6 @@ import type {
   CustomStaffRole, 
   CreateStaffDTO, 
   UpdateStaffDTO,
-  ClockInResponse,
-  WaiterZReport,
   AuthorizeVoidResponse,
   Permission,
   BackendStaff
@@ -75,15 +73,11 @@ export const staffApi = {
     return await apiClient.delete<{ message: string }>(`/restaurants/${restaurantId}/staff/roles/${roleId}`);
   },
 
-  async clockIn(restaurantId: number, pinCode: string): Promise<ClockInResponse> {
-    return apiClient.post<ClockInResponse>(`/restaurants/${restaurantId}/staff-ops/clock-in`, { pinCode });
-  },
-
-  async clockOut(restaurantId: number, pinCode: string): Promise<WaiterZReport> {
-    return apiClient.post<WaiterZReport>(`/restaurants/${restaurantId}/staff-ops/clock-out`, { pinCode });
-  },
-
   async authorizeVoid(restaurantId: number, pinCode: string, orderId: string): Promise<AuthorizeVoidResponse> {
     return apiClient.post<AuthorizeVoidResponse>(`/restaurants/${restaurantId}/staff-ops/authorize-void`, { pinCode, orderId });
-  }
+  },
+
+  async updateRole(restaurantId: number, roleId: string, permissions: string[]): Promise<CustomStaffRole> {
+    return await apiClient.patch<CustomStaffRole>(`/restaurants/${restaurantId}/staff/roles/${roleId}`, { permissions });
+  },
 };

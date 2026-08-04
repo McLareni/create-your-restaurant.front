@@ -15,12 +15,12 @@ export const getQrStyle = (tableId: string): QrStyle => {
     return DEFAULT_QR_STYLE;
   }
   
-  const saved = localStorage.getItem(`qr-style-${tableId}`);
-  if (!saved) {
-    return DEFAULT_QR_STYLE;
-  }
   try {
-    const parsed = JSON.parse(saved);
+    const saved = localStorage.getItem(`qr-style-${tableId}`);
+    if (!saved) {
+      return DEFAULT_QR_STYLE;
+    }
+    const parsed = JSON.parse(saved) as Partial<QrStyle>;
     return {
       patternType: parsed.patternType || 'dots',
       logoOverlay: parsed.logoOverlay === true,
@@ -32,8 +32,19 @@ export const getQrStyle = (tableId: string): QrStyle => {
 
 export const saveQrStyle = (tableId: string, config: QrStyle): void => {
   if (typeof window !== 'undefined') {
-    localStorage.setItem(`qr-style-${tableId}`, JSON.stringify(config));
+    try {
+      localStorage.setItem(`qr-style-${tableId}`, JSON.stringify(config));
+    } catch {}
   }
+};
+
+const escapeHtml = (unsafe: string): string => {
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 };
 
 export const drawStyledQr = async ({ url, patternType, logoOverlay, logoUrl, isDark }: Omit<RenderOptions, 'canvas'>): Promise<string> => {
@@ -60,6 +71,7 @@ export const drawStyledQr = async ({ url, patternType, logoOverlay, logoUrl, isD
           (row < 7 && col < 7) ||
           (row < 7 && col >= moduleCount - 7) ||
           (row >= moduleCount - 7 && col < 7);
+          
         if (isFinderPattern) {
           svgElements += `<rect x="${x}" y="${y}" width="${step}" height="${step}" fill="${fgColor}" />`;
         } else if (patternType === 'dots') {
@@ -96,12 +108,11 @@ export const drawStyledQr = async ({ url, patternType, logoOverlay, logoUrl, isD
             reader.onloadend = () => resolve(reader.result as string);
             reader.readAsDataURL(blob);
           });
-        } catch (e) {
-          console.error(e);
-        }
+        } catch {}
       }
 
-      logoElement += `<image href="${embeddedLogoUrl}" x="${lx + 3}" y="${ly + 3}" width="${centerSize - 6}" height="${centerSize - 6}" preserveAspectRatio="xMidYMid slice" clip-path="url(#logo-clip-path)" />`;
+      const safeLogoUrl = escapeHtml(embeddedLogoUrl);
+      logoElement += `<image href="${safeLogoUrl}" x="${lx + 3}" y="${ly + 3}" width="${centerSize - 6}" height="${centerSize - 6}" preserveAspectRatio="xMidYMid slice" clip-path="url(#logo-clip-path)" />`;
     } else {
       logoElement += `<text x="${size / 2}" y="${size / 2 + 2}" font-family="sans-serif" font-weight="bold" font-size="${centerSize * 0.45}" fill="#00A46C" text-anchor="middle" dominant-baseline="middle">🍴</text>`;
     }

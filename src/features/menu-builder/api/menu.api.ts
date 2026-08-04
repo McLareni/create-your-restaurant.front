@@ -5,11 +5,11 @@ import type { DishFormValues } from '@/features/menu-builder/schemas/dishes.sche
 import type { FullMenuResponse, ReorderItem } from '@/features/menu-builder/types/menu-board.types';
 
 export const menuApi = {
-  getFullMenu: async (restaurantId: number): Promise<FullMenuResponse> => {
-    return await apiClient.get<FullMenuResponse>(`/menu/owner/${restaurantId}`);
+  getFullMenu: async (): Promise<FullMenuResponse> => {
+    return await apiClient.get<FullMenuResponse>('/menu/owner');
   },
 
-  createCategory: async (data: { restaurantId: number; name: string; sortOrder: number }): Promise<CategoryData> => {
+  createCategory: async (data: { name: string; sortOrder: number }): Promise<CategoryData> => {
     return await apiClient.post<CategoryData>('/menu/owner/categories', data);
   },
 
@@ -29,10 +29,13 @@ export const menuApi = {
     return await apiClient.patch<Dish>(`/menu/owner/dishes/${id}`, data);
   },
 
-  uploadDishPhoto: async (id: string, file: File): Promise<Dish> => {
+  updateDishPhotos: async (id: string, files: File[], layout: { type: string, url?: string }[]): Promise<void> => {
     const formData = new FormData();
-    formData.append('photo', file);
-    return await apiClient.patch<Dish>(`/menu/owner/dishes/${id}`, formData);
+    files.forEach((file) => {
+      formData.append('photos', file);
+    });
+    formData.append('layout', JSON.stringify(layout));
+    await apiClient.patch(`/menu/owner/dishes/${id}/photos`, formData);
   },
 
   deleteDish: async (id: string): Promise<void> => {

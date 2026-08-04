@@ -6,6 +6,8 @@ import { Plus, Users, Search, RefreshCw } from 'lucide-react';
 import { StaffCard } from '@/features/staff/components/staffCard';
 import { StaffModalView } from '@/features/staff/components/staffModalView';
 import { useStaffList } from '@/features/staff/hooks/useStaffList';
+import { HasAccess } from '@/shared/components/hasAccess';
+import { PERMISSIONS } from '@/shared/api/menu.constants';
 import type { StaffMember } from '@/features/staff/types/staff.types';
 
 export const StaffList = () => {
@@ -23,14 +25,16 @@ export const StaffList = () => {
           <p className="text-xs md:text-sm text-text-muted mt-1 font-light">{t('staff.subtitle')}</p>
         </div>
         <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-          <Button 
-            variant="brand" 
-            icon={<Plus className="h-4 w-4" />} 
-            onClick={openCreateModal} 
-            className="flex-1 sm:flex-none text-xs md:text-sm h-11 px-5 bg-brand-emerald hover:bg-brand-emerald-hover text-white border border-border-main/10 transition-all active:scale-98 flex items-center justify-center gap-1.5 rounded-xl shadow-md font-bold"
-          >
-            {t('staff.addBtn')}
-          </Button>
+          <HasAccess permission={PERMISSIONS.STAFF_CREATE}>
+            <Button 
+              variant="brand" 
+              icon={<Plus className="h-4 w-4" />} 
+              onClick={openCreateModal} 
+              className="flex-1 sm:flex-none text-xs md:text-sm h-11 px-5 bg-brand-emerald hover:bg-brand-emerald-hover text-white border border-border-main/10 transition-all active:scale-98 flex items-center justify-center gap-1.5 rounded-xl shadow-md font-bold"
+            >
+              {t('staff.addBtn')}
+            </Button>
+          </HasAccess>
         </div>
       </div>
 
@@ -54,7 +58,16 @@ export const StaffList = () => {
             {t('actions.loading')}
           </div>
         ) : staff.length === 0 ? (
-          <EmptyState icon={<Users className="text-text-muted/30" />} title={t('staff.emptyTitle')} description={t('staff.emptyDesc')} actionLabel={t('staff.addBtn')} onAction={openCreateModal} />
+          <EmptyState 
+            icon={<Users className="text-text-muted/30" />} 
+            title={t('staff.emptyTitle')} 
+            description={t('staff.emptyDesc')} 
+            action={
+              <HasAccess permission={PERMISSIONS.STAFF_CREATE}>
+                <Button variant="outline" onClick={openCreateModal}>{t('staff.addBtn')}</Button>
+              </HasAccess>
+            } 
+          />
         ) : (
           <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ scrollbarGutter: 'stable' }}>
             <div className="qr-tables-grid p-2 pt-1 pb-8">

@@ -1,5 +1,3 @@
-'use client';
-
 import React, { useState } from 'react';
 import type { ComponentPropsWithRef, ChangeEvent } from 'react';
 
@@ -20,18 +18,24 @@ export const PriceInput = ({
   disabled,
   ...props
 }: PriceInputProps) => {
-  const [prevValue, setPrevValue] = useState(value);
-  const [displayValue, setDisplayValue] = useState<string>(String(value ?? ''));
+  const [displayValue, setDisplayValue] = useState<string>(() => value === 0 ? '' : String(value ?? ''));
+  const [lastPropValue, setLastPropValue] = useState(value);
 
-  if (value !== prevValue) {
-    setPrevValue(value);
-    if (value !== parseFloat(displayValue)) {
-      setDisplayValue(value === 0 && displayValue === '' ? '' : String(value));
+  // Deriving state in render (Офіційний патерн React для синхронізації пропсів)
+  if (value !== lastPropValue) {
+    setLastPropValue(value);
+    const parsedDisplay = parseFloat(displayValue);
+    if (value !== parsedDisplay || isNaN(parsedDisplay)) {
+      setDisplayValue(value === 0 ? '' : String(value));
     }
   }
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value.replace(',', '.');
+    let raw = e.target.value.replace(',', '.');
+    if (raw.length > 1 && raw.startsWith('0') && !raw.startsWith('0.')) {
+      raw = raw.replace(/^0+/, '');
+      if (raw === '') raw = '0';
+    }
     if (raw === '') {
       setDisplayValue('');
       onChange(0);

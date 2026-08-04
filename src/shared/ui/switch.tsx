@@ -1,6 +1,6 @@
 'use client';
 
-import { ButtonHTMLAttributes } from 'react';
+import type { ButtonHTMLAttributes } from 'react';
 
 interface SwitchProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'onChange'> {
   checked: boolean;
@@ -32,7 +32,7 @@ export const Switch = ({
         disabled={disabled}
         onClick={() => onChange(!checked)}
         className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-copper focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-brand-espresso ${
-          checked ? 'bg-brand-copper' : 'bg-brand-gray/30 dark:bg-brand-gray/50'
+          checked ? 'bg-brand-copper' : 'bg-neutral-300 dark:bg-neutral-600'
         } ${className}`}
         {...props}
       >

@@ -11,9 +11,8 @@ export const useModifierGroupsQuery = () => {
 
   return useQuery<ModifierGroup[]>({
     queryKey: QUERY_KEYS.modifierGroups(restaurantId),
-    queryFn: () => {
-      if (!restaurantId) throw new Error('Restaurant ID is required');
-      return modifiersApi.getGroups(restaurantId);
+    queryFn: async () => {
+      return modifiersApi.getGroups();
     },
     enabled: !!restaurantId,
   });

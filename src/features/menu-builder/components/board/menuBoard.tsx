@@ -12,12 +12,14 @@ import { DishModal } from '@/features/menu-builder/components/board/modals/dish-
 import { DishCard } from '@/features/menu-builder/components/board/components/dishCard';
 import { DishDetailsModal } from '@/features/menu-builder/components/board/modals/DishDetailsModal';
 import { useMenuBoard } from '@/features/menu-builder/hooks/board/useMenuBoard';
+import { usePermissions } from '@/shared/hooks/usePermissions';
 import type { Dish } from '@/features/menu-builder/types/dishes.types';
 import type { FullCategory } from '@/features/menu-builder/types/menu-board.types';
 
 const MenuBoardContent = () => {
   const board = useMenuBoard();
   const dnd = useMenuDnd();
+  const { canCreateMenu, canEditMenu, canDeleteMenu } = usePermissions();
   const [viewingDish, setViewingDish] = useState<Dish | null>(null);
 
   if (board.isLoading) {
@@ -37,14 +39,16 @@ const MenuBoardContent = () => {
             {board.t('menu.constructor.categories.title')}
           </h2>
         </div>
-        <button 
-          type="button"
-          onClick={() => board.categoryModal.handleOpenCategoryModal(undefined)} 
-          className="h-10 px-4 text-xs font-bold text-white bg-brand-emerald hover:bg-brand-emerald-hover rounded-xl flex items-center justify-center gap-1.5 shadow-md border border-brand-emerald/10 cursor-pointer transition-all active:scale-98 select-none tracking-wide"
-        >
-          <Plus className="h-4 w-4" />
-          {board.t('menu.constructor.categories.addBtn')}
-        </button>
+        {canCreateMenu && (
+          <button 
+            type="button"
+            onClick={() => board.categoryModal.handleOpenCategoryModal(undefined)} 
+            className="h-10 px-4 text-xs font-bold text-white bg-brand-emerald hover:bg-brand-emerald-hover rounded-xl flex items-center justify-center gap-1.5 shadow-md border border-brand-emerald/10 cursor-pointer transition-all active:scale-98 select-none tracking-wide"
+          >
+            <Plus className="h-4 w-4" />
+            {board.t('menu.constructor.categories.addBtn')}
+          </button>
+        )}
       </div>
 
       {board.categories.length === 0 ? (
@@ -52,8 +56,8 @@ const MenuBoardContent = () => {
           icon={<LayoutList className="h-6 w-6 text-brand-emerald" />}
           title={board.t('menu.constructor.categories.emptyTitle')}
           description={board.t('menu.constructor.categories.emptyDesc')}
-          actionLabel={board.t('menu.constructor.categories.addBtn')}
-          onAction={() => board.categoryModal.handleOpenCategoryModal(undefined)}
+          actionLabel={canCreateMenu ? board.t('menu.constructor.categories.addBtn') : undefined}
+          onAction={canCreateMenu ? () => board.categoryModal.handleOpenCategoryModal(undefined) : undefined}
         />
       ) : (
         <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
@@ -88,6 +92,8 @@ const MenuBoardContent = () => {
               onView={() => {}}
               isOverlay={true} 
               isLiveDnd={true}
+              canEdit={canEditMenu}
+              canDelete={canDeleteMenu}
             />
           </div>
         ) : null}

@@ -1,5 +1,3 @@
-'use client';
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { dishesApi } from '@/features/menu-builder/api/dishes.api';
 import { menuApi } from '@/features/menu-builder/api/menu.api';
@@ -16,7 +14,7 @@ export const useDishesList = () => {
     queryKey: QUERY_KEYS.fullMenu(restaurantId),
     queryFn: () => {
       if (!restaurantId) throw new Error('Restaurant ID is required');
-      return menuApi.getFullMenu(restaurantId);
+      return menuApi.getFullMenu();
     },
     enabled: !!restaurantId,
     select: (data) => data.categories?.flatMap((cat) => cat.dishes) || [],
@@ -39,7 +37,7 @@ export const useDishesLookups = (type: 'allergens' | 'tags') => {
     queryKey,
     queryFn: () => {
       if (!restaurantId) throw new Error('Restaurant ID is required');
-      return type === 'allergens' ? dishesApi.getAllergensLookup(restaurantId) : dishesApi.getTagsLookup(restaurantId);
+      return type === 'allergens' ? dishesApi.getAllergensLookup() : dishesApi.getTagsLookup();
     },
     enabled: !!restaurantId,
   });
@@ -47,7 +45,7 @@ export const useDishesLookups = (type: 'allergens' | 'tags') => {
   const createItem = useMutation({
     mutationFn: (name: string) => {
       if (!restaurantId) throw new Error('Restaurant ID is required');
-      return type === 'allergens' ? dishesApi.createAllergenLookup(restaurantId, name) : dishesApi.createTagLookup(restaurantId, name);
+      return type === 'allergens' ? dishesApi.createAllergenLookup(name) : dishesApi.createTagLookup(name);
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey });
@@ -60,7 +58,7 @@ export const useDishesLookups = (type: 'allergens' | 'tags') => {
   const deleteItem = useMutation({
     mutationFn: (name: string) => {
       if (!restaurantId) throw new Error('Restaurant ID is required');
-      return type === 'allergens' ? dishesApi.deleteAllergenLookup(restaurantId, name) : dishesApi.deleteTagLookup(restaurantId, name);
+      return type === 'allergens' ? dishesApi.deleteAllergenLookup(name) : dishesApi.deleteTagLookup(name);
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey });

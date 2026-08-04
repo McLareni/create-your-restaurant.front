@@ -55,50 +55,57 @@ export const QrPrintSection = (props: QrPrintSectionProps) => {
           return (
             <div key={table.id} className="print-card-item">
               <div 
-                className="flex flex-col items-center justify-between bg-brand-espresso text-brand-cream p-8 rounded-3xl text-center relative overflow-hidden shadow-xl"
+                className="pt-4 px-5 pb-5 flex flex-col justify-between bg-white border border-solid border-neutral-300 rounded-md select-none relative text-left"
                 style={{
-                  width: '280px',
-                  height: '420px',
+                  width: '240px',
+                  height: '360px',
                   printColorAdjust: 'exact',
-                  WebkitPrintColorAdjust: 'exact'
+                  WebkitPrintColorAdjust: 'exact',
+                  boxSizing: 'border-box'
                 }}
               >
-                <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-brand-emerald/40 m-4 rounded-tl-md" />
-                <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-brand-emerald/40 m-4 rounded-tr-md" />
-                <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-brand-emerald/40 m-4 rounded-bl-md" />
-                <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-brand-emerald/40 m-4 rounded-tr-md" />
-                
-                <div className="bg-white p-4 rounded-2xl shadow-md flex items-center justify-center pt-2 w-48 h-48 shrink-0">
-                  {printableUrl ? (
-                    <Image src={printableUrl} alt={`${t('qr.table')} ${table.tableNumber}`} width={160} height={160} unoptimized className="w-40 h-40 object-contain block rounded-lg" />
-                  ) : (
-                    <div className="w-40 h-40 bg-brand-cream rounded-xl flex items-center justify-center text-xs text-brand-gray font-medium">
-                      {t('qr.print.generating')}
-                    </div>
-                  )}
-                </div>
-                
-                <div className="w-full flex flex-col items-center py-2">
-                  <h2 className="text-3xl font-bold tracking-wide text-white">
-                    {t('qr.table')} {table.tableNumber}
-                  </h2>
-                  {table.type && (
-                    <span className="mt-2 text-[10px] font-bold uppercase tracking-widest text-brand-emerald bg-brand-mocha border border-brand-emerald/20 px-3 py-1 rounded-full">
-                      {zoneLabel}
-                    </span>
-                  )}
-                </div>
-                
-                <div className="w-full flex flex-col items-center pb-2">
-                  <p className="text-xs text-brand-cream/90 max-w-50 leading-relaxed">
-                    {t('qr.print.scanHint')}
-                  </p>
-                  <div className="w-8 h-px bg-brand-emerald/30 my-3" />
-                  <p className="text-[9px] text-brand-gray uppercase tracking-widest font-mono">
+                <div className="flex items-center justify-between w-full h-7 shrink-0">
+                  <span className="text-[10px] text-neutral-400 font-mono tracking-widest uppercase">
                     {t('brandName')}
-                  </p>
+                  </span>
                 </div>
 
+                <div className="flex flex-col items-center justify-center flex-1 my-1.5 overflow-hidden">
+                  <div className="relative rounded-md bg-white p-3.5 w-34 h-34 flex items-center justify-center shrink-0 border border-solid border-neutral-200 shadow-xs">
+                    {printableUrl ? (
+                      <Image 
+                        src={printableUrl} 
+                        alt={`${t('qr.table')} ${table.tableNumber}`} 
+                        width={108} 
+                        height={108} 
+                        unoptimized 
+                        className="object-contain rounded-md block select-none pointer-events-none" 
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-neutral-100 rounded-md flex items-center justify-center text-[10px] text-neutral-400 font-medium">
+                        {t('qr.print.generating')}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-4 text-center w-full max-w-50 shrink-0">
+                    <h3 className="text-2xl font-bold tracking-tight text-neutral-900 leading-none truncate">
+                      {table.tableNumber}
+                    </h3>
+                    
+                    {table.type && (
+                      <div className="mt-3 inline-flex items-center justify-center px-2.5 py-0.5 rounded-md bg-neutral-100 border border-solid border-neutral-200 text-[11px] font-medium text-neutral-600 truncate max-w-full">
+                        {zoneLabel}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-solid border-neutral-200 flex items-center justify-between w-full shrink-0">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">
+                    {t('qr.print.scanHint')}
+                  </span>
+                </div>
               </div>
             </div>
           );

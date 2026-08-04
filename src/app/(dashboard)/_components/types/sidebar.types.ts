@@ -1,13 +1,7 @@
-import { MenuItem } from '@/shared/hooks/useNavigation';
+import { MenuItem, SubMenuItem } from '@/shared/hooks/useNavigation';
 import type { MouseEvent } from 'react';
 
 export type UserRole = 'OWNER' | 'STAFF' | 'CUSTOMER';
-
-export interface SubMenuItem {
-  id: string;
-  href: string;
-  label: string;
-}
 
 export interface SidebarRestaurant {
   id: string | number;
@@ -26,6 +20,18 @@ export interface SidebarUserProfile {
   restaurants?: SidebarRestaurant[];
 }
 
+export interface ExtendedSubMenuItem extends SubMenuItem {
+  isDisabled?: boolean;
+  moduleKey?: string;
+}
+
+export interface ExtendedMenuItem extends Omit<MenuItem, 'subItems'> {
+  isDisabled?: boolean;
+  subItems?: ExtendedSubMenuItem[];
+  href?: string;
+  onClick?: (e?: MouseEvent) => void;
+}
+
 export interface SidebarState {
   t: (key: string) => string;
   pathname: string;
@@ -33,7 +39,7 @@ export interface SidebarState {
   logout: () => Promise<void>;
   activeRestaurant: SidebarRestaurant | null;
   restaurants: SidebarRestaurant[];
-  menuGroups: MenuItem[][];
+  menuGroups: ExtendedMenuItem[][];
   isOrgDropdownOpen: boolean;
   setIsOrgDropdownOpen: (value: boolean) => void;
   expandedMenus: Record<string, boolean>;

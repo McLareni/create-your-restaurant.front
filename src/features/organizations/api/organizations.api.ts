@@ -1,6 +1,6 @@
 import { apiClient } from '@/shared/api/client';
-import { CreateOrganizationValues } from '../schemas/organization.schema';
-import { CheckSlugResponse } from '../types/organization.types';
+import type { CreateOrganizationValues } from '@/features/organizations/schemas/organization.schema';
+import type { CheckSlugResponse } from '@/features/organizations/types/organization.types';
 
 export const organizationApi = {
   checkSlug: (slug: string) => {
@@ -28,6 +28,10 @@ export const organizationApi = {
       imageUrl: data.imageUrl || null,
     };
 
-    return apiClient.post('/restaurants', payload);
+    return apiClient.post<{ message: string; restaurant: { id: number } }>('/restaurants', payload);
   },
+
+  reorder: (ids: number[]) => {
+    return apiClient.patch('/restaurants/reorder', { ids });
+  }
 };

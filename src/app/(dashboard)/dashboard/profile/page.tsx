@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useUserStore } from '@/shared/store/useUserStore';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { Button, Card } from '@/shared/ui';
+import { PageLoader } from '@/shared/ui/pageLoader';
 import { User as UserIcon, Mail, Phone } from 'lucide-react';
 import type { UserProfileDto } from './types/profile.types';
 
@@ -13,11 +14,7 @@ export default function ProfilePage() {
   const logout = useUserStore((state) => state.logout);
 
   if (!user) {
-    return (
-      <div className="flex h-full items-center justify-center p-12 text-text-muted font-medium animate-pulse">
-        {t('actions.loading')}
-      </div>
-    );
+    return <PageLoader />;
   }
 
   return (

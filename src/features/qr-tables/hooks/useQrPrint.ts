@@ -18,39 +18,37 @@ export const useQrPrint = ({ tables, selectedIds }: QrPrintSectionProps) => {
     if (currentTablesToPrint.length === 0) return;
 
     const loadAllPrintCodes = async () => {
-      try {
-        const promises = currentTablesToPrint.map(async (table) => {
-          if (!table.qrUrl) return null;
+      const promises = currentTablesToPrint.map(async (table) => {
+        if (!table.qrUrl) return null;
 
-          const style = getQrStyle(table.id);
-          
-          const dataUrl = await drawStyledQr({
-            url: table.qrUrl,
-            patternType: style.patternType,
-            logoOverlay: style.logoOverlay,
-            logoUrl: restaurantImageUrl,
-            isDark: true,
-          });
-
-          return { id: table.id, dataUrl };
+        const style = getQrStyle(table.id);
+        
+        const dataUrl = await drawStyledQr({
+          url: table.qrUrl,
+          patternType: style.patternType,
+          logoOverlay: style.logoOverlay,
+          logoUrl: restaurantImageUrl,
+          isDark: true,
         });
 
-        const results = await Promise.all(promises);
-        const compiledImages: Record<string, string> = {};
+        return { id: table.id, dataUrl };
+      });
 
-        results.forEach((res) => {
-          if (res) {
-            compiledImages[res.id] = res.dataUrl;
-          }
-        });
+      const settledResults = await Promise.allSettled(promises);
+      const compiledImages: Record<string, string> = {};
 
-        if (isCurrent) {
-          setPrintQrImages(compiledImages);
+      settledResults.forEach((res) => {
+        if (res.status === 'fulfilled' && res.value) {
+          compiledImages[res.value.id] = res.value.dataUrl;
         }
-      } catch {}
+      });
+
+      if (isCurrent) {
+        setPrintQrImages(compiledImages);
+      }
     };
 
-    loadAllPrintCodes();
+    void loadAllPrintCodes();
 
     return () => {
       isCurrent = false;

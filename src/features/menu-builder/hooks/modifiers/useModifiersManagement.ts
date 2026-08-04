@@ -2,6 +2,7 @@
 
 import { useState, startTransition } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { useActiveRestaurantId } from '@/shared/hooks/useActiveRestaurantId';
 import { modifiersApi } from '@/features/menu-builder/api/modifiers.api';
@@ -10,12 +11,12 @@ import { useModifierGroupsQuery } from '@/features/menu-builder/hooks/modifiers/
 import { QUERY_KEYS } from '@/shared/api/query-keys';
 import { useAppActionState } from '@/shared/hooks/useAppActionState';
 import type { ModifierGroup, ModifierOption, ModifierTabDeleteTarget, OptionFormState, CreateModifierGroupDTO, UpdateModifierGroupDTO } from '@/features/menu-builder/types/modifiers.types';
-import toast from 'react-hot-toast';
 
 export const useModifiersManagement = () => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
   const restaurantId = useActiveRestaurantId();
+  
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
   const [editingGroup, setEditingGroup] = useState<ModifierGroup | null>(null);
@@ -25,6 +26,7 @@ export const useModifiersManagement = () => {
   const [activeGroupId, setActiveGroupId] = useState<string | null>(null);
   const [optionForm, setOptionForm] = useState<OptionFormState>(INITIAL_OPTION_FORM);
   const [deleteTarget, setDeleteTarget] = useState<ModifierTabDeleteTarget | null>(null);
+  
   const { data: groups = [], isLoading: isGroupsLoading } = useModifierGroupsQuery();
 
   const toggleGroup = (id: string): void => {
@@ -32,10 +34,7 @@ export const useModifiersManagement = () => {
   };
 
   const createGroupMutation = useMutation({
-    mutationFn: (data: CreateModifierGroupDTO) => {
-      if (!restaurantId) throw new Error('Restaurant ID is required');
-      return modifiersApi.createGroup(restaurantId, data);
-    },
+    mutationFn: (data: CreateModifierGroupDTO) => modifiersApi.createGroup(data),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.modifierGroups(restaurantId) });
       toast.success(t('menu.constructor.modifiers.notifications.createGroupSuccess'));
@@ -43,10 +42,7 @@ export const useModifiersManagement = () => {
   });
 
   const updateGroupMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateModifierGroupDTO }) => {
-      if (!restaurantId) throw new Error('Restaurant ID is required');
-      return modifiersApi.updateGroup(restaurantId, id, data);
-    },
+    mutationFn: ({ id, data }: { id: string; data: UpdateModifierGroupDTO }) => modifiersApi.updateGroup(id, data),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.modifierGroups(restaurantId) });
       toast.success(t('menu.constructor.modifiers.notifications.updateGroupSuccess'));
@@ -54,10 +50,7 @@ export const useModifiersManagement = () => {
   });
 
   const deleteGroupMutation = useMutation({
-    mutationFn: (id: string) => {
-      if (!restaurantId) throw new Error('Restaurant ID is required');
-      return modifiersApi.deleteGroup(restaurantId, id);
-    },
+    mutationFn: (id: string) => modifiersApi.deleteGroup(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.modifierGroups(restaurantId) });
       toast.success(t('menu.constructor.modifiers.notifications.deleteSuccess'));
@@ -73,16 +66,13 @@ export const useModifiersManagement = () => {
     async (formData) => {
       const name = (formData.get('name') as string || '').trim();
       const isRequired = formData.get('isRequired') === 'on';
-      
       const minSelectionsRaw = parseInt(formData.get('minSelections') as string, 10);
       const minSelections = isNaN(minSelectionsRaw) ? 0 : minSelectionsRaw;
-      
       const maxSelectionsRaw = formData.get('maxSelections') as string;
       const maxSelectionsParsed = maxSelectionsRaw ? parseInt(maxSelectionsRaw, 10) : null;
-  
       const maxSelections = (maxSelectionsParsed === null || isNaN(maxSelectionsParsed)) ? null : maxSelectionsParsed;
 
-      const validationPayload = {
+      const rawPayload = {
         name,
         isRequired,
         minSelections: isRequired && minSelections < 1 ? 1 : minSelections,
@@ -90,11 +80,12 @@ export const useModifiersManagement = () => {
         options: editingGroup ? (editingGroup.options || []) : [],
       };
 
-      modifierGroupSchema.parse(validationPayload);
+      const parsedPayload = modifierGroupSchema.parse(rawPayload);
+
       if (editingGroup) {
-        await updateGroupMutation.mutateAsync({ id: editingGroup.id, data: validationPayload as UpdateModifierGroupDTO });
+        await updateGroupMutation.mutateAsync({ id: editingGroup.id, data: parsedPayload as UpdateModifierGroupDTO });
       } else {
-        await createGroupMutation.mutateAsync(validationPayload as CreateModifierGroupDTO);
+        await createGroupMutation.mutateAsync(parsedPayload as CreateModifierGroupDTO);
       }
     },
     { t, onSuccess: () => setIsGroupModalOpen(false) }
@@ -116,12 +107,16 @@ export const useModifiersManagement = () => {
     if (!activeGroupId) return;
     const group = groups.find((g) => g.id === activeGroupId);
     if (!group) return;
+    
     const newOptionPayload = {
       name: optionForm.name,
       price: parseFloat(optionForm.price) || 0,
       isAvailable: optionForm.isAvailable,
     };
-    if (!modifierOptionSchema.safeParse(newOptionPayload).success) {
+    
+    const validationResult = modifierOptionSchema.safeParse(newOptionPayload);
+    
+    if (!validationResult.success) {
       toast.error(t('menu.constructor.modifiers.notifications.formValidation'));
       return;
     }
@@ -130,9 +125,9 @@ export const useModifiersManagement = () => {
     let updatedOptions = currentOptions.map(opt => ({ ...opt }));
 
     if (editingOption) {
-      updatedOptions = updatedOptions.map((opt) => (opt.id === editingOption.id ? { ...opt, ...newOptionPayload } : opt));
+      updatedOptions = updatedOptions.map((opt) => (opt.id === editingOption.id ? { ...opt, ...validationResult.data } : opt));
     } else {
-      updatedOptions.push({ id: `temp-${Date.now()}`, ...newOptionPayload });
+      updatedOptions.push({ id: `temp-${Date.now()}`, ...validationResult.data });
     }
 
     startTransition(async () => {
@@ -149,7 +144,7 @@ export const useModifiersManagement = () => {
         });
         setIsOptionModalOpen(false);
       } catch {
-        toast.error(t('menu.constructor.modifiers.notifications.error'));
+        toast.error(t('errors.unknown'));
       }
     });
   };
@@ -179,12 +174,13 @@ export const useModifiersManagement = () => {
         }
         setDeleteTarget(null);
       } catch {
-        toast.error(t('menu.constructor.modifiers.notifications.error'));
+        toast.error(t('errors.unknown'));
       }
     });
   };
 
   const isMutationPending = createGroupMutation.isPending || updateGroupMutation.isPending || deleteGroupMutation.isPending || isGroupPending;
+  
   return {
     t,
     groups,

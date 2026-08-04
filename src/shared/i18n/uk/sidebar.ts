@@ -1,4 +1,9 @@
 export const sidebar = {
+  items: {
+    home: "Головна",
+    marketplace: "Маркетплейс модулів",
+    billing: "Тарифи та Оплата"
+  },
   orgSelector: {
     switch: "Змінити заклад",
     addNew: "Додати новий заклад",

@@ -6,8 +6,9 @@ export const formatZodErrors = (
 ): Record<string, string> => {
   const fieldErrors: Record<string, string> = {};
   error.issues.forEach((issue) => {
-    const pathKey = issue.path.join('.');
-    if (pathKey) {
+    const pathKey = issue.path.length > 0 ? issue.path.join('.') : 'global';
+    
+    if (!fieldErrors[pathKey]) {
       fieldErrors[pathKey] = t(issue.message);
     }
   });

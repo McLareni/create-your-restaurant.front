@@ -1,4 +1,4 @@
-import { useActionState, useRef, useEffect } from 'react';
+import { useActionState, useRef, useLayoutEffect } from 'react';
 import { ZodError } from 'zod';
 import { formatZodErrors } from '@/shared/utils/validation';
 import toast from 'react-hot-toast';
@@ -17,9 +17,9 @@ export const useAppActionState = (
 ) => {
   const optionsRef = useRef(options);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     optionsRef.current = options;
-  }, [options]);
+  });
 
   const wrappedAction = async (_prevState: ActionState, formData: FormData): Promise<ActionState> => {
     try {

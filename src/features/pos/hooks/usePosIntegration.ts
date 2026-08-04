@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import { useAccessStore } from '@/shared/store/useAccessStore';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 import { posApi } from '@/features/pos/api/pos.api';
 import { posConnectionSchema } from '@/features/pos/schemas/pos.schemas';
+import { QUERY_KEYS } from '@/shared/api/query-keys';
 import type { PosStatusResponse, UpdatePosSettingsPayload } from '@/features/pos/types/pos.types';
-import toast from 'react-hot-toast';
 
 export const usePosIntegration = () => {
   const { t } = useTranslation();
@@ -24,19 +25,18 @@ export const usePosIntegration = () => {
   const [isEditingToken, setIsEditingToken] = useState(false);
   const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
 
-  const [isTokenPanelOpen, setIsTokenPanelOpen] = useState(true);
-  const [isSettingsPanelOpen, setIsSettingsPanelOpen] = useState(true);
+  const queryKey = QUERY_KEYS.posStatus(restaurantId);
 
   const { data: status, isLoading: isStatusLoading } = useQuery({
-    queryKey: ['pos-status', restaurantId],
-    queryFn: () => posApi.getStatus(restaurantId!),
+    queryKey,
+    queryFn: () => posApi.getStatus(),
     enabled: hasModule && !!restaurantId,
   });
 
   const connectMutation = useMutation({
-    mutationFn: (data: { apiKey: string }) => posApi.connect(restaurantId!, data),
+    mutationFn: (data: { apiKey: string }) => posApi.connect(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pos-status', restaurantId] });
+      void queryClient.invalidateQueries({ queryKey });
       toast.success(t('pos.successTitle'));
       setApiKey('');
       setValidationError(null);
@@ -47,37 +47,38 @@ export const usePosIntegration = () => {
     },
   });
 
-const updateSettingsMutation = useMutation({
-    mutationFn: (data: UpdatePosSettingsPayload) =>
-      posApi.updateSettings(restaurantId!, data),
+  const updateSettingsMutation = useMutation({
+    mutationFn: (data: UpdatePosSettingsPayload) => posApi.updateSettings(data),
     onMutate: async (newSettings: UpdatePosSettingsPayload) => {
-      await queryClient.cancelQueries({ queryKey: ['pos-status', restaurantId] });
-      const previousStatus = queryClient.getQueryData(['pos-status', restaurantId]);
-      queryClient.setQueryData(['pos-status', restaurantId], (old: PosStatusResponse | undefined) => old ? {
+      await queryClient.cancelQueries({ queryKey });
+      const previousStatus = queryClient.getQueryData<PosStatusResponse>(queryKey);
+      
+      queryClient.setQueryData<PosStatusResponse>(queryKey, (old) => old ? {
         ...old,
         ...newSettings,
       } : old);
+      
       return { previousStatus };
     },
     onError: (_err, _newSettings, context) => {
       if (context?.previousStatus) {
-        queryClient.setQueryData(['pos-status', restaurantId], context.previousStatus);
+        queryClient.setQueryData(queryKey, context.previousStatus);
       }
       toast.error(t('auth.errors.defaultError'));
     },
     onSuccess: () => {
-      toast.success(t('common.success') || 'Збережено');
+      toast.success(t('actions.save'));
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['pos-status', restaurantId] });
+      void queryClient.invalidateQueries({ queryKey });
     },
   });
 
   const syncMenuMutation = useMutation({
-    mutationFn: () => posApi.syncMenu(restaurantId!),
+    mutationFn: () => posApi.syncMenu(),
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['pos-status', restaurantId] });
-      queryClient.invalidateQueries({ queryKey: ['fullMenu', restaurantId] });
+      void queryClient.invalidateQueries({ queryKey });
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.fullMenu(restaurantId) });
       toast.success(t('pos.syncSuccess', { categories: data.categoriesCreated, dishes: data.dishesCreated }));
     },
     onError: () => {
@@ -86,10 +87,10 @@ const updateSettingsMutation = useMutation({
   });
 
   const disconnectMutation = useMutation({
-    mutationFn: () => posApi.disconnect(restaurantId!),
+    mutationFn: () => posApi.disconnect(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['pos-status', restaurantId] });
-      toast.success(t('common.success') || 'Відключено');
+      void queryClient.invalidateQueries({ queryKey });
+      toast.success(t('actions.delete'));
       setApiKey('');
       setValidationError(null);
       setIsEditingToken(false);
@@ -150,10 +151,6 @@ const updateSettingsMutation = useMutation({
     setIsEditingToken,
     isDisconnectModalOpen,
     setIsDisconnectModalOpen,
-    isTokenPanelOpen,
-    setIsTokenPanelOpen,
-    isSettingsPanelOpen,
-    setIsSettingsPanelOpen,
     handleNavigateToMarketplace,
     handleConnect,
     handleToggleImportMenu,

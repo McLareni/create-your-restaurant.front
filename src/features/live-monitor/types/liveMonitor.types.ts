@@ -35,3 +35,11 @@ export type LiveMonitorSnapshot = {
   generatedAt: string;
   tables: LiveMonitorTable[];
 };
+
+export type OrdersChangedPayload = {
+  restaurantId: number;
+  changeType: 'created' | 'updated' | 'deleted';
+  orderId: string;
+  emittedAt: string;
+  snapshot: LiveMonitorSnapshot;
+};

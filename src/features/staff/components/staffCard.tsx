@@ -5,12 +5,14 @@ import { Switch } from '@/shared/ui/switch';
 import { Pencil, Trash2, Mail, Phone } from 'lucide-react';
 import Image from 'next/image';
 import type { StaffCardProps } from '@/features/staff/types/staff.types';
+import { SYSTEM_ROLES, PERMISSIONS } from '@/shared/api/menu.constants';
+import { HasAccess } from '@/shared/components/hasAccess';
 
 export const StaffCard = ({ member, onEdit, onDelete, onStatusChange }: StaffCardProps) => {
   const { t } = useTranslation();
   const initials = `${member.firstName?.[0] || ''}${member.lastName?.[0] || ''}`.toUpperCase();
-  
-  const displayRole = ['OWNER', 'STAFF', 'CUSTOMER'].includes(member.role)
+
+  const displayRole = (SYSTEM_ROLES as readonly string[]).includes(member.role)
     ? t(`roles.${member.role}`)
     : member.role;
 
@@ -26,28 +28,32 @@ export const StaffCard = ({ member, onEdit, onDelete, onStatusChange }: StaffCar
         <span className="text-[10px] font-bold text-brand-emerald uppercase tracking-wider bg-brand-emerald/10 px-2.5 py-0.5 rounded-lg border border-brand-emerald/5">
           {displayRole}
         </span>
-        
+
         <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-bg-element/60 dark:bg-neutral-900/40 px-1 py-0.5 rounded-xl border border-neutral-200/20 dark:border-neutral-700/20">
-          <button 
-            type="button"
-            onClick={(e) => { 
-              e.stopPropagation();
-              onEdit(member); 
-            }} 
-            className="p-1.5 rounded-lg text-text-muted hover:text-brand-emerald transition-colors cursor-pointer border-0 bg-transparent"
-          >
-            <Pencil className="h-3.5 w-3.5" />
-          </button>
-          <button 
-            type="button"
-            onClick={(e) => { 
-              e.stopPropagation();
-              onDelete(member.id); 
-            }} 
-            className="p-1.5 rounded-lg text-text-muted hover:text-red-500 transition-colors cursor-pointer border-0 bg-transparent"
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
+          <HasAccess permission={PERMISSIONS.STAFF_UPDATE}>
+            <button 
+              type="button"
+              onClick={(e) => { 
+                e.stopPropagation();
+                onEdit(member); 
+              }} 
+              className="p-1.5 rounded-lg text-text-muted hover:text-brand-emerald transition-colors cursor-pointer border-0 bg-transparent"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </button>
+          </HasAccess>
+          <HasAccess permission={PERMISSIONS.STAFF_DELETE}>
+            <button 
+              type="button"
+              onClick={(e) => { 
+                e.stopPropagation();
+                onDelete(member.id); 
+              }} 
+              className="p-1.5 rounded-lg text-text-muted hover:text-red-500 transition-colors cursor-pointer border-0 bg-transparent"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          </HasAccess>
         </div>
       </div>
 
@@ -61,7 +67,7 @@ export const StaffCard = ({ member, onEdit, onDelete, onStatusChange }: StaffCar
             {initials}
           </div>
         )}
-        
+
         <div className="min-w-0 flex-1">
           <h3 className="text-base font-bold text-text-main truncate leading-tight">
             {member.firstName} {member.lastName}
@@ -88,12 +94,14 @@ export const StaffCard = ({ member, onEdit, onDelete, onStatusChange }: StaffCar
         }`}>
           {member.isActive ? t('staff.statusActive') : t('staff.statusInactive')}
         </span>
-        <Switch 
-          id={`status-switch-${member.id}`}
-          checked={member.isActive} 
-          onChange={(val: boolean) => onStatusChange(member.id, val)} 
-          className={member.isActive ? 'bg-brand-emerald!' : ''}
-        />
+        <HasAccess permission={PERMISSIONS.STAFF_UPDATE} fallback={<span />}>
+          <Switch 
+            id={`status-switch-${member.id}`}
+            checked={member.isActive} 
+            onChange={(val: boolean) => onStatusChange(member.id, val)} 
+            className={member.isActive ? 'bg-brand-emerald!' : ''}
+          />
+        </HasAccess>
       </div>
     </div>
   );

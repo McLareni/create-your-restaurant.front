@@ -5,6 +5,28 @@ import { Card, Button } from '@/shared/ui';
 import { BarChart3, Wallet, ShoppingBag, Percent, TrendingUp, Award } from 'lucide-react';
 import { useAnalytics } from '@/features/analytics/hooks/useAnalytics';
 
+const StatCard = ({ 
+  icon: Icon, 
+  title, 
+  value, 
+  colorClass 
+}: { 
+  icon: React.ElementType; 
+  title: string; 
+  value: string | number; 
+  colorClass: string; 
+}) => (
+  <Card className="p-5! bg-bg-surface border border-solid border-border-main/60 rounded-xl flex items-center gap-4 shadow-table">
+    <div className={`p-3 rounded-xl border border-solid ${colorClass}`}>
+      <Icon className="h-5 w-5" />
+    </div>
+    <div>
+      <span className="block text-[10px] font-bold text-text-muted uppercase tracking-wider">{title}</span>
+      <span className="text-xl font-black text-text-main font-mono mt-0.5 block">{value}</span>
+    </div>
+  </Card>
+);
+
 export const AnalyticsView = () => {
   const state = useAnalytics();
 
@@ -52,35 +74,24 @@ export const AnalyticsView = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Card className="p-5! bg-bg-surface border border-solid border-border-main/60 rounded-xl flex items-center gap-4 shadow-table">
-          <div className="p-3 bg-emerald-500/10 rounded-xl text-emerald-600 dark:text-emerald-400 border border-solid border-emerald-500/10">
-            <Wallet className="h-5 w-5" />
-          </div>
-          <div>
-            <span className="block text-[10px] font-bold text-text-muted uppercase tracking-wider">{state.t('analytics.revenue' as never) || 'Загальна виручка'}</span>
-            <span className="text-xl font-black text-text-main font-mono mt-0.5 block">{state.summary.totalRevenue} ₴</span>
-          </div>
-        </Card>
-
-        <Card className="p-5! bg-bg-surface border border-solid border-border-main/60 rounded-xl flex items-center gap-4 shadow-table">
-          <div className="p-3 bg-blue-500/10 rounded-xl text-blue-600 dark:text-blue-400 border border-solid border-blue-500/10">
-            <ShoppingBag className="h-5 w-5" />
-          </div>
-          <div>
-            <span className="block text-[10px] font-bold text-text-muted uppercase tracking-wider">{state.t('analytics.orders' as never) || 'Кількість замовлень'}</span>
-            <span className="text-xl font-black text-text-main font-mono mt-0.5 block">{state.summary.totalOrders}</span>
-          </div>
-        </Card>
-
-        <Card className="p-5! bg-bg-surface border border-solid border-border-main/60 rounded-xl flex items-center gap-4 shadow-table">
-          <div className="p-3 bg-brand-emerald/10 rounded-xl text-brand-emerald border border-solid border-brand-emerald/10">
-            <Percent className="h-5 w-5" />
-          </div>
-          <div>
-            <span className="block text-[10px] font-bold text-text-muted uppercase tracking-wider">{state.t('analytics.averageCheck' as never) || 'Середній чек'}</span>
-            <span className="text-xl font-black text-text-main font-mono mt-0.5 block">{Math.round(state.summary.averageCheck)} ₴</span>
-          </div>
-        </Card>
+        <StatCard 
+          icon={Wallet} 
+          title={state.t('analytics.revenue' as never) || 'Загальна виручка'} 
+          value={`${state.summary.totalRevenue} ₴`} 
+          colorClass="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/10" 
+        />
+        <StatCard 
+          icon={ShoppingBag} 
+          title={state.t('analytics.orders' as never) || 'Кількість замовлень'} 
+          value={state.summary.totalOrders} 
+          colorClass="bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/10" 
+        />
+        <StatCard 
+          icon={Percent} 
+          title={state.t('analytics.averageCheck' as never) || 'Середній чек'} 
+          value={`${Math.round(state.summary.averageCheck)} ₴`} 
+          colorClass="bg-brand-emerald/10 text-brand-emerald border-brand-emerald/10" 
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
