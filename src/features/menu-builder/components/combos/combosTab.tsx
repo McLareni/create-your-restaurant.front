@@ -1,14 +1,16 @@
 'use client';
 
 import { useCombosManagement } from '@/features/menu-builder/hooks/combos/useCombosManagement';
+import { usePermissions } from '@/shared/hooks/usePermissions';
 import { ConfirmModal, EmptyState } from '@/shared/ui';
 import { PackagePlus, Plus } from 'lucide-react';
-import { Combo } from '@/features/menu-builder/types/combos.types';
+import type { Combo } from '@/features/menu-builder/types/combos.types';
 import { ComboCard } from '@/features/menu-builder/components/combos/comboCard';
 import { ComboModal } from '@/features/menu-builder/components/combos/comboModal';
 
 export const CombosTab = () => {
   const state = useCombosManagement();
+  const { canCreateMenu } = usePermissions();
 
   if (state.isLoading && state.combos.length === 0) {
     return (
@@ -28,15 +30,17 @@ export const CombosTab = () => {
         <h2 className="text-xl font-bold tracking-tight text-text-main">
           {state.t('menu.constructor.combos.title')}
         </h2>
-        <button 
-          type="button"
-          onClick={state.openCreateModal} 
-          disabled={state.isLoading}
-          className="h-10 px-4 text-xs font-bold text-white bg-brand-emerald hover:bg-brand-emerald-hover active:scale-98 rounded-xl flex items-center justify-center gap-1.5 shadow-md border border-brand-emerald/10 cursor-pointer select-none transition-all"
-        >
-          <Plus className="h-4 w-4" />
-          {state.t('menu.constructor.combos.addBtn')}
-        </button>
+        {canCreateMenu && (
+          <button 
+            type="button"
+            onClick={state.openCreateModal} 
+            disabled={state.isLoading}
+            className="h-10 px-4 text-xs font-bold text-white bg-brand-emerald hover:bg-brand-emerald-hover active:scale-98 rounded-xl flex items-center justify-center gap-1.5 shadow-md border border-brand-emerald/10 cursor-pointer select-none transition-all"
+          >
+            <Plus className="h-4 w-4" />
+            {state.t('menu.constructor.combos.addBtn')}
+          </button>
+        )}
       </div>
 
       {state.combos.length === 0 ? (
@@ -44,9 +48,9 @@ export const CombosTab = () => {
           icon={<PackagePlus className="text-text-muted/40" />} 
           title={state.t('menu.constructor.combos.emptyTitle')} 
           description={state.t('menu.constructor.combos.emptyDesc')} 
-          actionLabel={state.t('menu.constructor.combos.addBtn')} 
-          onAction={state.openCreateModal} 
-            />
+          actionLabel={canCreateMenu ? state.t('menu.constructor.combos.addBtn') : undefined} 
+          onAction={canCreateMenu ? state.openCreateModal : undefined} 
+        />
       ) : (
         <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar pb-4" style={{ scrollbarGutter: 'stable' }}>
           <div className="grid gap-5 grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">

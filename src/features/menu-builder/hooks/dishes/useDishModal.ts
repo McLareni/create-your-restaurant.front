@@ -110,11 +110,13 @@ export const useDishModal = ({ createDishAsync, updateDishAsync }: UseDishModalP
         savedDishId = createdDish.id;
       }
 
-      if (gallery.dishPhotoFiles.length > 0 && savedDishId) {
+      const layout = gallery.items.map((item) =>
+        item.file ? { type: 'new' } : { type: 'existing', url: item.url }
+      );
+
+      if (savedDishId) {
         try {
-          for (const file of gallery.dishPhotoFiles) {
-            await menuApi.uploadDishPhoto(savedDishId, file);
-          }
+          await menuApi.updateDishPhotos(savedDishId, gallery.dishPhotoFiles, layout);
         } catch {
           toast.error(t('menu.constructor.dishes.notifications.imageUploadError'));
         }

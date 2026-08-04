@@ -10,8 +10,8 @@ import {
   ChevronDown, Image as ImageIcon, Clock, Share2, MapPin, Check
 } from 'lucide-react';
 import { CreateOrgCard } from '@/features/organizations/components/createOrgCard';
-import { CreateOrgFormProps } from '@/features/organizations/types/organization.types';
-import { CreateOrganizationValues } from '@/features/organizations/schemas/organization.schema';
+import type { CreateOrgFormProps } from '@/features/organizations/types/organization.types';
+import type { CreateOrganizationValues } from '@/features/organizations/schemas/organization.schema';
 
 export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
   const { t } = useTranslation();
@@ -138,7 +138,9 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
                     {t('organization.create.typeLabel')}
                   </span>
                   <div
-                    onClick={() => !isPending && setIsTypeOpen(!isTypeOpen)}
+                    onClick={() => {
+                      if (!isPending) setIsTypeOpen(!isTypeOpen);
+                    }}
                     className={`h-11 w-full bg-bg-main/40 border border-solid text-sm text-text-main px-4 flex items-center justify-between transition-all select-none rounded-xl cursor-pointer hover:border-neutral-400 dark:hover:border-neutral-600 ${
                       isTypeOpen ? 'border-brand-emerald! ring-1 ring-brand-emerald/20 bg-bg-surface!' : 'border-neutral-300 dark:border-neutral-700'
                     } ${errors.type ? 'border-red-500!' : ''}`}
@@ -171,7 +173,12 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
                     {t('organization.create.currencyLabel')}
                   </span>
                   <div
-                    onClick={() => !isPending && setIsTypeOpen(false) || setIsCurrencyOpen(!isCurrencyOpen)}
+                    onClick={() => {
+                      if (!isPending) {
+                        setIsTypeOpen(false);
+                        setIsCurrencyOpen(!isCurrencyOpen);
+                      }
+                    }}
                     className={`h-11 w-full bg-bg-main/40 border border-solid text-sm text-text-main px-4 flex items-center justify-between transition-all select-none rounded-xl cursor-pointer hover:border-neutral-400 dark:hover:border-neutral-600 ${
                       isCurrencyOpen ? 'border-brand-emerald! ring-1 ring-brand-emerald/20 bg-bg-surface!' : 'border-neutral-300 dark:border-neutral-700'
                     } ${errors.currency ? 'border-red-500!' : ''}`}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState, createContext, useContext } from 'react';
+import { useMemo, useState, useCallback, createContext, useContext, useRef } from 'react';
 import type { ReactNode } from 'react';
 import { 
   useSensors, 
@@ -13,6 +13,7 @@ import type { DragStartEvent, DragOverEvent, DragEndEvent } from '@dnd-kit/core'
 import { arrayMove } from '@dnd-kit/sortable';
 import { useMenu } from '@/features/menu-builder/hooks/board/useMenu';
 import { useActiveRestaurantId } from '@/shared/hooks/useActiveRestaurantId';
+import { usePermissions } from '@/shared/hooks/usePermissions';
 import type { Dish } from '@/features/menu-builder/types/dishes.types';
 import type { ReorderItem, FullCategory } from '@/features/menu-builder/types/menu-board.types';
 
@@ -31,19 +32,22 @@ const MenuDndContext = createContext<MenuDndContextType | undefined>(undefined);
 export const MenuDndProvider = ({ children }: { children: ReactNode }) => {
   const restaurantId = useActiveRestaurantId();
   const { categories, updateDish, reorderCategories, reorderDishes } = useMenu();
+  const { canEditMenu } = usePermissions();
 
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeType, setActiveType] = useState<'Category' | 'Dish' | null>(null);
   const [activeDishData, setActiveDishData] = useState<Dish | null>(null);
-  const [dragSourceCategoryId, setDragSourceCategoryId] = useState<string | null>(null);
-  const [dragTargetCategoryId, setDragTargetCategoryId] = useState<string | null>(null);
+  
+  const dragSourceCategoryIdRef = useRef<string | null>(null);
+  const dragTargetCategoryIdRef = useRef<string | null>(null);
+  
   const activationConstraint = useMemo(() => ({ distance: 8 }), []);
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint }),
-    useSensor(KeyboardSensor)
-  );
+  
+  const pointerSensor = useSensor(PointerSensor, { activationConstraint });
+  const keyboardSensor = useSensor(KeyboardSensor);
+  const sensors = useSensors(pointerSensor, keyboardSensor);
 
-  const handleDragStart = (event: DragStartEvent) => {
+  const handleDragStart = useCallback((event: DragStartEvent) => {
     const { active } = event;
     const id = String(active.id);
     const type = active.data?.current?.type as 'Category' | 'Dish' | undefined;
@@ -55,16 +59,16 @@ export const MenuDndProvider = ({ children }: { children: ReactNode }) => {
       const sourceCatId = active.data?.current?.categoryId as string | undefined;
       if (sourceCatId) {
         const strSourceCatId = String(sourceCatId);
-        setDragSourceCategoryId(strSourceCatId);
-        setDragTargetCategoryId(strSourceCatId);
+        dragSourceCategoryIdRef.current = strSourceCatId;
+        dragTargetCategoryIdRef.current = strSourceCatId;
         const cat = categories.find((c: FullCategory) => String(c.id) === strSourceCatId);
         const dish = cat?.dishes?.find((d: Dish) => String(d.id) === id);
         if (dish) setActiveDishData(dish);
       }
     }
-  };
+  }, [categories]);
 
-  const handleDragOver = (event: DragOverEvent) => {
+  const handleDragOver = useCallback((event: DragOverEvent) => {
     const { active, over } = event;
     if (!over || !restaurantId) return;
 
@@ -79,24 +83,25 @@ export const MenuDndProvider = ({ children }: { children: ReactNode }) => {
         targetCatId = over.data?.current?.categoryId as string || null;
       }
 
-      if (!targetCatId || dragTargetCategoryId === targetCatId) return;
-      setDragTargetCategoryId(targetCatId);
+      if (!targetCatId || dragTargetCategoryIdRef.current === targetCatId) return;
+      dragTargetCategoryIdRef.current = targetCatId;
     }
-  };
+  }, [restaurantId]);
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
-    const currentActiveType = activeType;
     
     setActiveId(null);
     setActiveType(null);
     
     if (!over || !restaurantId) {
-      setDragSourceCategoryId(null);
-      setDragTargetCategoryId(null);
+      dragSourceCategoryIdRef.current = null;
+      dragTargetCategoryIdRef.current = null;
       setActiveDishData(null);
       return;
     }
+
+    const currentActiveType = active.data?.current?.type;
     
     if (currentActiveType === 'Category' && over.data?.current?.type === 'Category' && active.id !== over.id) {
       const oldIndex = categories.findIndex((c: FullCategory) => String(c.id) === String(active.id));
@@ -110,10 +115,10 @@ export const MenuDndProvider = ({ children }: { children: ReactNode }) => {
       }
     }
     
-    if (currentActiveType === 'Dish' && dragSourceCategoryId && dragTargetCategoryId) {
+    if (currentActiveType === 'Dish' && dragSourceCategoryIdRef.current && dragTargetCategoryIdRef.current) {
       const strActiveId = String(active.id);
-      if (dragSourceCategoryId !== dragTargetCategoryId) {
-        const targetCategory = categories.find((c: FullCategory) => String(c.id) === dragTargetCategoryId);
+      if (dragSourceCategoryIdRef.current !== dragTargetCategoryIdRef.current) {
+        const targetCategory = categories.find((c: FullCategory) => String(c.id) === dragTargetCategoryIdRef.current);
         const strOverId = String(over.id);
         const overIndex = targetCategory?.dishes 
           ? targetCategory.dishes.findIndex((d: Dish) => String(d.id) === strOverId) 
@@ -121,16 +126,16 @@ export const MenuDndProvider = ({ children }: { children: ReactNode }) => {
         const insertIndex = overIndex === -1 ? (targetCategory?.dishes?.length || 0) : overIndex;
         updateDish({
           id: strActiveId,
-          data: { categoryId: dragTargetCategoryId, sortOrder: insertIndex },
+          data: { categoryId: dragTargetCategoryIdRef.current, sortOrder: insertIndex },
         });
       } else {
         const strOverId = String(over.id);
-        const category = categories.find((c: FullCategory) => String(c.id) === dragSourceCategoryId);
+        const category = categories.find((c: FullCategory) => String(c.id) === dragSourceCategoryIdRef.current);
         if (category && active.id !== over.id) {
           const oldIndex = category.dishes.findIndex((d: Dish) => String(d.id) === strActiveId);
           let newIndex = category.dishes.findIndex((d: Dish) => String(d.id) === strOverId);
           
-          if (newIndex === -1 && strOverId === dragSourceCategoryId) {
+          if (newIndex === -1 && strOverId === dragSourceCategoryIdRef.current) {
             newIndex = 0;
           }
           
@@ -144,14 +149,24 @@ export const MenuDndProvider = ({ children }: { children: ReactNode }) => {
       }
     }
     
-    setDragSourceCategoryId(null);
-    setDragTargetCategoryId(null);
+    dragSourceCategoryIdRef.current = null;
+    dragTargetCategoryIdRef.current = null;
     setActiveDishData(null);
-  };
+  }, [categories, restaurantId, reorderCategories, updateDish, reorderDishes]);
+
+  const contextValue = useMemo(() => ({
+    activeId,
+    activeType,
+    activeDishData,
+    sensors,
+    handleDragStart,
+    handleDragOver,
+    handleDragEnd
+  }), [activeId, activeType, activeDishData, sensors, handleDragStart, handleDragOver, handleDragEnd]);
 
   return (
-    <MenuDndContext.Provider value={{ activeId, activeType, activeDishData, sensors, handleDragStart, handleDragOver, handleDragEnd }}>
-      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
+    <MenuDndContext.Provider value={contextValue}>
+      <DndContext sensors={canEditMenu ? sensors : []} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
         {children}
       </DndContext>
     </MenuDndContext.Provider>
@@ -160,6 +175,6 @@ export const MenuDndProvider = ({ children }: { children: ReactNode }) => {
 
 export const useMenuDnd = () => {
   const context = useContext(MenuDndContext);
-  if (!context) throw new Error();
+  if (!context) throw new Error('useMenuDnd must be used within a MenuDndProvider');
   return context;
 };

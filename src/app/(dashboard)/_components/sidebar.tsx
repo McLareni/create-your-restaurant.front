@@ -1,311 +1,298 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useEffect, useState } from 'react';
+import type { MouseEvent } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Modal, ConfirmModal } from '@/shared/ui';
-import { ChevronsUpDown, Plus, Lock, LogOut, Store, ChevronDown, Trash2, Loader2 } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { useSidebarLogic } from '@/app/(dashboard)/_components/hooks/useSidebar';
-import { useClickOutside } from '@/shared/hooks/useClickOutside';
-import type { MouseEvent } from 'react';
-import type { SidebarRestaurant } from '@/app/(dashboard)/_components/types/sidebar.types';
-import type { MenuItem } from '@/shared/hooks/useNavigation';
+import { Button, Modal } from '@/shared/ui';
+import { 
+  ChevronDown, LogOut, Plus, Trash2, 
+  Lock, AlertTriangle, Sun, Moon, GripVertical
+} from 'lucide-react';
+
+interface SidebarNavigationItem {
+  id: string;
+  title: string;
+  path: string;
+  icon: React.ComponentType<{ className?: string }>;
+  isLocked: boolean;
+  onClick?: (e: MouseEvent) => void;
+}
+
+interface SidebarNavigationGroup {
+  id: string;
+  title: string;
+  items: SidebarNavigationItem[];
+}
 
 export const Sidebar = () => {
-  const board = useSidebarLogic();
-  const orgDropdownContainerRef = useRef<HTMLDivElement>(null);
+  const sidebar = useSidebarLogic();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  const menuGroups = sidebar.menuGroups as SidebarNavigationGroup[];
 
-  useClickOutside(orgDropdownContainerRef, () => {
-    if (board.isOrgDropdownOpen) {
-      board.setIsOrgDropdownOpen(false);
-    }
-  });
+  useEffect(() => {
+    let isMounted = true;
+    Promise.resolve().then(() => {
+      if (isMounted) {
+        setMounted(true);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const isDark = theme === 'dark';
 
   return (
-    <aside className="flex w-72 flex-col bg-bg-main text-text-main border-r border-border-main h-screen sticky top-0 transition-all duration-300 z-30">
-      <div ref={orgDropdownContainerRef} className="relative p-4 border-b border-border-main">
-        <button 
-          type="button"
-          onClick={() => board.setIsOrgDropdownOpen(!board.isOrgDropdownOpen)} 
-          className="flex w-full items-center justify-between rounded-xl bg-bg-surface p-3 border border-border-main transition-all duration-300 hover:border-brand-copper/30 shadow-xs outline-none cursor-pointer"
-        >
-          <div className="flex items-center gap-3 overflow-hidden flex-1">
-            <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-copper text-white text-base font-bold shadow-sm overflow-hidden">
-              {board.activeRestaurant?.imageUrl ? (
-                <Image 
-                  src={board.activeRestaurant.imageUrl} 
-                  alt={board.currentOrgName} 
-                  fill 
-                  className="object-cover"
-                />
-              ) : (
-                board.orgInitial
-              )}
-            </div>
-            <div className="flex flex-col items-start truncate text-left flex-1">
-              <span className="text-[10px] text-text-muted font-semibold uppercase tracking-wider">
-                {board.t('sidebar.orgSelector.switch')}
-              </span>
-              <span className="truncate text-sm font-semibold tracking-tight w-full">
-                {board.currentOrgName}
-              </span>
-            </div>
-          </div>
-          <ChevronsUpDown className="h-4 w-4 text-text-muted shrink-0 ml-2" />
-        </button>
-
-        <div className={`absolute left-4 right-4 top-full z-50 mt-2 rounded-xl border border-border-main bg-bg-surface shadow-xl max-h-64 overflow-y-auto custom-scrollbar transition-all duration-300 ${
-          board.isOrgDropdownOpen 
-            ? 'opacity-100 translate-y-0 scale-100 pointer-events-auto' 
-            : 'opacity-0 -translate-y-2 scale-95 pointer-events-none'
-        }`}>
-          <div className="p-1.5 flex flex-col gap-1">
-            {board.restaurants.map((res: SidebarRestaurant, index: number) => {
-              const isLocked = index >= board.maxAllowed;
-              const isActive = String(board.activeRestaurant?.id) === String(res.id);
-
-              return (
-                <div 
-                  key={res.id} 
-                  className={`flex w-full items-center justify-between rounded-lg p-1 border transition-all duration-300 ${
-                    isActive 
-                      ? 'bg-bg-hover border border-brand-copper/20' 
-                      : isLocked
-                        ? 'bg-neutral-950/20 border-transparent opacity-40 select-none'
-                        : 'border border-transparent hover:bg-bg-hover/40'
-                  }`}
-                >
-                  <button 
-                    type="button"
-                    onClick={(e: MouseEvent) => board.handleRestaurantSwitch(e, res, isLocked)} 
-                    className={`flex flex-1 items-center gap-2.5 p-1.5 text-left overflow-hidden cursor-pointer text-sm font-medium transition-colors duration-300 ${
-                      isActive 
-                        ? 'text-brand-copper font-bold' 
-                        : isLocked 
-                          ? 'text-text-muted cursor-default' 
-                          : 'text-text-main/90'
-                    }`}
-                  >
-                    <div className="relative flex h-5 w-5 shrink-0 items-center justify-center rounded bg-brand-copper/10 overflow-hidden">
-                      {res.imageUrl ? (
-                        <Image src={res.imageUrl} alt={res.name} fill className="object-cover" />
-                      ) : (
-                        <Store className="h-3 w-3 text-brand-copper shrink-0" />
-                      )}
-                    </div>
-                    <span className="truncate flex-1">{res.name}</span>
-                    {isLocked && <Lock className="h-3 w-3 text-amber-500 shrink-0" />}
-                  </button>
-
-                  <button 
-                    type="button"
-                    onClick={(e: MouseEvent) => board.handleDeleteRestaurantClick(e, res)} 
-                    className="p-1.5 text-text-muted hover:text-red-500 transition-all duration-300 rounded-md hover:bg-red-500/10 shrink-0 cursor-pointer"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="border-t border-border-main p-1.5 sticky bottom-0 bg-bg-surface">
-            {board.restaurants.length < board.maxAllowed ? (
-              <Link 
-                href="/create-organization" 
-                onClick={() => board.setIsOrgDropdownOpen(false)} 
-                className="flex w-full items-center gap-2 rounded-lg p-2 text-brand-copper text-sm font-semibold transition-all duration-300 hover:bg-brand-copper/10"
-              >
-                <Plus className="h-4 w-4" />
-                <span>{board.t('sidebar.orgSelector.addNew')}</span>
-              </Link>
-            ) : (
-              <div className="text-[10px] text-center text-amber-500 bg-amber-500/10 py-2 px-3 rounded-lg border border-amber-500/10 font-medium mx-1 select-none">
-                {board.t('sidebar.limitReached')}
+    <aside className="w-64 h-full bg-bg-surface border-r border-solid border-border-main flex flex-col justify-between shrink-0 select-none z-30">
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <div className="p-4 relative shrink-0">
+          <div 
+            onClick={() => sidebar.setIsOrgDropdownOpen(!sidebar.isOrgDropdownOpen)}
+            className="flex items-center justify-between p-2.5 rounded-md bg-bg-element border border-solid border-border-main/60 text-text-main cursor-pointer hover:bg-bg-hover shadow-2xs transition-all duration-200"
+          >
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="h-7 w-7 rounded-md bg-brand-emerald text-white flex items-center justify-center font-bold text-sm shrink-0">
+                {sidebar.activeRestaurant?.imageUrl ? (
+                  <div className="relative h-full w-full rounded-lg overflow-hidden">
+                    <Image 
+                      src={sidebar.activeRestaurant.imageUrl} 
+                      alt="restaurant logo" 
+                      fill 
+                      className="object-cover"
+                    />
+                  </div>
+                ) : (
+                  sidebar.orgInitial
+                )}
               </div>
-            )}
+              <span className="text-xs font-bold truncate tracking-wide">
+                {sidebar.currentOrgName}
+              </span>
+            </div>
+            <ChevronDown className={`h-3.5 w-3.5 text-text-muted transition-transform duration-200 shrink-0 ml-1 ${sidebar.isOrgDropdownOpen ? 'rotate-180' : ''}`} />
           </div>
-        </div>
-      </div>
 
-      <nav className="flex-1 overflow-y-auto py-3 px-3 custom-scrollbar flex flex-col gap-0.5">
-        {board.menuGroups.map((group: MenuItem[], groupIdx: number) => {
-          const renderedGroup = group.filter(item => !item.moduleKey || board.isPurchased(item.moduleKey));
-          if (renderedGroup.length === 0) return null;
-          
-          return (
-            <div key={groupIdx} className={`flex flex-col gap-0.5 ${groupIdx !== board.menuGroups.length - 1 ? 'border-b border-border-main pb-2 mb-2' : ''}`}>
-              {renderedGroup.map((item: MenuItem) => {
-                const isActive = item.href ? board.pathname === item.href : (item.subItems && item.subItems.some(sub => board.pathname === sub.href));
-                const Icon = item.icon;
-                const isLocked = item.moduleKey && !board.hasModule(item.moduleKey);
-                const isExpanded = board.expandedMenus[item.id];
-
-                if (item.subItems && item.subItems.length > 0) {
+          {sidebar.isOrgDropdownOpen && (
+            <div className="absolute top-full left-4 right-4 mt-1 bg-bg-surface border border-solid border-border-main rounded-md shadow-lg flex flex-col p-1.5 z-50 h-auto animate-in fade-in slide-in-from-top-1 duration-150">
+              <div className="flex items-center justify-between px-2 py-1">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-text-muted block">
+                  {sidebar.t('sidebar.orgSelector.switch')}
+                </span>
+                <span className="text-[10px] text-text-muted/70 font-mono normal-case">
+                  {sidebar.restaurants.length} / {sidebar.maxAllowed}
+                </span>
+              </div>
+              
+              <div className="flex flex-col gap-0.5 mt-1 max-h-48 overflow-y-auto custom-scrollbar">
+                {sidebar.restaurants.map((res, index) => {
+                  const isLocked = index >= sidebar.maxAllowed;
+                  const isCurrent = sidebar.activeRestaurant && String(sidebar.activeRestaurant.id) === String(res.id);
+                  
                   return (
-                    <div key={item.id} className="flex flex-col">
-                      <button 
-                        type="button"
-                        onClick={(e: MouseEvent) => isLocked ? board.handleLockedClick(e, item.label, item.moduleKey!) : board.toggleSubMenu(item.id)} 
-                        className={`flex w-full items-center justify-between rounded-xl px-3 h-11 text-sm font-medium transition-all duration-300 outline-none cursor-pointer ${
-                          isLocked 
-                            ? 'opacity-30 hover:bg-bg-hover' 
-                            : isActive && !isExpanded 
-                              ? 'bg-brand-copper text-white shadow-md font-semibold' 
-                              : 'hover:bg-bg-hover text-text-main/80 hover:text-text-main'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <Icon className={`h-4 w-4 shrink-0 ${isActive && !isExpanded && !isLocked ? 'text-white' : 'text-text-muted'}`} />
-                          <span>{item.label}</span>
+                    <div 
+                      key={res.id}
+                      draggable={true}
+                      onDragStart={() => sidebar.handleDragStart(index)}
+                      onDragOver={sidebar.handleDragOver}
+                      onDrop={() => sidebar.handleDrop(index)}
+                      className={`flex items-center justify-between p-1.5 rounded-md transition-all duration-200 cursor-grab active:cursor-grabbing ${
+                        isCurrent && !isLocked
+                          ? 'bg-brand-emerald/10 text-brand-emerald font-bold' 
+                          : 'hover:bg-bg-hover text-text-main font-medium'
+                      } ${isLocked ? 'opacity-55 hover:opacity-100' : ''}`}
+                    >
+                      <div className="flex items-center gap-2 min-w-0 flex-1 pl-1" onClick={(e) => sidebar.handleRestaurantSwitch(e, res, isLocked)}>
+                        <GripVertical className="h-3.5 w-3.5 text-text-muted/40 shrink-0 hover:text-text-muted" />
+                        <div className={`h-6 w-6 rounded-md flex items-center justify-center font-bold text-xs shrink-0 ${isCurrent && !isLocked ? 'bg-brand-emerald text-white' : 'bg-bg-element text-text-muted'}`}>
+                          {res.imageUrl ? (
+                            <div className="relative h-full w-full rounded-md overflow-hidden">
+                              <Image src={res.imageUrl} alt="logo" fill className="object-cover" />
+                            </div>
+                          ) : (
+                            res.name ? res.name[0].toUpperCase() : 'R'
+                          )}
                         </div>
-                        {isLocked ? <Lock className="h-3.5 w-3.5 text-text-muted/60" /> : <ChevronDown className={`h-3.5 w-3.5 shrink-0 text-text-muted transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} />}
-                      </button>
-                      
-                      <div className={`grid transition-all duration-300 ${isExpanded && !isLocked ? 'grid-rows-[1fr] opacity-100 mt-0.5' : 'grid-rows-[0fr] opacity-0'}`}>
-                        <div className="overflow-hidden flex flex-col gap-0.5 pl-4 border-l border-border-main ml-5">
-                          {item.subItems.map((sub) => (
-                            <Link 
-                              key={sub.id} 
-                              href={sub.href} 
-                              className={`flex w-full items-center rounded-lg h-8 pl-4 pr-2 text-xs font-medium transition-all duration-300 outline-none ${
-                                board.pathname === sub.href 
-                                  ? 'text-brand-copper font-bold bg-bg-hover' 
-                                  : 'text-text-muted hover:text-text-main hover:bg-bg-hover/50'
-                              }`}
-                            >
-                              {sub.label}
-                            </Link>
-                          ))}
-                        </div>
+                        <span className="text-xs truncate cursor-pointer">{res.name}</span>
+                      </div>
+
+                      <div className="flex items-center gap-1 shrink-0 ml-2">
+                        {isLocked && <Lock className="h-3 w-3 text-text-muted" />}
+                        {sidebar.restaurants.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={(e) => sidebar.handleDeleteRestaurantClick(e, res)}
+                            className="p-1.5 text-text-muted hover:text-red-500 rounded-md hover:bg-bg-element border-0 bg-transparent cursor-pointer transition-colors duration-200"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        )}
                       </div>
                     </div>
                   );
-                }
+                })}
+              </div>
 
-                if (isLocked) {
-                  return (
-                    <button 
-                      key={item.id} 
-                      type="button"
-                      onClick={(e: MouseEvent) => board.handleLockedClick(e, item.label, item.moduleKey!)} 
-                      className="flex w-full items-center justify-between rounded-xl px-3 h-11 text-sm font-medium opacity-30 transition-all duration-300 hover:bg-bg-hover outline-none cursor-pointer"
-                    >
-                      <div className="flex items-center gap-3">
-                        <Icon className="h-4 w-4 text-text-muted" />
-                        <span>{item.label}</span>
-                      </div>
-                      <Lock className="h-3.5 w-3.5 text-text-muted/60" />
-                    </button>
-                  );
-                }
+              <div className="border-t border-solid border-border-main/60 mt-2 pt-1.5">
+                {sidebar.restaurants.length >= sidebar.maxAllowed ? (
+                  <div className="mx-1 my-1 p-2 bg-amber-500/10 border border-solid border-amber-500/20 text-amber-700 dark:text-amber-400 rounded-md text-[11px] leading-normal font-medium flex gap-2 items-start">
+                    <AlertTriangle className="h-3.5 w-3.5 shrink-0 mt-0.5" />
+                    <span>{sidebar.t('sidebar.limitReached')}</span>
+                  </div>
+                ) : (
+                  <Link 
+                    href="/create-organization"
+                    onClick={() => sidebar.setIsOrgDropdownOpen(false)}
+                    className="flex items-center gap-2 p-2 rounded-md text-brand-emerald hover:bg-brand-emerald/5 font-bold text-xs transition-colors duration-200"
+                  >
+                    <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
+                    <span>{sidebar.t('sidebar.orgSelector.addNew')}</span>
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
 
-                if (item.onClick || !item.href) {
-                  return (
-                    <button 
-                      key={item.id} 
-                      type="button"
-                      onClick={item.onClick} 
-                      className="flex w-full items-center justify-between rounded-xl px-3 h-11 text-sm font-medium transition-all duration-300 outline-none text-text-main/80 hover:bg-bg-hover hover:text-text-main cursor-pointer"
-                    >
-                      <div className="flex items-center gap-3">
-                        <Icon className="h-4 w-4 shrink-0 text-text-muted" />
-                        <span>{item.label}</span>
-                      </div>
-                    </button>
-                  );
-                }
+        <nav className="flex-1 overflow-y-auto px-4 py-2 custom-scrollbar space-y-4">
+          {menuGroups.map((group) => (
+            <div key={group.id} className="flex flex-col gap-0.5 border-b border-solid border-border-main/40 last:border-b-0 pb-3 last:pb-0">
+              {group.items.map((item) => {
+                const itemIcon = React.createElement(item.icon, { className: 'h-4 w-4 shrink-0' });
+                const isItemActive = item.path === '/dashboard'
+                  ? sidebar.pathname === '/dashboard'
+                  : sidebar.pathname.startsWith(item.path);
 
                 return (
-                  <Link 
-                    key={item.id} 
-                    href={item.href} 
-                    className={`flex w-full items-center justify-between rounded-xl px-3 h-11 text-sm font-medium transition-all duration-300 outline-none ${
-                      isActive 
-                        ? 'bg-brand-copper text-white shadow-md font-semibold' 
-                        : 'text-text-main/80 hover:bg-bg-hover hover:text-text-main'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Icon className={`h-4 w-4 shrink-0 ${isActive ? 'text-white' : item.highlight ? 'text-brand-emerald' : 'text-text-muted'}`} />
-                      <span>{item.label}</span>
-                    </div>
-                    {item.highlight && !isActive && <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-brand-emerald animate-pulse"></div>}
-                  </Link>
+                  <div key={item.id} className="flex flex-col gap-0.5">
+                    {item.isLocked ? (
+                      <div
+                        onClick={item.onClick}
+                        className="flex items-center justify-between p-2.5 rounded-md text-xs font-semibold transition-all duration-200 relative cursor-pointer text-text-muted hover:bg-bg-hover hover:text-text-main opacity-60"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          {itemIcon}
+                          <span className="truncate">{item.title}</span>
+                        </div>
+                        <Lock className="h-3 w-3 opacity-40 shrink-0" />
+                      </div>
+                    ) : (
+                      <Link
+                        href={item.path}
+                        onClick={item.onClick}
+                        className={`flex items-center justify-between p-2.5 rounded-md text-xs font-semibold transition-all duration-200 relative ${
+                          isItemActive
+                            ? 'bg-brand-emerald/10 text-brand-emerald font-bold'
+                            : 'text-text-muted hover:bg-bg-hover hover:text-text-main'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          {itemIcon}
+                          <span className="truncate">{item.title}</span>
+                        </div>
+                      </Link>
+                    )}
+                  </div>
                 );
               })}
             </div>
-          );
-        })}
-      </nav>
+          ))}
+        </nav>
+      </div>
 
-      <div className="border-t border-border-main p-4 bg-bg-main transition-colors duration-300">
-        <div className="flex items-center justify-between">
+      <div className="p-4 border-t border-solid border-border-main/60 bg-bg-main/20 flex flex-col gap-2 shrink-0">
+        <div className="flex items-center justify-between gap-3 min-w-0 p-1">
           <Link 
             href="/dashboard/profile"
-            className="flex items-center gap-3 overflow-hidden rounded-xl p-1 hover:bg-bg-hover/60 transition-all duration-300 flex-1 mr-2 outline-none"
+            className="flex items-center gap-3 min-w-0 flex-1 hover:opacity-85 transition-opacity"
           >
-            <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-bg-surface border border-border-main text-text-main text-sm font-semibold shadow-xs overflow-hidden">
-              {board.user?.photo ? (
-                <Image src={board.user.photo} alt={board.t('profile.avatarAlt')} fill className="object-cover" />
+            <div className="h-8 w-8 rounded-full bg-bg-element flex items-center justify-center font-bold text-xs text-text-muted border border-solid border-border-main overflow-hidden shrink-0">
+              {sidebar.user?.photo ? (
+                <div className="relative h-full w-full">
+                  <Image src={sidebar.user.photo} alt="avatar" fill className="object-cover" />
+                </div>
               ) : (
-                board.user?.email?.[0].toUpperCase() || 'U'
+                sidebar.orgInitial
               )}
             </div>
-            <div className="flex flex-col truncate text-left">
-              <span className="truncate text-xs font-semibold tracking-tight text-text-main">
-                {board.user?.email || board.t('loading')}
+            <div className="flex flex-col min-w-0 flex-1">
+              <span className="text-xs font-bold text-text-main truncate">
+                {sidebar.user?.firstName || sidebar.user?.email.split('@')[0]}
               </span>
-              <span className="text-[10px] text-text-muted font-medium">
-                {board.user?.role ? board.t(`roles.${board.user.role}`) : ''}
+              <span className="text-[10px] text-text-muted truncate font-medium">
+                {sidebar.user?.role === 'OWNER' ? sidebar.t('profile.roleOwner') : sidebar.t('profile.roleStaff')}
               </span>
             </div>
           </Link>
-          <button 
-            type="button"
-            onClick={board.logout} 
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-text-muted transition-all duration-300 hover:bg-red-500/10 hover:text-red-500 outline-none cursor-pointer"
-          >
-            <LogOut className="h-4 w-4" />
-          </button>
+          
+          <div className="flex items-center gap-1">
+            {mounted && (
+              <button
+                type="button"
+                onClick={() => setTheme(isDark ? 'light' : 'dark')}
+                className="p-2 rounded-lg text-text-muted hover:bg-bg-element transition-colors duration-200 border-0 bg-transparent cursor-pointer shrink-0"
+              >
+                {isDark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={sidebar.logout}
+              className="p-2 rounded-lg text-text-muted hover:text-red-500 hover:bg-red-500/5 transition-colors duration-200 border-0 bg-transparent cursor-pointer shrink-0"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </div>
 
-      <Modal isOpen={board.isLockModalOpen} onClose={() => board.setIsLockModalOpen(false)} title={board.t('sidebar.locked.modalTitle')}>
-        <div className="flex flex-col gap-4">
-          <div className="rounded-xl bg-bg-main p-3 border border-border-main">
-            <span className="text-xs font-bold text-text-main uppercase tracking-wider">{board.lockedModule?.name}</span>
-          </div>
-          <p className="text-xs text-text-muted leading-relaxed">{board.t('sidebar.locked.modalDesc')}</p>
-          <div className="flex justify-end pt-3 border-t border-border-main mt-1 gap-2">
-            <button 
-              type="button" 
-              onClick={() => board.setIsLockModalOpen(false)}
-              className="px-4 h-10 text-xs font-semibold text-text-muted hover:text-text-main hover:bg-bg-element rounded-xl transition-all border-0 bg-transparent cursor-pointer"
-            >
-              {board.t('confirmModal.cancel')}
-            </button>
-            <button 
-              type="button" 
-              onClick={board.handleActivateLocked}
-              disabled={board.isPending}
-              className="h-10 px-5 text-xs font-bold text-white bg-brand-emerald hover:bg-brand-emerald-hover active:scale-98 rounded-xl shadow-md transition-all cursor-pointer border border-brand-emerald/10 select-none flex items-center justify-center gap-2 disabled:opacity-50"
-            >
-              {board.isPending ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-white" />
-              ) : null}
-              <span>{board.t('sidebar.locked.activateBtn')}</span>
-            </button>
+      <Modal 
+        isOpen={sidebar.isLockModalOpen} 
+        onClose={() => sidebar.setIsLockModalOpen(false)}
+        title={sidebar.t('sidebar.locked.title')}
+      >
+        <div className="flex flex-col gap-5">
+          <p className="text-xs text-text-muted leading-relaxed font-light">
+            {sidebar.t('sidebar.locked.description')}
+          </p>
+          <div className="flex justify-end gap-3 pt-4 border-t border-solid border-border-main">
+            <Button variant="ghost" onClick={() => sidebar.setIsLockModalOpen(false)} className="h-10 text-xs">
+              {sidebar.t('confirmModal.cancel')}
+            </Button>
+            <Button variant="brand" className="h-10 text-xs px-5" onClick={sidebar.handleActivateLocked}>
+              {sidebar.t('sidebar.locked.activateBtn')}
+            </Button>
           </div>
         </div>
       </Modal>
 
-      <ConfirmModal 
-        isOpen={!!board.restaurantToDelete} 
-        onClose={() => (board.isDeleting ? null : board.setRestaurantToDelete(null))} 
-        onConfirm={board.handleConfirmDeleteRestaurant} 
-        description={`${board.t('sidebar.orgSelector.deleteConfirm')} "${board.restaurantToDelete?.name}"? ${board.t('confirmModal.actionIrreversible')}`} 
-      />
+      <Modal
+        isOpen={!!sidebar.restaurantToDelete}
+        onClose={() => sidebar.setRestaurantToDelete(null)}
+        title={sidebar.t('sidebar.orgSelector.delete')}
+      >
+        <div className="flex flex-col gap-5">
+          <div className="bg-red-500/5 border border-solid border-red-500/10 p-3.5 rounded-lg flex gap-3 text-xs leading-relaxed text-red-600 font-medium">
+            <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
+            <p>
+              {sidebar.t('sidebar.orgSelector.deleteConfirm')}<br />
+              <span className="font-bold text-red-700">{sidebar.restaurantToDelete?.name}</span>
+            </p>
+          </div>
+          <div className="flex justify-end gap-3 pt-4 border-t border-solid border-border-main">
+            <Button variant="ghost" onClick={() => sidebar.setRestaurantToDelete(null)} className="h-10 text-xs" disabled={sidebar.isDeleting}>
+              {sidebar.t('confirmModal.cancel')}
+            </Button>
+            <Button variant="brand" className="h-10 text-xs px-5 bg-red-500 hover:bg-red-600 text-white" onClick={sidebar.handleConfirmDeleteRestaurant} isLoading={sidebar.isDeleting}>
+              {sidebar.t('actions.delete')}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </aside>
   );
 };

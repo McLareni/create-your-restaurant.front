@@ -1,5 +1,3 @@
-'use client';
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { inventoryApi } from '@/features/menu-builder/api/inventory.api';
 import { useActiveRestaurantId } from '@/shared/hooks/useActiveRestaurantId';
@@ -13,19 +11,19 @@ export const useInventory = () => {
 
   const { data: inventoryItems = [], isLoading } = useQuery<InventoryItem[]>({
     queryKey,
-    queryFn: () => inventoryApi.getAll(restaurantId!),
+    queryFn: () => inventoryApi.getAll(),
     enabled: !!restaurantId,
   });
 
   const createMutation = useMutation({
-    mutationFn: (data: CreateInventoryItemDTO) => inventoryApi.create(restaurantId!, data),
+    mutationFn: (data: CreateInventoryItemDTO) => inventoryApi.create(data),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey });
     },
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: UpdateInventoryItemDTO) => inventoryApi.update(restaurantId!, data),
+    mutationFn: (data: UpdateInventoryItemDTO) => inventoryApi.update(data),
     onMutate: async (updatedItem) => {
       await queryClient.cancelQueries({ queryKey });
       const previousInventory = queryClient.getQueryData<InventoryItem[]>(queryKey);
@@ -50,7 +48,7 @@ export const useInventory = () => {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => inventoryApi.delete(restaurantId!, id),
+    mutationFn: (id: string) => inventoryApi.delete(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey });
     },

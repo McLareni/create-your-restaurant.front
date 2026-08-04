@@ -41,10 +41,7 @@ export const useDishMediaGallery = (initialUrls: string[] = []): UseDishMediaGal
       URL.revokeObjectURL(target.url);
       createdBlobsRef.current = createdBlobsRef.current.filter((u) => u !== target.url);
     }
-    setItems((prev) => {
-      const filtered = prev.filter((_, idx) => idx !== index);
-      return filtered;
-    });
+    setItems((prev) => prev.filter((_, idx) => idx !== index));
     if (activeDishImageIndex >= items.length - 1) {
       setActiveDishImageIndex(Math.max(0, items.length - 2));
     }
@@ -82,24 +79,30 @@ export const useDishMediaGallery = (initialUrls: string[] = []): UseDishMediaGal
     setActiveDishImageIndex(0);
   };
 
-  const dishImageUrls = items.map((item) => item.url);
-  const dishPhotoFiles = items.filter((item) => item.file !== undefined).map((item) => item.file) as File[];
-
   const setDishPhotoFiles: Dispatch<SetStateAction<File[]>> = (action) => {
     const currentFiles = items.filter((item) => item.file !== undefined).map((item) => item.file) as File[];
     const nextFiles = typeof action === 'function' ? action(currentFiles) : action;
+    
+    createdBlobsRef.current.forEach((url) => URL.revokeObjectURL(url));
+    createdBlobsRef.current = [];
+
     const newItems: GalleryItem[] = [];
     let fileIdx = 0;
+    
     items.forEach((item) => {
       if (item.file !== undefined) {
         if (fileIdx < nextFiles.length) {
-          newItems.push({ url: item.url, file: nextFiles[fileIdx] });
+          const file = nextFiles[fileIdx];
+          const blobUrl = URL.createObjectURL(file);
+          createdBlobsRef.current.push(blobUrl);
+          newItems.push({ url: blobUrl, file });
           fileIdx++;
         }
       } else {
         newItems.push(item);
       }
     });
+
     while (fileIdx < nextFiles.length) {
       const file = nextFiles[fileIdx];
       const blobUrl = URL.createObjectURL(file);
@@ -107,12 +110,14 @@ export const useDishMediaGallery = (initialUrls: string[] = []): UseDishMediaGal
       newItems.push({ url: blobUrl, file });
       fileIdx++;
     }
+    
     setItems(newItems);
   };
 
   return {
-    dishImageUrls,
-    dishPhotoFiles,
+    dishImageUrls: items.map((item) => item.url),
+    dishPhotoFiles: items.filter((item) => item.file !== undefined).map((item) => item.file) as File[],
+    items,
     activeDishImageIndex,
     setDishPhotoFiles,
     handleLocalImageUpload,

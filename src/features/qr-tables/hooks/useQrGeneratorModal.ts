@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useTransition } from 'react';
+import type { PointerEvent } from 'react';
 import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 import { drawStyledQr, getQrStyle, saveQrStyle } from '@/features/qr-tables/utils/qrRenderer';
 import type { UseQrGeneratorModalProps } from '@/features/qr-tables/types/tables.types';
@@ -14,8 +15,8 @@ export const useQrGeneratorModal = ({
   onStyleConfigured,
 }: UseQrGeneratorModalProps) => {
   const [isPending, startTransition] = useTransition();
-  const [patternType, setPatternType] = useState<'dots' | 'squares' | 'lines' | 'rounded' | 'diamonds'>(() => getQrStyle(editingTableId || 'new').patternType);
-  const [logoOverlay, setLogoOverlay] = useState<boolean>(() => getQrStyle(editingTableId || 'new').logoOverlay);
+  const [patternType, setPatternType] = useState<'dots' | 'squares' | 'lines' | 'rounded' | 'diamonds'>('dots');
+  const [logoOverlay, setLogoOverlay] = useState<boolean>(false);
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
   const [qrImage, setQrImage] = useState<string>('');
   const [isDragging, setIsDragging] = useState(false);
@@ -32,6 +33,19 @@ export const useQrGeneratorModal = ({
     setPrevRestaurantImageUrl(restaurantImageUrl);
     setLogoBase64(null);
   }
+
+  useEffect(() => {
+    let isMounted = true;
+    Promise.resolve().then(() => {
+      if (!isMounted) return;
+      const style = getQrStyle(editingTableId || 'new');
+      setPatternType(style.patternType);
+      setLogoOverlay(style.logoOverlay);
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, [editingTableId]);
 
   useEffect(() => {
     if (!isOpen || !restaurantImageUrl) {
@@ -51,8 +65,7 @@ export const useQrGeneratorModal = ({
         if (isCurrent) {
           setLogoBase64(base64);
         }
-      } catch (e) {
-        console.error(e);
+      } catch {
         if (isCurrent) {
           setLogoBase64(restaurantImageUrl);
         }
@@ -94,7 +107,7 @@ export const useQrGeneratorModal = ({
     };
   }, [formData.tableNumber, patternType, logoOverlay, isOpen, editingTableId, tables, logoBase64]);
 
-  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+  const handlePointerDown = (e: PointerEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
     if (target.closest('button') || target.closest('input') || target.closest('.suggestions-dropdown') || target.closest('a')) return;
     
@@ -106,7 +119,7 @@ export const useQrGeneratorModal = ({
     modalRef.current?.setPointerCapture(e.pointerId);
   };
 
-  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+  const handlePointerMove = (e: PointerEvent<HTMLDivElement>) => {
     if (!isDragging || !modalRef.current) return;
     const nextX = e.clientX - dragStartRef.current.x;
     const nextY = e.clientY - dragStartRef.current.y;
@@ -115,13 +128,13 @@ export const useQrGeneratorModal = ({
     modalRef.current.style.transform = `translate3d(${nextX}px, ${nextY}px, 0)`;
   };
 
-  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+  const handlePointerUp = (e: PointerEvent<HTMLDivElement>) => {
     if (!isDragging) return;
     setIsDragging(false);
     modalRef.current?.releasePointerCapture(e.pointerId);
   };
 
-  const handlePointerCancel = (e: React.PointerEvent<HTMLDivElement>) => {
+  const handlePointerCancel = (e: PointerEvent<HTMLDivElement>) => {
     if (!isDragging) return;
     setIsDragging(false);
     modalRef.current?.releasePointerCapture(e.pointerId);

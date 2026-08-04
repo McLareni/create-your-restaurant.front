@@ -1,7 +1,6 @@
-'use client';
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { useActiveRestaurantId } from '@/shared/hooks/useActiveRestaurantId';
 import { useAvailableDishesList } from '@/features/menu-builder/hooks/dishes/useDishesQueries';
@@ -10,7 +9,6 @@ import { createComboSchema } from '@/features/menu-builder/schemas/combos.schema
 import { QUERY_KEYS } from '@/shared/api/query-keys';
 import { combosApi } from '@/features/menu-builder/api/combos.api';
 import { useAppActionState } from '@/shared/hooks/useAppActionState';
-import toast from 'react-hot-toast';
 import type { Combo, ComboDishSelect, CreateComboDTO, ComboPriceType, ComboFormState, UseCombosManagementReturn } from '@/features/menu-builder/types/combos.types';
 import type { Dish } from '@/features/menu-builder/types/dishes.types';
 
@@ -26,20 +24,14 @@ export const useCombosManagement = (): UseCombosManagementReturn => {
 
   const { data: combos = [], isLoading: isCombosLoading } = useQuery<Combo[]>({
     queryKey: QUERY_KEYS.combos(restaurantId),
-    queryFn: async () => {
-      if (!restaurantId) throw new Error('Restaurant ID is required');
-      return await combosApi.getAll(restaurantId);
-    },
+    queryFn: () => combosApi.getAll(),
     enabled: !!restaurantId,
   });
 
   const { dishes: availableDishes, isLoading: isDishesLoading } = useAvailableDishesList();
 
   const createComboMutation = useMutation({
-    mutationFn: async (data: CreateComboDTO) => {
-      if (!restaurantId) throw new Error('Restaurant ID is required');
-      return await combosApi.create(restaurantId, data);
-    },
+    mutationFn: (data: CreateComboDTO) => combosApi.create(data),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.combos(restaurantId) });
       toast.success(t('menu.constructor.combos.notifications.createSuccess'));
@@ -47,10 +39,7 @@ export const useCombosManagement = (): UseCombosManagementReturn => {
   });
 
   const updateComboMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: CreateComboDTO }) => {
-      if (!restaurantId) throw new Error('Restaurant ID is required');
-      return await combosApi.update(restaurantId, id, data);
-    },
+    mutationFn: ({ id, data }: { id: string; data: CreateComboDTO }) => combosApi.update(id, data),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.combos(restaurantId) });
       toast.success(t('menu.constructor.combos.notifications.updateSuccess'));
@@ -58,10 +47,7 @@ export const useCombosManagement = (): UseCombosManagementReturn => {
   });
 
   const deleteComboMutation = useMutation({
-    mutationFn: async (id: string) => {
-      if (!restaurantId) throw new Error('Restaurant ID is required');
-      return await combosApi.delete(restaurantId, id);
-    },
+    mutationFn: (id: string) => combosApi.delete(id),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.combos(restaurantId) });
       toast.success(t('menu.constructor.combos.notifications.deleteSuccess'));
@@ -116,19 +102,19 @@ export const useCombosManagement = (): UseCombosManagementReturn => {
       const selectedDishesJson = formData.get('selectedDishesData') as string;
       const parsedDishes = selectedDishesJson ? JSON.parse(selectedDishesJson) : [];
 
-      const payload = {
+      const rawPayload = {
         name,
         priceType: currentPriceType,
         priceValue: isNaN(priceValue) ? 0 : priceValue,
-        dishes: parsedDishes.map((d: ComboDishSelect) => ({ id: d.id, name: d.name, price: d.price })),
+        dishes: parsedDishes.map((d: ComboDishSelect) => ({ id: d.id })),
       };
 
-      createComboSchema.parse(payload);
+      const validatedPayload = createComboSchema.parse(rawPayload);
 
       if (crud.editingId) {
-        await updateComboMutation.mutateAsync({ id: crud.editingId, data: payload as unknown as CreateComboDTO });
+        await updateComboMutation.mutateAsync({ id: crud.editingId, data: validatedPayload as CreateComboDTO });
       } else {
-        await createComboMutation.mutateAsync(payload as unknown as CreateComboDTO);
+        await createComboMutation.mutateAsync(validatedPayload as CreateComboDTO);
       }
     },
     {

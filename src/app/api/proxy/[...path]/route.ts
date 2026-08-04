@@ -11,11 +11,14 @@ async function handleProxy(
   const url = new URL(request.url);
 
   if (!API_URL) {
-    return NextResponse.json({ errorCode: 'serverError' }, { status: 500 });
+    return NextResponse.json({ errorCode: 'errors.server_error' }, { status: 500 });
   }
 
   const sessionCookie = request.cookies.get('gustio_session');
   const token = sessionCookie?.value;
+
+  const restaurantCookie = request.cookies.get('gustio_active_restaurant_id');
+  const restaurantId = restaurantCookie?.value;
 
   const headers = new Headers();
   const incomingContentType = request.headers.get('content-type');
@@ -25,6 +28,13 @@ async function handleProxy(
 
   if (token) {
     headers.set('Cookie', `gustio_session=${token}`);
+  }
+
+  const clientRestaurantId = request.headers.get('x-restaurant-id');
+  if (clientRestaurantId) {
+    headers.set('x-restaurant-id', clientRestaurantId);
+  } else if (restaurantId) {
+    headers.set('x-restaurant-id', restaurantId);
   }
 
   const hasBody = !['GET', 'HEAD'].includes(request.method);
@@ -46,7 +56,7 @@ async function handleProxy(
       },
     });
   } catch {
-    return NextResponse.json({ errorCode: 'serverError' }, { status: 500 });
+    return NextResponse.json({ errorCode: 'errors.server_error' }, { status: 500 });
   }
 }
 

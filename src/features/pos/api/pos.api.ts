@@ -1,19 +1,19 @@
 import { apiClient } from '@/shared/api/client';
-import { PosStatusResponse, ConnectPosPayload, UpdatePosSettingsPayload, SyncMenuResponse } from '../types/pos.types';
+import type { PosStatusResponse, ConnectPosPayload, UpdatePosSettingsPayload, SyncMenuResponse } from '@/features/pos/types/pos.types';
 
 export const posApi = {
-  getStatus: (restaurantId: number) =>
-    apiClient.get<PosStatusResponse>(`/restaurants/${restaurantId}/pos/status`),
+  getStatus: () =>
+    apiClient.get<PosStatusResponse>('/pos/status'),
 
-  connect: (restaurantId: number, data: ConnectPosPayload) =>
-    apiClient.post(`/restaurants/${restaurantId}/pos/connect`, data),
+  connect: (data: ConnectPosPayload) =>
+    apiClient.post('/pos/connect', data),
 
-  updateSettings: (restaurantId: number, data: UpdatePosSettingsPayload) =>
-    apiClient.patch(`/restaurants/${restaurantId}/pos/settings`, data),
+  updateSettings: (data: UpdatePosSettingsPayload) =>
+    apiClient.patch('/pos/settings', data),
 
-  syncMenu: (restaurantId: number) =>
-    apiClient.post<SyncMenuResponse>(`/restaurants/${restaurantId}/pos/sync-menu`),
+  syncMenu: () =>
+    apiClient.post<SyncMenuResponse>('/pos/sync-menu'),
 
-  disconnect: (restaurantId: number) =>
-    apiClient.post(`/restaurants/${restaurantId}/pos/disconnect`),
+  disconnect: () =>
+    apiClient.post('/pos/disconnect'),
 };

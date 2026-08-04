@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
+import { usePermissions } from '@/shared/hooks/usePermissions';
 import { Pencil, Trash2, ChevronDown, ChevronRight, Plus } from 'lucide-react';
 import type { ModifierCardProps, ModifierOption } from '@/features/menu-builder/types/modifiers.types';
 
@@ -16,6 +17,7 @@ export const ModifierCard = ({
   onDeleteOption,
 }: ModifierCardProps) => {
   const { t } = useTranslation();
+  const { canCreateMenu, canEditMenu, canDeleteMenu } = usePermissions();
 
   return (
     <div className="flex flex-col rounded-2xl bg-bg-surface border border-border-main/60 dark:border-border-main shadow-table transition-all select-none overflow-hidden">
@@ -41,39 +43,45 @@ export const ModifierCard = ({
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onOpenOptionModal();
-            }}
-            className="h-8 text-xs font-bold border border-brand-emerald/30 text-brand-emerald hover:bg-brand-emerald/5 px-3 rounded-lg flex items-center gap-1 transition-all cursor-pointer bg-transparent outline-none"
-          >
-            <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
-            <span>{t('menu.constructor.modifiers.addOptionBtn')}</span>
-          </button>
+          {canCreateMenu && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenOptionModal();
+              }}
+              className="h-8 text-xs font-bold border border-brand-emerald/30 text-brand-emerald hover:bg-brand-emerald/5 px-3 rounded-lg flex items-center gap-1 transition-all cursor-pointer bg-transparent outline-none"
+            >
+              <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
+              <span>{t('menu.constructor.modifiers.addOptionBtn')}</span>
+            </button>
+          )}
           
           <div className="flex items-center gap-1 border-l border-border-main/60 pl-1.5 h-6">
-            <button 
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onEditGroup();
-              }} 
-              className="p-1.5 rounded-lg text-text-muted hover:text-brand-emerald hover:bg-bg-element transition-colors cursor-pointer border-0 bg-transparent outline-none"
-            >
-              <Pencil className="h-4 w-4" />
-            </button>
-            <button 
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDeleteGroup();
-              }} 
-              className="p-1.5 rounded-lg text-text-muted hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer border-0 bg-transparent outline-none"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
+            {canEditMenu && (
+              <button 
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEditGroup();
+                }} 
+                className="p-1.5 rounded-lg text-text-muted hover:text-brand-emerald hover:bg-bg-element transition-colors cursor-pointer border-0 bg-transparent outline-none"
+              >
+                <Pencil className="h-4 w-4" />
+              </button>
+            )}
+            {canDeleteMenu && (
+              <button 
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteGroup();
+                }} 
+                className="p-1.5 rounded-lg text-text-muted hover:text-red-500 hover:bg-red-500/10 transition-colors cursor-pointer border-0 bg-transparent outline-none"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -100,12 +108,16 @@ export const ModifierCard = ({
                           {option.price > 0 ? `+ ${option.price} ${t('menu.currency')}` : t('menu.constructor.modifiers.free')}
                         </span>
                         <div className="flex items-center gap-0.5 bg-bg-element/40 px-1 py-0.5 rounded-lg border border-border-main/20">
-                          <button type="button" onClick={() => onEditOption(option)} className="p-1.5 rounded-md text-text-muted hover:text-brand-emerald hover:bg-bg-surface transition-colors border-0 bg-transparent outline-none cursor-pointer">
-                            <Pencil className="h-3.5 w-3.5" />
-                          </button>
-                          <button type="button" onClick={() => onDeleteOption(option.id)} className="p-1.5 rounded-md text-text-muted hover:text-red-500 hover:bg-bg-surface transition-colors border-0 bg-transparent outline-none cursor-pointer">
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
+                          {canEditMenu && (
+                            <button type="button" onClick={() => onEditOption(option)} className="p-1.5 rounded-md text-text-muted hover:text-brand-emerald hover:bg-bg-surface transition-colors border-0 bg-transparent outline-none cursor-pointer">
+                              <Pencil className="h-3.5 w-3.5" />
+                            </button>
+                          )}
+                          {canDeleteMenu && (
+                            <button type="button" onClick={() => onDeleteOption(option.id)} className="p-1.5 rounded-md text-text-muted hover:text-red-500 hover:bg-bg-surface transition-colors border-0 bg-transparent outline-none cursor-pointer">
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>

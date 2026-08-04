@@ -1,26 +1,31 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import { useAccessStore } from '@/shared/store/useAccessStore';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
+import { useSocketStore } from '@/shared/store/useSocketStore';
 import { liveCallsApi } from '@/features/live-calls/api/live-calls.api';
+import { QUERY_KEYS } from '@/shared/api/query-keys';
+import { attachLiveCallsListeners } from '@/features/live-calls/services/liveCallsSocket.service';
 import type { LiveCallItem } from '@/features/live-calls/types/live-calls.types';
-import { io } from 'socket.io-client';
-import type { Socket } from 'socket.io-client';
-import toast from 'react-hot-toast';
 
 export const useLiveCalls = () => {
   const { t } = useTranslation();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const hasModule = useAccessStore((state) => state.activeModules.includes('live-calls'));
   const activeRestaurant = useRestaurantStore((state) => state.activeRestaurant);
   const restaurantId = activeRestaurant?.id ? Number(activeRestaurant.id) : null;
+  
+  const socket = useSocketStore((state) => state.socket);
+  const connect = useSocketStore((state) => state.connect);
 
   const [dismissingIds, setDismissingIds] = useState<string[]>([]);
-  const queryKey = ['live-calls-list', restaurantId];
+  const queryKey = QUERY_KEYS.liveCalls(restaurantId);
 
   const { data: calls = [], isLoading } = useQuery({
     queryKey,
@@ -29,37 +34,31 @@ export const useLiveCalls = () => {
   });
 
   useEffect(() => {
+    if (typeof window !== 'undefined' && !audioRef.current) {
+      audioRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-500.wav');
+    }
+  }, []);
+
+  useEffect(() => {
     if (!hasModule || !restaurantId) return;
+    void connect(restaurantId);
+  }, [hasModule, restaurantId, connect]);
 
-    const socketUrl = process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:3001';
-    const socket: Socket = io(socketUrl);
+  useEffect(() => {
+    if (!socket || !restaurantId) return;
 
-    socket.on('connect', () => {
-      socket.emit('join_restaurant', { restaurantId });
-    });
-
-    socket.on('new_call', (call: LiveCallItem) => {
-      queryClient.setQueryData<LiveCallItem[]>(queryKey, (prev) => {
-        if (!prev) return [call];
-        if (prev.some((c) => c.id === call.id)) return prev;
-        return [...prev, call];
-      });
+    const handleNewCallAlert = () => {
       toast(t('liveCalls.notification'), { icon: '🔔' });
-      try {
-        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-500.wav');
-        void audio.play();
-      } catch {}
-    });
-
-    socket.on('call_dismissed', (callId: string) => {
-      queryClient.setQueryData<LiveCallItem[]>(queryKey, (prev) => prev ? prev.filter((c) => c.id !== callId) : []);
-      setDismissingIds((prev) => prev.filter((id) => id !== callId));
-    });
-
-    return () => {
-      socket.disconnect();
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play().catch(() => {});
+      }
     };
-  }, [hasModule, restaurantId, queryClient]);
+
+    const cleanup = attachLiveCallsListeners(socket, queryClient, restaurantId, handleNewCallAlert);
+    
+    return cleanup;
+  }, [socket, queryClient, restaurantId, t]);
 
   const dismissMutation = useMutation({
     mutationFn: (callId: string) => liveCallsApi.dismissCall(restaurantId!, callId),

@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Loader2, Check, X, Trash2, Plus } from 'lucide-react';
+import { Loader2, Check, Trash2, Plus } from 'lucide-react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { FloatingPanel, Checkbox, ConfirmModal, FloatingSidePanel, SearchInput } from '@/shared/ui';
+import { FloatingSidePanelHeader } from '@/shared/ui/floatingSidePanel';
 import { DishCardVisual } from '@/shared/ui/dishCardVisual';
 import { GeneralTab } from '@/features/menu-builder/components/board/modals/dish-modal/tabs/GeneralTab';
 import { CharacteristicsTab } from '@/features/menu-builder/components/board/modals/dish-modal/tabs/CharacteristicsTab';
@@ -28,11 +29,7 @@ export const DishModal = ({ isOpen, onClose, dish, state }: DishModalProps) => {
   const { items: dbTags, deleteItem: deleteDbTag, createItem: createDbTag } = useDishesLookups('tags');
   const currentPreviewUrl = state.dishImageUrls[state.activeDishImageIndex] || null;
 
-  const filteredBadges = useMemo(() => {
-    return DISH_BADGES.filter((b) =>
-      t(`menu.constructor.badges.${b}`).toLowerCase().includes(badgeSearchQuery.toLowerCase()),
-    );
-  }, [badgeSearchQuery, t]);
+  const filteredBadges = useMemo(() => DISH_BADGES.filter((b) => t(`menu.constructor.badges.${b}`).toLowerCase().includes(badgeSearchQuery.toLowerCase())), [badgeSearchQuery, t]);
 
   const availableCharacteristics = useMemo(() => {
     const dbItems = charType === 'tags' ? dbTags : dbAllergens;
@@ -42,8 +39,7 @@ export const DishModal = ({ isOpen, onClose, dish, state }: DishModalProps) => {
   const exactMatchExists = useMemo(() => {
     const query = charSearchQuery.trim().toLowerCase();
     if (!query) return true;
-    const dbItems = charType === 'tags' ? dbTags : dbAllergens;
-    return dbItems.some((item) => item.toLowerCase() === query);
+    return (charType === 'tags' ? dbTags : dbAllergens).some((item) => item.toLowerCase() === query);
   }, [charSearchQuery, charType, dbAllergens, dbTags]);
 
   const toggleBadgePanel = (open: boolean) => {
@@ -136,38 +132,20 @@ export const DishModal = ({ isOpen, onClose, dish, state }: DishModalProps) => {
         </div>
 
         <div className="absolute bottom-0 left-0 right-0 flex justify-end gap-3 px-6 py-4 border-t border-solid border-border-main/60 bg-bg-surface shrink-0 z-20 select-none rounded-b-2xl">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={state.isSaving}
-            className="h-10 px-4 text-xs font-semibold text-text-muted hover:text-text-main hover:bg-bg-element rounded-xl transition-all cursor-pointer border-0 bg-transparent outline-none select-none"
-          >
+          <button type="button" onClick={onClose} disabled={state.isSaving} className="h-10 px-4 text-xs font-semibold text-text-muted hover:text-text-main hover:bg-bg-element rounded-xl transition-all cursor-pointer border-0 bg-transparent outline-none">
             {t('menu.constructor.dishes.modal.cancel')}
           </button>
-          <button
-            type="submit"
-            form="dish-builder-form"
-            disabled={state.isSaving}
-            className="h-10 px-5 text-xs font-bold text-white bg-brand-emerald hover:bg-brand-emerald-hover active:scale-98 rounded-xl shadow-md transition-all cursor-pointer border border-brand-emerald/10 select-none flex items-center justify-center gap-1.5"
-          >
+          <button type="submit" form="dish-builder-form" disabled={state.isSaving} className="h-10 px-5 text-xs font-bold text-white bg-brand-emerald hover:bg-brand-emerald-hover active:scale-98 rounded-xl shadow-md transition-all cursor-pointer border border-brand-emerald/10 flex items-center justify-center gap-1.5">
             {state.isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
             {dish ? t('menu.constructor.dishes.modal.save') : t('menu.constructor.dishes.addBtn')}
           </button>
         </div>
       </FloatingPanel>
 
-      <FloatingSidePanel id="dish-left-badge-panel" isOpen={isBadgePanelOpen} onClose={() => toggleBadgePanel(false)} title={t('menu.constructor.dishes.modal.badgeLabel')} targetSelector=".main-dish-panel" targetPanelId="dish-builder-panel" side="left" width={280} className="transition-none! animate-in slide-in-from-left duration-200">
-        <div className="h-12 px-4 border-b border-solid border-border-main/60 flex items-center justify-between bg-bg-main/30 shrink-0">
-          <h3 className="text-xs font-bold text-text-main uppercase tracking-wider">{t('menu.constructor.dishes.modal.badgeLabel')}</h3>
-          <button type="button" onClick={() => toggleBadgePanel(false)} className="text-text-muted hover:text-text-main p-1 rounded-md hover:bg-bg-hover transition-colors cursor-pointer"><X className="h-4 w-4" /></button>
-        </div>
+      <FloatingSidePanel id="dish-left-badge-panel" isOpen={isBadgePanelOpen} targetSelector=".main-dish-panel" side="left" width={280} className="transition-none! animate-in slide-in-from-left duration-200">
+        <FloatingSidePanelHeader title={t('menu.constructor.dishes.modal.badgeLabel')} onClose={() => toggleBadgePanel(false)} />
         <div className="p-3 pb-1 shrink-0">
-          <SearchInput
-            id="badge-search-field"
-            placeholder={t('menu.constructor.dishes.modal.searchPlaceholder')}
-            value={badgeSearchQuery}
-            onChange={(e) => setBadgeSearchQuery(e.target.value)}
-          />
+          <SearchInput id="badge-search-field" placeholder={t('menu.constructor.dishes.modal.searchPlaceholder')} value={badgeSearchQuery} onChange={(e) => setBadgeSearchQuery(e.target.value)} />
         </div>
         <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-1 custom-scrollbar">
           {filteredBadges.length === 0 ? (
@@ -185,22 +163,14 @@ export const DishModal = ({ isOpen, onClose, dish, state }: DishModalProps) => {
           )}
         </div>
         <div className="p-4 bg-bg-main/10 border-t border-solid border-border-main/60 flex justify-end shrink-0 mt-auto">
-          <button type="button" onClick={() => toggleBadgePanel(false)} className="h-8 px-4 text-xs font-bold text-white bg-brand-emerald hover:bg-brand-emerald-hover rounded-md shadow-md transition-colors">{t('menu.constructor.dishes.modal.doneBtn')}</button>
+          <button type="button" onClick={() => toggleBadgePanel(false)} className="h-8 px-4 text-xs font-bold text-white bg-brand-emerald hover:bg-brand-emerald-hover rounded-md shadow-md">{t('menu.constructor.dishes.modal.doneBtn')}</button>
         </div>
       </FloatingSidePanel>
 
-      <FloatingSidePanel id="dish-left-char-panel" isOpen={isCharacteristicsPanelOpen} onClose={() => toggleCharPanel(false)} title={charType === 'tags' ? t('menu.constructor.dishes.modal.tabs.characteristics') : t('menu.constructor.dishes.modal.properties.allergensTitle')} targetSelector=".main-dish-panel" targetPanelId="dish-builder-panel" side="left" width={320} className="transition-none! animate-in slide-in-from-left duration-200">
-        <div className="h-12 px-4 border-b border-solid border-border-main/60 flex items-center justify-between bg-bg-main/30 shrink-0">
-          <h3 className="text-xs font-bold text-text-main uppercase tracking-wider">{charType === 'tags' ? t('menu.constructor.dishes.modal.tabs.characteristics') : t('menu.constructor.dishes.modal.properties.allergensTitle')}</h3>
-          <button type="button" onClick={() => toggleCharPanel(false)} className="text-text-muted hover:text-text-main p-1 rounded-md hover:bg-bg-hover transition-colors cursor-pointer"><X className="h-4 w-4" /></button>
-        </div>
+      <FloatingSidePanel id="dish-left-char-panel" isOpen={isCharacteristicsPanelOpen} targetSelector=".main-dish-panel" side="left" width={320} className="transition-none! animate-in slide-in-from-left duration-200">
+        <FloatingSidePanelHeader title={charType === 'tags' ? t('menu.constructor.dishes.modal.tabs.characteristics') : t('menu.constructor.dishes.modal.properties.allergensTitle')} onClose={() => toggleCharPanel(false)} />
         <div className="p-3 pb-1 shrink-0">
-          <SearchInput
-            id="char-search-field"
-            placeholder={t('menu.constructor.dishes.modal.searchPlaceholder')}
-            value={charSearchQuery}
-            onChange={(e) => setCharSearchQuery(e.target.value)}
-          />
+          <SearchInput id="char-search-field" placeholder={t('menu.constructor.dishes.modal.searchPlaceholder')} value={charSearchQuery} onChange={(e) => setCharSearchQuery(e.target.value)} />
         </div>
         <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-1 custom-scrollbar">
           {charSearchQuery.trim() !== '' && !exactMatchExists && (
@@ -211,25 +181,18 @@ export const DishModal = ({ isOpen, onClose, dish, state }: DishModalProps) => {
                 if (charType === 'tags') {
                   await createDbTag(name);
                   const current = state.dishForm.tags || [];
-                  if (!current.includes(name)) {
-                    state.setDishForm((prev: DishFormValues) => ({ ...prev, tags: [...current, name] }));
-                  }
+                  if (!current.includes(name)) state.setDishForm((prev: DishFormValues) => ({ ...prev, tags: [...current, name] }));
                 } else {
                   await createDbAllergen(name);
                   const current = state.dishForm.allergens || [];
-                  if (!current.includes(name)) {
-                    state.setDishForm((prev: DishFormValues) => ({ ...prev, allergens: [...current, name] }));
-                  }
+                  if (!current.includes(name)) state.setDishForm((prev: DishFormValues) => ({ ...prev, allergens: [...current, name] }));
                 }
                 setCharSearchQuery('');
               }}
               className="w-full flex items-center gap-2 px-2.5 h-9 bg-brand-emerald/5 hover:bg-brand-emerald/10 text-brand-emerald text-xs font-bold rounded-md transition-all cursor-pointer border border-dashed border-brand-emerald/20 mb-1 shrink-0"
             >
               <Plus className="h-3.5 w-3.5 stroke-[2.5]" />
-              <span>
-                {t('menu.constructor.dishes.modal.createAction')}{' '}
-                &ldquo;{charSearchQuery.trim().toUpperCase()}&rdquo;
-              </span>
+              <span>{t('menu.constructor.dishes.modal.createAction')} &ldquo;{charSearchQuery.trim().toUpperCase()}&rdquo;</span>
             </button>
           )}
           {availableCharacteristics.length === 0 && (charSearchQuery.trim() === '' || exactMatchExists) ? (
@@ -238,12 +201,10 @@ export const DishModal = ({ isOpen, onClose, dish, state }: DishModalProps) => {
             availableCharacteristics.map((item) => {
               const isSelected = charType === 'tags' ? state.dishForm.tags?.includes(item) : state.dishForm.allergens?.includes(item);
               const isCustomDbItem = charType === 'tags' ? dbTags.includes(item) : dbAllergens.includes(item);
-
               return (
                 <div key={item} onClick={() => {
                   const current = charType === 'tags' ? state.dishForm.tags || [] : state.dishForm.allergens || [];
                   const next = isSelected ? current.filter((i) => i !== item) : [...current, item];
-
                   state.setDishForm((prev: DishFormValues) => ({ ...prev, [charType]: next }));
                 }} className={`w-full flex items-center justify-between px-2.5 h-9 rounded-md cursor-pointer transition-all select-none border border-solid ${isSelected ? 'bg-brand-emerald/5 border-brand-emerald/20 shadow-3xs' : 'border-transparent hover:bg-bg-hover'}`}>
                   <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -251,7 +212,7 @@ export const DishModal = ({ isOpen, onClose, dish, state }: DishModalProps) => {
                     <span className={`text-xs font-semibold truncate transition-colors ${isSelected ? 'text-brand-emerald font-bold' : 'text-text-main'}`}>{item}</span>
                   </div>
                   {isCustomDbItem && (
-                    <button type="button" onClick={(e) => { e.stopPropagation(); setDeleteCharTarget({ type: charType, name: item }); }} className="text-text-muted hover:text-red-500 p-1 rounded-md hover:bg-bg-hover transition-colors ml-2 shrink-0">
+                    <button type="button" onClick={(e) => { e.stopPropagation(); setDeleteCharTarget({ type: charType, name: item }); }} className="text-text-muted hover:text-red-500 p-1 rounded-md hover:bg-bg-hover transition-colors ml-2 shrink-0 border-0 bg-transparent">
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   )}
@@ -261,7 +222,7 @@ export const DishModal = ({ isOpen, onClose, dish, state }: DishModalProps) => {
           )}
         </div>
         <div className="p-4 bg-bg-main/10 border-t border-solid border-border-main/60 flex justify-end shrink-0 mt-auto">
-          <button type="button" onClick={() => toggleCharPanel(false)} className="h-8 px-4 text-xs font-bold text-white bg-brand-emerald hover:bg-brand-emerald-hover rounded-md shadow-md transition-colors">{t('menu.constructor.dishes.modal.doneBtn')}</button>
+          <button type="button" onClick={() => toggleCharPanel(false)} className="h-8 px-4 text-xs font-bold text-white bg-brand-emerald hover:bg-brand-emerald-hover rounded-md shadow-md">{t('menu.constructor.dishes.modal.doneBtn')}</button>
         </div>
       </FloatingSidePanel>
 

@@ -67,6 +67,7 @@ export interface CharacteristicsTabProps {
 export interface UseDishMediaGalleryReturn {
   dishImageUrls: string[];
   dishPhotoFiles: File[];
+  items: GalleryItem[];
   activeDishImageIndex: number;
   setDishPhotoFiles: Dispatch<SetStateAction<File[]>>;
   handleLocalImageUpload: (e: ChangeEvent<HTMLInputElement>) => Promise<void>;

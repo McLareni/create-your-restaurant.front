@@ -7,7 +7,7 @@ import { useAccessStore } from '@/shared/store/useAccessStore';
 import { useUserStore } from '@/shared/store/useUserStore';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { connectModuleSchema } from '@/features/marketplace/schemas/marketplace.schema';
-import type { ConnectModuleArgs } from '../types/marketplace.types';
+import type { ConnectModuleArgs } from '@/features/marketplace/types/marketplace.types';
 import toast from 'react-hot-toast';
 
 export const useMarketplace = () => {
@@ -38,7 +38,7 @@ export const useMarketplace = () => {
       queryClient.invalidateQueries({ queryKey: ['marketplace-modules', restaurantId] });
       
       if (restaurantId) {
-        await fetchAccessData(String(restaurantId)).catch(() => {});
+        await fetchAccessData(String(restaurantId), true).catch(() => {});
       }
       
       if (variables.moduleKey === 'multi-restaurant') {
@@ -47,8 +47,9 @@ export const useMarketplace = () => {
       
       toast.success(t('marketplace.status.active'));
     },
-    onError: () => {
-      toast.error(t('auth.errors.defaultError'));
+    onError: (error) => {
+      const msg = error instanceof Error ? error.message : 'auth.errors.defaultError';
+      toast.error(t(msg));
     },
   });
 
@@ -87,8 +88,9 @@ export const useMarketplace = () => {
     startTransition(async () => {
       try {
         await toggleModuleState(moduleKey, isActive);
-      } catch {
-        toast.error(t('auth.errors.defaultError'));
+      } catch (error) {
+        const msg = error instanceof Error ? error.message : 'auth.errors.defaultError';
+        toast.error(t(msg));
       }
     });
   };

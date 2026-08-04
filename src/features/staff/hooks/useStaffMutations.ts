@@ -7,7 +7,7 @@ import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { QUERY_KEYS } from '@/shared/api/query-keys';
 import toast from 'react-hot-toast';
-import type { CreateStaffDTO, UpdateStaffDTO, ClockInResponse, WaiterZReport, AuthorizeVoidResponse, CustomStaffRole, StaffMember } from '@/features/staff/types/staff.types';
+import type { CreateStaffDTO, UpdateStaffDTO, AuthorizeVoidResponse, CustomStaffRole, StaffMember } from '@/features/staff/types/staff.types';
 
 export const useStaffMutations = () => {
   const { t } = useTranslation();
@@ -81,6 +81,21 @@ export const useStaffMutations = () => {
     }
   });
 
+  const updateRoleMutation = useMutation<CustomStaffRole, Error, { id: string; permissions: string[] }>({
+    mutationFn: ({ id, permissions }) => {
+      if (!restaurantId) throw new Error(t('auth.errors.defaultError'));
+      return staffApi.updateRole(restaurantId, id, permissions);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.staffRoles(restaurantId) });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.staffList(restaurantId) });
+      toast.success(t('staff.notifications.updateSuccess'));
+    },
+    onError: () => {
+      toast.error(t('auth.errors.defaultError'));
+    }
+  });
+
   const deleteRoleMutation = useMutation<{ message: string }, Error, string>({
     mutationFn: (id) => {
       if (!restaurantId) throw new Error(t('auth.errors.defaultError'));
@@ -93,26 +108,6 @@ export const useStaffMutations = () => {
     },
     onError: () => {
       toast.error(t('staff.notifications.roleDeleteError'));
-    }
-  });
-
-  const clockInMutation = useMutation<ClockInResponse, Error, string>({
-    mutationFn: (pinCode) => {
-      if (!restaurantId) throw new Error(t('auth.errors.defaultError'));
-      return staffApi.clockIn(restaurantId, pinCode);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.staffList(restaurantId) });
-    }
-  });
-
-  const clockOutMutation = useMutation<WaiterZReport, Error, string>({
-    mutationFn: (pinCode) => {
-      if (!restaurantId) throw new Error(t('auth.errors.defaultError'));
-      return staffApi.clockOut(restaurantId, pinCode);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.staffList(restaurantId) });
     }
   });
 
@@ -136,12 +131,9 @@ export const useStaffMutations = () => {
     uploadStaffPhotoAsync: uploadStaffPhotoMutation.mutateAsync,
     deleteStaffAsync: deleteStaffMutation.mutateAsync,
     createRoleAsync: createRoleMutation.mutateAsync,
+    updateRoleAsync: updateRoleMutation.mutateAsync,
     deleteRoleAsync: deleteRoleMutation.mutateAsync,
-    clockInAsync: clockInMutation.mutateAsync,
-    clockOutAsync: clockOutMutation.mutateAsync,
     authorizeVoidAsync: authorizeVoidMutation.mutateAsync,
-    isClockingIn: clockInMutation.isPending,
-    isClockingOut: clockOutMutation.isPending,
     isAuthorizingVoid: authorizeVoidMutation.isPending,
   }), [
     createStaffMutation.mutateAsync,
@@ -149,12 +141,9 @@ export const useStaffMutations = () => {
     uploadStaffPhotoMutation.mutateAsync,
     deleteStaffMutation.mutateAsync,
     createRoleMutation.mutateAsync,
+    updateRoleMutation.mutateAsync,
     deleteRoleMutation.mutateAsync,
-    clockInMutation.mutateAsync,
-    clockOutMutation.mutateAsync,
     authorizeVoidMutation.mutateAsync,
-    clockInMutation.isPending,
-    clockOutMutation.isPending,
     authorizeVoidMutation.isPending,
   ]);
 };

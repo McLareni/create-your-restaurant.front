@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 import { drawStyledQr, getQrStyle } from '@/features/qr-tables/utils/qrRenderer';
@@ -15,11 +15,31 @@ export const useTableCard = ({
 }: TableCardProps) => {
   const { t } = useTranslation();
   const [styledQr, setStyledQr] = useState<string>('');
+  const [isVisible, setIsVisible] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
   
   const restaurantImageUrl = useRestaurantStore((state) => state.activeRestaurant?.imageUrl);
 
   useEffect(() => {
-    if (!table.qrUrl) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '100px' }
+    );
+
+    if (cardRef.current) {
+      observer.observe(cardRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!table.qrUrl || !isVisible) return;
     let isCurrent = true;
 
     const generateCardCode = async () => {
@@ -42,7 +62,7 @@ export const useTableCard = ({
     return () => {
       isCurrent = false;
     };
-  }, [table.qrUrl, table.id, styleVersion, restaurantImageUrl]);
+  }, [table.qrUrl, table.id, styleVersion, restaurantImageUrl, isVisible]);
 
   const zoneLabel = t(`tables.types.${table.type}`) !== `tables.types.${table.type}`
     ? t(`tables.types.${table.type}`)
@@ -66,6 +86,7 @@ export const useTableCard = ({
     t,
     styledQr,
     zoneLabel,
+    cardRef,
     handleEditClick,
     handleDeleteClick,
     handleToggleStatus,

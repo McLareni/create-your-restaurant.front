@@ -2,12 +2,14 @@
 
 import React from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
+import { usePermissions } from '@/shared/hooks/usePermissions';
 import { Pencil, Trash2 } from 'lucide-react';
 import { Card } from '@/shared/ui/card';
 import type { ComboCardProps } from '@/features/menu-builder/types/combos.types';
 
 export const ComboCard = ({ combo, allDishes, onEdit, onDelete }: ComboCardProps) => {
   const { t } = useTranslation();
+  const { canEditMenu, canDeleteMenu } = usePermissions();
 
   const resolvedDishes = combo.dishes.map((d) => {
     const found = allDishes.find((dish) => dish.id === d.dishId);
@@ -34,20 +36,24 @@ export const ComboCard = ({ combo, allDishes, onEdit, onDelete }: ComboCardProps
           {combo.name}
         </h3>
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-200 shrink-0 bg-bg-surface/90 backdrop-blur-xs p-0.5 rounded-lg border border-border-main/40">
-          <button
-            type="button"
-            onClick={() => onEdit(combo)}
-            className="p-1.5 rounded-md text-text-muted hover:text-brand-emerald hover:bg-bg-element transition-colors duration-200 cursor-pointer outline-none border-0 bg-transparent"
-          >
-            <Pencil className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            onClick={() => onDelete(combo.id)}
-            className="p-1.5 text-text-muted hover:text-red-500 hover:bg-red-500/5 rounded-md shadow-2xs border border-transparent transition-colors duration-200 cursor-pointer outline-none"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
+          {canEditMenu && (
+            <button
+              type="button"
+              onClick={() => onEdit(combo)}
+              className="p-1.5 rounded-md text-text-muted hover:text-brand-emerald hover:bg-bg-element transition-colors duration-200 cursor-pointer outline-none border-0 bg-transparent"
+            >
+              <Pencil className="h-4 w-4" />
+            </button>
+          )}
+          {canDeleteMenu && (
+            <button
+              type="button"
+              onClick={() => onDelete(combo.id)}
+              className="p-1.5 text-text-muted hover:text-red-500 hover:bg-red-500/5 rounded-md shadow-2xs border border-transparent transition-colors duration-200 cursor-pointer outline-none"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </div>
 

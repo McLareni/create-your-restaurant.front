@@ -42,7 +42,7 @@ export const useNavigation = () => {
         { id: 'analytics', href: '/dashboard/analytics', icon: BarChart3, label: t('sidebar.nav.analytics'), moduleKey: 'analytics' },
       ],
       [
-        { id: 'live-calls', href: '/dashboard/live', icon: BellRing, label: t('sidebar.nav.liveCalls'), moduleKey: 'live-calls' },
+        { id: 'live-calls', href: '/dashboard/live-calls', icon: BellRing, label: t('sidebar.nav.liveCalls'), moduleKey: 'live-calls' },
         { 
           id: 'menu', 
           icon: UtensilsCrossed, 
@@ -50,7 +50,7 @@ export const useNavigation = () => {
           moduleKey: 'menu-engine',
           subItems: [
             { id: 'menu-constructor', href: '/dashboard/menu-builder', label: t('sidebar.nav.menuConstructor') },
-            { id: 'menu-inventory', href: '/dashboard/menu-inventory', label: t('sidebar.nav.menuInventory') }
+            { id: 'menu-inventory', href: '/dashboard/menu-inventory', label: t('sidebar.nav.menuInventory'), moduleKey: 'inventory' }
           ]
         },
         { id: 'qr', href: '/dashboard/qr', icon: QrCode, label: t('sidebar.nav.qrTables'), moduleKey: 'qr-tables' },

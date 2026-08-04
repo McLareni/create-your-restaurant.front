@@ -10,25 +10,25 @@ export default function NotFoundPage() {
   const router = useRouter();
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-brand-cream p-6 text-center">
-      <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-3xl bg-brand-espresso text-brand-copper shadow-xl">
-        <Store className="h-12 w-12" />
+    <div className="flex min-h-screen flex-col items-center justify-center bg-brand-cream p-6 text-center select-none animate-fade-in">
+      <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-xl bg-brand-espresso text-brand-copper shadow-md">
+        <Store className="h-10 w-10" />
       </div>
       
-      <h1 className="mb-2 text-7xl font-serif font-bold text-brand-espresso">
+      <h1 className="mb-2 text-6xl font-bold text-brand-espresso tracking-tight">
         {t('notFound.title')}
       </h1>
-      <h2 className="mb-4 text-2xl font-medium text-brand-espresso">
+      <h2 className="mb-4 text-xl font-semibold text-brand-espresso">
         {t('notFound.subtitle')}
       </h2>
-      <p className="mb-8 max-w-md text-brand-gray">
+      <p className="mb-8 max-w-sm text-xs text-brand-gray font-light leading-relaxed">
         {t('notFound.description')}
       </p>
       
       <Button 
         variant="brand" 
         onClick={() => router.push('/dashboard')}
-        className="px-8"
+        className="px-8 h-11 text-xs rounded-xl shadow-sm"
       >
         {t('notFound.backButton')}
       </Button>

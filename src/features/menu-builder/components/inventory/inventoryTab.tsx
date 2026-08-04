@@ -1,22 +1,46 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { useInventoryTab } from '@/features/menu-builder/hooks/inventory/useInventoryTab';
 import { AVAILABLE_UNITS } from '@/features/menu-builder/schemas/inventory.schema';
-import { Input, Select, ConfirmModal, FloatingPanel } from '@/shared/ui';
+import { Input, Select, ConfirmModal, FloatingPanel, Button } from '@/shared/ui';
+import { PageLoader } from '@/shared/ui/pageLoader';
 import { FormActionsFooter } from '@/shared/ui/formActionsFooter';
 import { Search, AlertCircle, Package, Edit2, Trash2 } from 'lucide-react';
 import type { InventoryItem } from '@/features/menu-builder/types/inventory.types';
+import { useAccessStore } from '@/shared/store/useAccessStore';
+import { usePermissions } from '@/shared/hooks/usePermissions';
 
 export const InventoryTab = () => {
   const board = useInventoryTab();
+  const router = useRouter();
+  const hasInventoryModule = useAccessStore((state) => state.hasModule('inventory'));
+  const { canManageInventory } = usePermissions();
 
-  if (board.isLoading && board.filteredItems.length === 0) {
+  if (!hasInventoryModule) {
     return (
-      <div className="p-8 text-center text-text-muted font-medium animate-pulse">
-        {board.t('inventory.loading')}
+      <div className="flex h-full w-full items-center justify-center bg-brand-cream p-6 dark:bg-brand-espresso">
+        <div className="max-w-xl rounded-xl border border-brand-gray/10 bg-white p-8 text-center shadow-sm dark:border-brand-gray/20 dark:bg-brand-mocha">
+          <Package className="mx-auto mb-4 h-12 w-12 text-brand-gray/40" />
+          <h2 className="text-2xl font-bold text-brand-espresso dark:text-brand-cream">
+            {board.t('inventory.notEnabledTitle')}
+          </h2>
+          <p className="mt-2 text-brand-gray dark:text-brand-gray/80">
+            {board.t('inventory.notEnabledDesc')}
+          </p>
+          <div className="mt-6">
+            <Button variant="brand" onClick={() => router.push('/dashboard/marketplace')}>
+              {board.t('pos.goToMarket')}
+            </Button>
+          </div>
+        </div>
       </div>
     );
+  }
+
+  if (board.isLoading && board.filteredItems.length === 0) {
+    return <PageLoader />;
   }
 
   return (
@@ -41,13 +65,15 @@ export const InventoryTab = () => {
               className="h-11 w-full rounded-full border border-solid border-neutral-300 dark:border-neutral-700 text-sm text-text-main pl-9 pr-4 focus:outline-none focus:border-brand-emerald focus:ring-1 focus:ring-brand-emerald/20 transition-colors placeholder:text-text-muted/40"
             />
           </div>
-          <button
-            type="button"
-            onClick={board.openCreateModal}
-            className="h-11 px-5 rounded-full bg-brand-emerald hover:bg-brand-emerald-hover text-white text-sm font-bold shadow-md transition-all cursor-pointer select-none border-0"
-          >
-            <span>+ </span>{board.t('inventory.addButton')}
-          </button>
+          {canManageInventory && (
+            <button
+              type="button"
+              onClick={board.openCreateModal}
+              className="h-11 px-5 rounded-full bg-brand-emerald hover:bg-brand-emerald-hover text-white text-sm font-bold shadow-md transition-all cursor-pointer select-none border-0"
+            >
+              <span>+ </span>{board.t('inventory.addButton')}
+            </button>
+          )}
         </div>
       </div>
 
@@ -81,12 +107,13 @@ export const InventoryTab = () => {
                 <div className="col-span-2 flex justify-center">
                   <div className="relative w-20">
                     <Input
-                      key={`${item.id}-${item.stock}`}
                       id={`stock-input-${item.id}`}
                       className="h-9 text-center text-sm font-mono font-bold pr-1 pl-1 border-solid bg-bg-main/30"
                       type="text"
                       inputMode="decimal"
-                      defaultValue={item.stock}
+                      defaultValue={item.stock === 0 ? '' : item.stock}
+                      placeholder="0"
+                      disabled={!canManageInventory}
                       onBlur={(e) => board.handleStockBlur(item.id, e.target.value)}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
@@ -100,20 +127,24 @@ export const InventoryTab = () => {
                   </div>
                 </div>
                 <div className="col-span-2 flex items-center justify-end gap-1 pr-2">
-                  <button
-                    type="button"
-                    onClick={() => board.startEdit(item)}
-                    className="p-1.5 text-text-muted hover:text-brand-emerald hover:bg-bg-element rounded-md transition-colors cursor-pointer border-0 bg-transparent outline-none"
-                  >
-                    <Edit2 className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => board.setDeleteId(item.id)}
-                    className="p-1.5 text-text-muted hover:text-red-500 hover:bg-red-500/5 rounded-md transition-colors cursor-pointer border-0 bg-transparent outline-none"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
+                  {canManageInventory && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => board.startEdit(item)}
+                        className="p-1.5 text-text-muted hover:text-brand-emerald hover:bg-bg-element rounded-md transition-colors cursor-pointer border-0 bg-transparent outline-none"
+                      >
+                        <Edit2 className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => board.setDeleteId(item.id)}
+                        className="p-1.5 text-text-muted hover:text-red-500 hover:bg-red-500/5 rounded-md transition-colors cursor-pointer border-0 bg-transparent outline-none"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             ))
@@ -153,7 +184,8 @@ export const InventoryTab = () => {
                     type="number"
                     step="any"
                     label={board.t('inventory.modal.stockLabel')}
-                    defaultValue={board.editingItem?.stock ?? 0}
+                    defaultValue={board.editingItem?.stock ?? ''}
+                    placeholder="0"
                     error={board.validationErrors.stock}
                   />
                 </div>

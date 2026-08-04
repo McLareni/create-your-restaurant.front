@@ -1,20 +1,20 @@
 import { apiClient } from '@/shared/api/client';
-import { InventoryItem, CreateInventoryItemDTO, UpdateInventoryItemDTO } from '../types/inventory.types';
+import type { InventoryItem, CreateInventoryItemDTO, UpdateInventoryItemDTO } from '@/features/menu-builder/types/inventory.types';
 
 export const inventoryApi = {
-  getAll: async (restaurantId: number): Promise<InventoryItem[]> => {
-    return await apiClient.get<InventoryItem[]>(`/restaurants/${restaurantId}/inventory`);
+  getAll: async (): Promise<InventoryItem[]> => {
+    return await apiClient.get<InventoryItem[]>('/inventory');
   },
 
-  create: async (restaurantId: number, data: CreateInventoryItemDTO): Promise<InventoryItem> => {
-    return await apiClient.post<InventoryItem>(`/restaurants/${restaurantId}/inventory`, data);
+  create: async (data: CreateInventoryItemDTO): Promise<InventoryItem> => {
+    return await apiClient.post<InventoryItem>('/inventory', data);
   },
 
-  update: async (restaurantId: number, data: UpdateInventoryItemDTO): Promise<InventoryItem> => {
-    return await apiClient.patch<InventoryItem>(`/restaurants/${restaurantId}/inventory/${data.id}`, data);
+  update: async (data: UpdateInventoryItemDTO): Promise<InventoryItem> => {
+    return await apiClient.patch<InventoryItem>(`/inventory/${data.id}`, data);
   },
 
-  delete: async (restaurantId: number, id: string): Promise<{ message: string }> => {
-    return await apiClient.delete<{ message: string }>(`/restaurants/${restaurantId}/inventory/${id}`);
+  delete: async (id: string): Promise<{ message: string }> => {
+    return await apiClient.delete<{ message: string }>(`/inventory/${id}`);
   },
 };

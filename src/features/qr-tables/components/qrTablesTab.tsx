@@ -1,13 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
+import type { ChangeEvent } from 'react';
 import { Button, Checkbox, EmptyState } from '@/shared/ui';
 import { Plus, Printer, QrCode, RefreshCw, AlertTriangle } from 'lucide-react';
 import { TableCard } from '@/features/qr-tables/components/tableCard';
 import { QrPrintSection } from '@/features/qr-tables/components/qrPrintSection';
 import { useQrTablesManagement } from '@/features/qr-tables/hooks/useQrTablesManagement';
-import { QrGeneratorModal } from './qrGeneratorModal';
+import { QrGeneratorModal } from '@/features/qr-tables/components/qrGeneratorModal';
 import { ConfirmModal } from '@/shared/ui/confirmModal';
+import { HasAccess } from '@/shared/components/hasAccess';
+import { PERMISSIONS } from '@/shared/api/menu.constants';
 import type { Table } from '@/features/qr-tables/types/tables.types';
 
 export const QrTablesTab = () => {
@@ -65,15 +68,17 @@ export const QrTablesTab = () => {
               <span className="hidden xs:inline mr-1">{t('qr.printBtn')}</span> ({selectedIds.size})
             </Button>
           )}
-          <Button 
-            variant="brand" 
-            icon={<Plus className="h-4 w-4" />} 
-            onClick={onOpenCreate} 
-            disabled={isLoading}
-            className="flex-1 sm:flex-none text-xs md:text-sm h-11 px-5 font-bold shadow-md rounded-xl bg-brand-emerald hover:bg-brand-emerald-hover text-white border-0 transition-all active:scale-98 flex items-center justify-center gap-1.5"
-          >
-            {t('qr.addBtn')}
-          </Button>
+          <HasAccess permission={PERMISSIONS.TABLES_MANAGE}>
+            <Button 
+              variant="brand" 
+              icon={<Plus className="h-4 w-4" />} 
+              onClick={onOpenCreate} 
+              disabled={isLoading}
+              className="flex-1 sm:flex-none text-xs md:text-sm h-11 px-5 font-bold shadow-md rounded-xl bg-brand-emerald hover:bg-brand-emerald-hover text-white border-0 transition-all active:scale-98 flex items-center justify-center gap-1.5"
+            >
+              {t('qr.addBtn')}
+            </Button>
+          </HasAccess>
         </div>
       </div>
 
@@ -83,8 +88,11 @@ export const QrTablesTab = () => {
             icon={<QrCode className="h-12 w-12 text-text-muted/40" />} 
             title={t('qr.emptyTitle')} 
             description={t('qr.emptyDesc')} 
-            actionLabel={t('qr.addBtn')} 
-            onAction={onOpenCreate} 
+            action={
+              <HasAccess permission={PERMISSIONS.TABLES_MANAGE}>
+                <Button variant="outline" onClick={onOpenCreate}>{t('qr.addBtn')}</Button>
+              </HasAccess>
+            }
           />
         ) : (
           <div className="flex flex-col h-full overflow-hidden">
@@ -93,7 +101,7 @@ export const QrTablesTab = () => {
               <Checkbox 
                 id="selectAll" 
                 checked={selectedIds.size === tables.length && tables.length > 0} 
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSelectAll(e.target.checked)} 
+                onChange={(e: ChangeEvent<HTMLInputElement>) => handleSelectAll(e.target.checked)} 
                 disabled={isLoading} 
                 className="scale-105 accent-brand-emerald pointer-events-auto z-10" 
               />

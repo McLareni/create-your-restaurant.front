@@ -16,6 +16,8 @@ interface DishCardProps {
   onView: (dish: Dish) => void;
   isOverlay?: boolean;
   isLiveDnd?: boolean;
+  canEdit?: boolean;
+  canDelete?: boolean;
 }
 
 export const DishCard = ({ 
@@ -25,9 +27,12 @@ export const DishCard = ({
   onDelete, 
   onView,
   isOverlay = false, 
-  isLiveDnd = false 
+  isLiveDnd = false,
+  canEdit = false,
+  canDelete = false
 }: DishCardProps) => {
   const { t } = useTranslation();
+  
   const {
     attributes,
     listeners,
@@ -42,7 +47,7 @@ export const DishCard = ({
       dish,
       categoryId,
     },
-    disabled: isLiveDnd,
+    disabled: isLiveDnd || !canEdit,
   });
 
   const style = {
@@ -80,40 +85,46 @@ export const DishCard = ({
           : ''
       }
       topLeftAction={
-        <div
-          {...attributes}
-          {...listeners}
-          onClick={(e) => e.stopPropagation()}
-          className="absolute top-2 left-2 p-1.5 bg-bg-surface/90 backdrop-blur-xs rounded-md text-text-muted hover:text-brand-emerald cursor-grab active:cursor-grabbing transition-colors shadow-2xs z-10 border border-border-main/40"
-          title={t('menu.constructor.dishes.title')}
-        >
-          <GripVertical className="h-3.5 w-3.5" />
-        </div>
+        canEdit ? (
+          <div
+            {...attributes}
+            {...listeners}
+            onClick={(e) => e.stopPropagation()}
+            className="absolute top-2 left-2 p-1.5 bg-bg-surface/90 backdrop-blur-xs rounded-md text-text-muted hover:text-brand-emerald cursor-grab active:cursor-grabbing transition-colors shadow-2xs z-10 border border-border-main/40"
+            title={t('menu.constructor.dishes.title')}
+          >
+            <GripVertical className="h-3.5 w-3.5" />
+          </div>
+        ) : undefined
       }
       topRightActions={
         <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity duration-150 z-20 bg-bg-surface/90 backdrop-blur-xs p-0.5 rounded-lg shadow-sm border border-border-main/40">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit(categoryId, dish);
-            }}
-            className="p-1.5 rounded-md text-text-muted hover:text-brand-emerald hover:bg-bg-element transition-colors cursor-pointer border-0 bg-transparent outline-none"
-            title={t('menu.constructor.dishes.editBtn')}
-          >
-            <Edit2 className="h-3.5 w-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete({ type: 'dish', id: dish.id });
-            }}
-            className="p-1.5 rounded-md text-text-muted hover:text-red-500 hover:bg-red-50/5 transition-colors cursor-pointer border-0 bg-transparent outline-none"
-            title={t('menu.constructor.dishes.deleteBtn')}
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
+          {canEdit && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(categoryId, dish);
+              }}
+              className="p-1.5 rounded-md text-text-muted hover:text-brand-emerald hover:bg-bg-element transition-colors cursor-pointer border-0 bg-transparent outline-none"
+              title={t('menu.constructor.dishes.editBtn')}
+            >
+              <Edit2 className="h-3.5 w-3.5" />
+            </button>
+          )}
+          {canDelete && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete({ type: 'dish', id: dish.id });
+              }}
+              className="p-1.5 rounded-md text-text-muted hover:text-red-500 hover:bg-red-50/5 transition-colors cursor-pointer border-0 bg-transparent outline-none"
+              title={t('menu.constructor.dishes.deleteBtn')}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
       }
     />

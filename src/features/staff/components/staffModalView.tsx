@@ -1,15 +1,19 @@
 'use client';
 
 import React, { useState } from 'react';
+import type { ChangeEvent, MouseEvent } from 'react';
 import Image from 'next/image';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { FloatingPanel, Switch, Checkbox, FloatingSidePanel, ConfirmModal } from '@/shared/ui';
 import { useStaffRoles } from '@/features/staff/hooks/useStaffRoles';
-import { Camera, User, Eye, EyeOff, ShieldCheck, Trash2, Plus, X } from 'lucide-react';
+import { useAccessStore } from '@/shared/store/useAccessStore';
+import { Camera, User, Eye, EyeOff, ShieldCheck, Trash2, Plus, X, Pencil, ChevronDown } from 'lucide-react';
 import { useStaffForm } from '@/features/staff/hooks/useStaffForm';
-import type { CustomStaffRole, StaffModalViewProps } from '@/features/staff/types/staff.types';
+import { HasAccess } from '@/shared/components/hasAccess';
+import { PERMISSIONS } from '@/shared/api/menu.constants';
+import type { CustomStaffRole, StaffModalViewProps, PermissionGroup } from '@/features/staff/types/staff.types';
 
 export const StaffModalView = ({
   isOpen,
@@ -24,7 +28,9 @@ export const StaffModalView = ({
   const [showPassword, setShowPassword] = useState(false);
   const [isRolesPanelOpen, setIsRolesPanelOpen] = useState(false);
   const [roleDeleteId, setRoleDeleteId] = useState<string | null>(null);
+  const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({});
   const roleLogic = useStaffRoles();
+  const hasRolesPermission = useAccessStore((state) => state.hasPermission(PERMISSIONS.STAFF_ROLES));
 
   const {
     selectedRole,
@@ -42,8 +48,18 @@ export const StaffModalView = ({
   const handleCloseAll = () => {
     setIsRolesPanelOpen(false);
     setRoleDeleteId(null);
+    roleLogic.cancelEditing();
     onClose();
   };
+
+  const toggleModuleAccordion = (moduleKey: string) => {
+    setExpandedModules((prev) => ({
+      ...prev,
+      [moduleKey]: prev[moduleKey] === undefined ? false : !prev[moduleKey],
+    }));
+  };
+
+  const permissionGroups = roleLogic.permissions as unknown as PermissionGroup[];
 
   const displayRoleName = ['OWNER', 'STAFF', 'CUSTOMER'].includes(selectedRole)
     ? t(`roles.${selectedRole}`)
@@ -53,14 +69,17 @@ export const StaffModalView = ({
 
   return (
     <>
-      <FloatingPanel 
+      <FloatingPanel
         panelId="staff-member-floating-panel"
-        isOpen={isOpen} 
+        isOpen={isOpen}
         onClose={handleCloseAll}
         title={editingMember ? t('staff.modal.editTitle') : t('staff.modal.createTitle')}
         className="main-staff-panel max-w-xl animate-in fade-in duration-200"
       >
-        <form action={formAction} className="flex flex-col gap-4 text-text-main w-full [&_input:not([type=checkbox])]:bg-bg-main/40! [&_input:not([type=checkbox])]:text-text-main! [&_input:not([type=checkbox])]:border-border-main/60! [&_input:not([type=checkbox])]:w-full [&_input:not([type=checkbox])]:focus:border-brand-emerald/50!">
+        <form
+          action={formAction}
+          className="flex flex-col gap-4 text-text-main w-full [&_input:not([type=checkbox])]:bg-bg-main/40! [&_input:not([type=checkbox])]:text-text-main! [&_input:not([type=checkbox])]:border-border-main/60! [&_input:not([type=checkbox])]:w-full [&_input:not([type=checkbox])]:focus:border-brand-emerald/50!"
+        >
           <input type="hidden" name="role" value={selectedRole} />
 
           <div className="flex flex-col items-center justify-center py-2 shrink-0">
@@ -94,37 +113,31 @@ export const StaffModalView = ({
             </span>
             <button
               type="button"
-              onClick={() => !combinedPending && setIsRolesPanelOpen(!isRolesPanelOpen)}
-              className={`h-11 w-full border-2 border-dashed text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer outline-none rounded-lg ${
+              disabled={combinedPending || !hasRolesPermission}
+              onClick={() => !combinedPending && hasRolesPermission && setIsRolesPanelOpen(!isRolesPanelOpen)}
+              className={`h-11 w-full border-2 border-dashed text-xs font-bold flex items-center justify-center gap-2 transition-all outline-none rounded-lg ${
                 isRolesPanelOpen || selectedRole
-                  ? 'border-brand-emerald bg-brand-emerald/10 text-emerald-800 dark:text-emerald-400 shadow-2xs' 
+                  ? 'border-brand-emerald bg-brand-emerald/10 text-emerald-800 dark:text-emerald-400 shadow-2xs'
                   : 'border-border-main/60 bg-bg-main/20 text-brand-emerald hover:text-brand-emerald-hover hover:bg-brand-emerald/5'
-              } ${errors.role ? 'border-red-500! text-red-500!' : ''}`}
+              } ${errors.role ? 'border-red-500! text-red-500!' : ''} ${!hasRolesPermission ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
             >
               <Plus className={`h-4 w-4 transition-transform duration-200 ${isRolesPanelOpen ? 'rotate-45' : ''}`} />
               <span>{selectedRole ? `${t('staff.modal.roleLabel')}: ${displayRoleName}` : t('staff.modal.rolePlaceholder')}</span>
             </button>
-            {errors.role && (
-              <span className="text-[11px] font-medium text-red-500 mt-1">{errors.role}</span>
-            )}
+            {errors.role && <span className="text-[11px] font-medium text-red-500 mt-1">{errors.role}</span>}
           </div>
 
           <div className="flex flex-col gap-1 relative shrink-0">
-            <Input 
-              id="password" 
-              name="password" 
-              type={showPassword ? 'text' : 'password'} 
-              label={t('staff.modal.passwordLabel')} 
-              placeholder={editingMember ? t('staff.modal.passwordPlaceholderEdit') : t('staff.modal.passwordPlaceholderCreate')} 
-              error={errors.password} 
+            <Input
+              id="password"
+              name="password"
+              type={showPassword ? 'text' : 'password'}
+              label={t('staff.modal.passwordLabel')}
+              placeholder={editingMember ? t('staff.modal.passwordPlaceholderEdit') : t('staff.modal.passwordPlaceholderCreate')}
+              error={errors.password}
               disabled={combinedPending}
               rightElement={
-                <button 
-                  type="button" 
-                  onClick={() => setShowPassword(!showPassword)} 
-                  className="text-text-muted hover:text-brand-emerald transition-colors outline-none cursor-pointer flex items-center justify-center" 
-                  disabled={combinedPending}
-                >
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-text-muted hover:text-brand-emerald transition-colors outline-none cursor-pointer flex items-center justify-center" disabled={combinedPending}>
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               }
@@ -150,13 +163,7 @@ export const StaffModalView = ({
             <Button type="button" variant="ghost" className="h-9 text-xs font-semibold" onClick={handleCloseAll} disabled={combinedPending}>
               {t('staff.modal.cancel')}
             </Button>
-            <Button 
-              type="submit" 
-              variant="brand" 
-              className="px-5 h-9 text-xs font-bold shadow-md bg-brand-emerald hover:bg-brand-emerald-hover text-white" 
-              isLoading={combinedPending} 
-              disabled={combinedPending}
-            >
+            <Button type="submit" variant="brand" className="px-5 h-9 text-xs font-bold shadow-md bg-brand-emerald hover:bg-brand-emerald-hover text-white" isLoading={combinedPending} disabled={combinedPending}>
               {t('staff.modal.save')}
             </Button>
           </div>
@@ -171,7 +178,7 @@ export const StaffModalView = ({
         targetSelector=".main-staff-panel"
         targetPanelId="staff-member-floating-panel"
         side="right"
-        width={320}
+        width={340}
         className="transition-none! animate-in slide-in-from-right duration-200"
       >
         <div className="h-12 px-4 border-b border-solid border-border-main/60 flex items-center justify-between bg-bg-main/30 shrink-0">
@@ -182,57 +189,60 @@ export const StaffModalView = ({
         </div>
 
         <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-5 custom-scrollbar">
-          <div className="flex flex-col gap-4">
-            <Input
-              id="newRoleNameInput"
-              label={t('staff.modal.roleLabel')}
-              placeholder={t('staff.modal.addRolePlaceholder')}
-              value={roleLogic.newRoleName}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => roleLogic.setNewRoleName(e.target.value)}
-              className="h-11 border-border-main"
-            />
-            
-            <div className="flex flex-col gap-3">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-text-muted px-1">
-                {t('staff.modal.permissionsTitle')}
-              </span>
-              <div className="grid gap-1 bg-bg-surface dark:bg-bg-element p-2 rounded-lg border border-solid border-border-main/50 max-h-36 overflow-y-auto custom-scrollbar">
-                {roleLogic.permissions.map((perm) => (
-                  <label key={perm.id} className="flex items-center gap-3 px-3 py-2 hover:bg-bg-element/20 dark:hover:bg-bg-surface/5 rounded-md cursor-pointer transition-colors duration-150 group">
-                    <Checkbox
-                      id={`perm-${perm.id}`}
-                      checked={roleLogic.selectedPermissions.includes(perm.id)}
-                      onChange={() => roleLogic.togglePermission(perm.id)}
-                      className="scale-90"
-                    />
-                    <span className="text-sm font-medium text-text-main/90 group-hover:text-text-main transition-colors">{perm.label}</span>
-                  </label>
-                ))}
+          <HasAccess permission={PERMISSIONS.STAFF_ROLES}>
+            <div className="flex flex-col gap-4 shrink-0">
+              <Input id="newRoleNameInput" label={t('staff.modal.roleLabel')} placeholder={t('staff.modal.addRolePlaceholder')} value={roleLogic.newRoleName} onChange={(e: ChangeEvent<HTMLInputElement>) => roleLogic.setNewRoleName(e.target.value)} className="h-11 border-border-main" />
+
+              <div className="flex flex-col gap-3 shrink-0">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-text-muted px-1">{t('staff.modal.permissionsTitle')}</span>
+                <div className="flex flex-col gap-2 max-h-64 overflow-y-auto custom-scrollbar p-1 shrink-0">
+                  {permissionGroups.map((group) => {
+                    const isExpanded = expandedModules[group.moduleKey] ?? true;
+                    const selectedCount = group.actions.filter((a) => roleLogic.selectedPermissions.includes(a.id)).length;
+
+                    return (
+                      <div key={group.moduleKey} className="shrink-0 border border-solid border-border-main/60 rounded-md overflow-hidden bg-bg-surface dark:bg-bg-element/40">
+                        <button type="button" onClick={() => toggleModuleAccordion(group.moduleKey)} className="w-full min-h-9.5 flex items-center justify-between px-3 py-2 bg-bg-element/30 hover:bg-bg-element/60 transition-colors text-left cursor-pointer border-0 shrink-0 outline-none focus:ring-1 focus:ring-brand-emerald/30">
+                          <span className="text-xs font-bold text-text-main truncate pr-2">{group.moduleName}</span>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-[10px] font-semibold text-brand-emerald bg-brand-emerald/10 px-1.5 py-0.5 rounded-full">{selectedCount}/{group.actions.length}</span>
+                            <ChevronDown className={`h-3.5 w-3.5 text-text-muted transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                          </div>
+                        </button>
+
+                        {isExpanded && (
+                          <div className="p-2 flex flex-col gap-1 border-t border-solid border-border-main/40 bg-bg-surface">
+                            {group.actions.map((act) => (
+                              <label key={act.id} className="flex items-center gap-2.5 px-2 py-1.5 hover:bg-bg-element/40 rounded-lg cursor-pointer transition-colors group">
+                                <Checkbox id={`perm-${act.id}`} checked={roleLogic.selectedPermissions.includes(act.id)} onChange={() => roleLogic.togglePermission(act.id)} className="scale-85" />
+                                <span className="text-xs font-medium text-text-main/90 group-hover:text-text-main">{act.label}</span>
+                              </label>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex gap-2 shrink-0">
+                <Button type="button" variant="brand" onClick={roleLogic.handleAddRoleClick} disabled={roleLogic.isCreatingRole || !roleLogic.newRoleName.trim()} className="flex-1 h-11 font-bold bg-brand-emerald hover:bg-brand-emerald-hover text-white rounded-md transition-all shadow-sm text-xs">
+                  {roleLogic.editingRoleId ? t('actions.save') : t('staff.modal.addRoleBtn')}
+                </Button>
+                {roleLogic.editingRoleId && (
+                  <Button type="button" variant="outline" onClick={roleLogic.cancelEditing} className="h-11 px-3 text-xs rounded-md">
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             </div>
+          </HasAccess>
 
-            <Button
-              type="button"
-              variant="brand"
-              onClick={roleLogic.handleAddRoleClick}
-              disabled={roleLogic.isCreatingRole || !roleLogic.newRoleName.trim()}
-              className="w-full h-11 font-bold bg-brand-emerald hover:bg-brand-emerald-hover text-white rounded-xl transition-all shadow-sm"
-            >
-              {t('staff.modal.addRoleBtn')}
-            </Button>
-          </div>
-
-          <div className="flex flex-col gap-3 border-t border-solid border-border-main pt-4">
+          <div className="flex flex-col gap-3 border-t border-solid border-border-main pt-4 shrink-0">
             <h4 className="text-[11px] font-bold uppercase tracking-wider text-text-muted px-1">{t('staff.modal.existingRoles')}</h4>
             <div className="flex flex-col gap-1.5">
-              <div 
-                onClick={() => setSelectedRole('STAFF')}
-                className={`w-full flex items-center justify-between px-2.5 h-9 rounded-md cursor-pointer transition-all select-none border border-solid ${
-                  selectedRole === 'STAFF' || !selectedRole
-                    ? 'bg-brand-emerald/5 border-brand-emerald/20 shadow-3xs' 
-                    : 'border-transparent hover:bg-bg-hover'
-                }`}
-              >
+              <div onClick={() => setSelectedRole('STAFF')} className={`w-full flex items-center justify-between px-2.5 h-9 rounded-md cursor-pointer transition-all select-none border border-solid ${selectedRole === 'STAFF' || !selectedRole ? 'bg-brand-emerald/5 border-brand-emerald/20 shadow-3xs' : 'border-transparent hover:bg-bg-hover'}`}>
                 <div className="flex items-center gap-2 min-w-0">
                   <Checkbox id="panel-role-check-default-staff" checked={selectedRole === 'STAFF' || !selectedRole} onChange={() => {}} />
                   <span className={`text-xs font-semibold truncate transition-colors ${selectedRole === 'STAFF' || !selectedRole ? 'text-brand-emerald font-bold' : 'text-text-main'}`}>
@@ -244,29 +254,23 @@ export const StaffModalView = ({
               {roles.map((role: CustomStaffRole) => {
                 const isCurrentSelected = selectedRole === role.name;
                 return (
-                  <div 
-                    key={role.id} 
-                    onClick={() => setSelectedRole(role.name)}
-                    className={`w-full flex items-center justify-between px-2.5 h-9 rounded-md cursor-pointer transition-all select-none border border-solid ${
-                      isCurrentSelected 
-                        ? 'bg-brand-emerald/5 border-brand-emerald/20 shadow-3xs' 
-                        : 'border-transparent hover:bg-bg-hover'
-                    }`}
-                  >
+                  <div key={role.id} onClick={() => setSelectedRole(role.name)} className={`w-full flex items-center justify-between px-2.5 h-9 rounded-md cursor-pointer transition-all select-none border border-solid ${isCurrentSelected ? 'bg-brand-emerald/5 border-brand-emerald/20 shadow-3xs' : 'border-transparent hover:bg-bg-hover'}`}>
                     <div className="flex items-center gap-2 min-w-0">
                       <Checkbox id={`panel-role-check-${role.id}`} checked={isCurrentSelected} onChange={() => {}} />
-                      <span className={`text-xs font-semibold truncate transition-colors ${isCurrentSelected ? 'text-brand-emerald font-bold' : 'text-text-main'}`}>{role.name}</span>
+                      <span className={`text-xs font-semibold truncate transition-colors ${isCurrentSelected ? 'text-brand-emerald font-bold' : 'text-text-main'}`}>
+                        {role.name}
+                      </span>
                     </div>
-                    <button
-                      type="button"
-                      onClick={(e: React.MouseEvent) => {
-                        e.stopPropagation();
-                        setRoleDeleteId(role.id);
-                      }}
-                      className="text-text-muted hover:text-red-500 p-1 transition-colors rounded cursor-pointer"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                    <HasAccess permission={PERMISSIONS.STAFF_ROLES}>
+                      <div className="flex items-center gap-1">
+                        <button type="button" onClick={(e: MouseEvent) => { e.stopPropagation(); roleLogic.loadRoleForEditing(role); }} className="text-text-muted hover:text-brand-emerald p-1 transition-colors rounded cursor-pointer">
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                        <button type="button" onClick={(e: MouseEvent) => { e.stopPropagation(); setRoleDeleteId(role.id); }} className="text-text-muted hover:text-red-500 p-1 transition-colors rounded cursor-pointer">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </HasAccess>
                   </div>
                 );
               })}
@@ -281,25 +285,19 @@ export const StaffModalView = ({
         </div>
       </FloatingSidePanel>
 
-      <ConfirmModal 
-        isOpen={isOpen && !!roleDeleteId} 
-        onClose={() => setRoleDeleteId(null)} 
+      <ConfirmModal
+        isOpen={isOpen && !!roleDeleteId}
+        onClose={() => setRoleDeleteId(null)}
         onConfirm={() => {
           if (roleDeleteId) {
-            const roleToDelete = roles.find(r => r.id === roleDeleteId);
-            const dummyEvent = {
-              preventDefault: () => {},
-              stopPropagation: () => {},
-            } as unknown as React.MouseEvent;
+            const roleToDelete = roles.find((r) => r.id === roleDeleteId);
+            const dummyEvent = { preventDefault: () => {}, stopPropagation: () => {} } as unknown as MouseEvent;
             roleLogic.handleRemoveRoleClick(dummyEvent, roleDeleteId);
-            
-            if (roleToDelete && selectedRole === roleToDelete.name) {
-              setSelectedRole('STAFF');
-            }
+            if (roleToDelete && selectedRole === roleToDelete.name) setSelectedRole('STAFF');
             setRoleDeleteId(null);
           }
-        }} 
-        description={t('confirmModal.defaultDesc')} 
+        }}
+        description={t('confirmModal.defaultDesc')}
       />
     </>
   );

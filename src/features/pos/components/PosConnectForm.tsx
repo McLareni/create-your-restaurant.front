@@ -1,6 +1,10 @@
+'use client';
+
 import { Button, Input } from '@/shared/ui';
 import { HelpCircle, Settings2, AlertCircle, Loader2 } from 'lucide-react';
-import { usePosIntegration } from '../hooks/usePosIntegration';
+import { usePosIntegration } from '@/features/pos/hooks/usePosIntegration';
+import { HasAccess } from '@/shared/components/hasAccess';
+import { PERMISSIONS } from '@/shared/api/menu.constants';
 
 interface PosConnectFormProps {
   state: ReturnType<typeof usePosIntegration>;
@@ -50,15 +54,17 @@ export const PosConnectForm = ({ state }: PosConnectFormProps) => {
                     {state.t('confirmModal.cancel')}
                   </Button>
                 )}
-                <Button 
-                  variant="brand" 
-                  onClick={state.handleConnect} 
-                  disabled={!state.apiKey.trim() || state.isSyncing} 
-                  className="h-12 px-6 font-bold bg-brand-emerald hover:bg-brand-emerald-hover text-white rounded-xl transition-all flex items-center justify-center shrink-0 shadow-md"
-                >
-                  {state.isSyncing && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                  {state.isSyncing ? state.t('pos.connectChecking') : state.t('pos.connectBtn')}
-                </Button>
+                <HasAccess permission={PERMISSIONS.POS_MANAGE}>
+                  <Button 
+                    variant="brand" 
+                    onClick={state.handleConnect} 
+                    disabled={!state.apiKey.trim() || state.isSyncing} 
+                    className="h-12 px-6 font-bold bg-brand-emerald hover:bg-brand-emerald-hover text-white rounded-xl transition-all flex items-center justify-center shrink-0 shadow-md disabled:opacity-50"
+                  >
+                    {state.isSyncing && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                    {state.isSyncing ? state.t('pos.connectChecking') : state.t('pos.connectBtn')}
+                  </Button>
+                </HasAccess>
               </div>
             </div>
           </div>

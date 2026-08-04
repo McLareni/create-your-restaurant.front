@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { QueryProvider } from "@/shared/providers/queryProvider";
 import { ThemeProvider } from "@/shared/providers/themeProvider";
@@ -7,11 +6,6 @@ import "./globals.css";
 const geist = Geist({
   subsets: ["latin", "cyrillic"],
 });
-
-export const metadata: Metadata = {
-  title: "Gastro | Управління закладом",
-  description: "Платформа для управління ресторанами",
-};
 
 export default function RootLayout({
   children,

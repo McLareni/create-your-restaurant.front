@@ -16,8 +16,6 @@ export const createComboSchema = z.object({
   dishes: z.array(
     z.object({
       id: z.string(),
-      name: z.string(),
-      price: z.number().min(0),
     })
   ).min(1, 'menu.constructor.combos.errors.dishesMin'),
 }).refine((data) => {

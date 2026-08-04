@@ -1,5 +1,7 @@
 'use client';
 
+import React from 'react';
+import type { FormEvent, ChangeEvent } from 'react';
 import { FloatingPanel, Input } from '@/shared/ui';
 import { Zap, Info, Loader2 } from 'lucide-react';
 import { useMarketplace } from '@/features/marketplace/hooks/useMarketplace';
@@ -7,6 +9,11 @@ import { ModuleCard } from '@/features/marketplace/components/moduleCard';
 
 export const MarketplaceList = () => {
   const state = useMarketplace();
+
+  const onSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    state.handleConfirmConnectionAction();
+  };
 
   return (
     <div className="flex min-h-screen w-full flex-col p-8 bg-bg-main text-text-main overflow-x-hidden transition-colors">
@@ -54,7 +61,7 @@ export const MarketplaceList = () => {
           title={state.t('marketplace.connectModal.title')}
           className="w-full max-w-md border border-border-main bg-bg-surface shadow-md rounded-2xl"
         >
-          <form action={state.handleConfirmConnectionAction} className="space-y-4 text-text-main">
+          <form onSubmit={onSubmit} className="space-y-4 text-text-main">
             <div className="bg-bg-element border border-border-main p-4 rounded-xl flex gap-2.5 text-xs leading-relaxed font-medium">
               <Info className="h-4 w-4 text-brand-emerald shrink-0 mt-0.5" />
               <p className="text-text-main/90">{state.modalDescription}</p>
@@ -67,6 +74,8 @@ export const MarketplaceList = () => {
                 label={state.t('marketplace.connectModal.activationCodeLabel')}
                 placeholder={state.t('marketplace.connectModal.activationCodePlaceholder')}
                 disabled={state.isPending}
+                value={state.activationCode}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => state.setActivationCode(e.target.value)}
                 className="rounded-lg h-11 border-border-main bg-bg-element text-text-main placeholder:text-text-muted/40"
               />
             </div>
@@ -76,7 +85,7 @@ export const MarketplaceList = () => {
                 type="button"
                 onClick={state.handleCloseConnectModal}
                 disabled={state.isPending}
-                className="px-3.5 h-9 text-xs font-semibold text-text-muted hover:text-text-main hover:bg-bg-element rounded-xl transition-all cursor-pointer"
+                className="px-3.5 h-9 text-xs font-semibold text-text-muted hover:text-text-main hover:bg-bg-element rounded-xl transition-all cursor-pointer border-0 outline-none bg-transparent"
               >
                 {state.t('confirmModal.cancel')}
               </button>

@@ -2,6 +2,7 @@
 
 import React, { useEffect } from 'react';
 import type { ReactNode } from 'react';
+import { X } from 'lucide-react';
 import { usePanelPositionStore } from '@/shared/store/usePanelPositionStore';
 
 interface FloatingSidePanelProps {
@@ -17,6 +18,15 @@ interface FloatingSidePanelProps {
   width?: number;
   gap?: number;
 }
+
+export const FloatingSidePanelHeader = ({ title, onClose }: { title: string; onClose: () => void }) => (
+  <div className="h-12 px-4 border-b border-solid border-border-main/60 flex items-center justify-between bg-bg-main/30 shrink-0">
+    <h3 className="text-xs font-bold text-text-main uppercase tracking-wider">{title}</h3>
+    <button type="button" onClick={onClose} className="text-text-muted hover:text-text-main p-1 rounded-md hover:bg-bg-hover transition-colors cursor-pointer border-0 bg-transparent outline-none">
+      <X className="h-4 w-4" />
+    </button>
+  </div>
+);
 
 export const FloatingSidePanel = ({
   id,
@@ -74,10 +84,7 @@ export const FloatingSidePanel = ({
     const mutationObserver = new MutationObserver(handleScheduleSync);
 
     resizeObserver.observe(mainModal);
-    mutationObserver.observe(mainModal, {
-      attributes: true,
-      attributeFilter: ['style']
-    });
+    mutationObserver.observe(mainModal, { attributes: true, attributeFilter: ['style'] });
 
     return () => {
       cancelAnimationFrame(animationFrameId);
@@ -91,12 +98,7 @@ export const FloatingSidePanel = ({
   if (!isOpen) return null;
 
   return (
-    <div
-      id={id}
-      className={`fixed z-50 bg-bg-surface border border-solid border-border-main shadow-xl flex flex-col overflow-hidden rounded-2xl pointer-events-auto transition-all duration-200 ${
-        isDragging ? 'ring-1 ring-brand-emerald/20 shadow-2xl' : ''
-      } ${className}`}
-    >
+    <div id={id} className={`fixed z-50 bg-bg-surface border border-solid border-border-main shadow-xl flex flex-col overflow-hidden rounded-2xl pointer-events-auto transition-all duration-200 ${isDragging ? 'ring-1 ring-brand-emerald/20 shadow-2xl' : ''} ${className}`}>
       {children}
     </div>
   );

@@ -14,9 +14,7 @@ export async function POST(request: NextRequest) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ token }),
       });
-    } catch (error) {
-      console.error('Backend logout cleanup failed:', error);
-    }
+    } catch {}
   }
 
   const response = NextResponse.json({ success: true });

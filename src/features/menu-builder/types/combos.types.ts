@@ -29,7 +29,7 @@ export interface CreateComboDTO {
   name: string;
   priceType: ComboPriceType;
   priceValue: number;
-  dishes: ComboDishSelect[];
+  dishes: { id: string }[];
 }
 
 export interface ComboCardProps {

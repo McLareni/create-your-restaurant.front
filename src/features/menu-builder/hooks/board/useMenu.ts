@@ -1,5 +1,3 @@
-'use client';
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { menuApi } from '@/features/menu-builder/api/menu.api';
 import { useActiveRestaurantId } from '@/shared/hooks/useActiveRestaurantId';
@@ -19,7 +17,7 @@ export const useMenu = () => {
     queryKey: QUERY_KEYS.fullMenu(restaurantId),
     queryFn: () => {
       if (!restaurantId) throw new Error('Restaurant ID is required');
-      return menuApi.getFullMenu(restaurantId);
+      return menuApi.getFullMenu();
     },
     enabled: !!restaurantId,
   });
@@ -36,7 +34,6 @@ export const useMenu = () => {
     mutationFn: (name: string) => {
       if (!restaurantId) throw new Error('Restaurant ID is required');
       return menuApi.createCategory({
-        restaurantId,
         name,
         sortOrder: categories.length,
       });

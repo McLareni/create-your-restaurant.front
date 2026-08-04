@@ -1,9 +1,12 @@
 'use client';
 
-import { useState, useMemo, useOptimistic, useEffect } from 'react';
+import { useState, useMemo, useOptimistic, useEffect, startTransition } from 'react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { useStaff } from '@/features/staff/hooks/useStaff';
 import { useStaffMutations } from '@/features/staff/hooks/useStaffMutations';
+import { useQueryClient } from '@tanstack/react-query';
+import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
+import { QUERY_KEYS } from '@/shared/api/query-keys';
 import toast from 'react-hot-toast';
 import type { StaffMember, CreateStaffDTO } from '@/features/staff/types/staff.types';
 
@@ -17,6 +20,9 @@ export const useStaffList = () => {
   const { t } = useTranslation();
   const { staff, roles, isLoading } = useStaff();
   const mutations = useStaffMutations();
+  const queryClient = useQueryClient();
+  const activeRestaurantId = useRestaurantStore((state) => state.activeRestaurant?.id);
+  const restaurantId = activeRestaurantId ? Number(activeRestaurantId) : null;
 
   const [localSearch, setLocalSearch] = useState('');
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('');
@@ -92,49 +98,58 @@ export const useStaffList = () => {
       avatarColor: 'bg-brand-copper',
     };
 
-    if (editingMember) {
-      setOptimisticStaff({ type: 'UPDATE', payload: mockStaffMember });
-    } else {
-      setOptimisticStaff({ type: 'CREATE', payload: mockStaffMember });
-    }
-
-    try {
-      const savedStaff = editingMember
-        ? await mutations.updateStaffAsync({ id: editingMember.id, data: submitData })
-        : await mutations.createStaffAsync(submitData);
-
-      closeModal();
-
-      if (photoFile && savedStaff?.id) {
-        await mutations.uploadStaffPhotoAsync({ staffId: savedStaff.id, file: photoFile });
+    startTransition(async () => {
+      if (editingMember) {
+        setOptimisticStaff({ type: 'UPDATE', payload: mockStaffMember });
+      } else {
+        setOptimisticStaff({ type: 'CREATE', payload: mockStaffMember });
       }
-    } catch (error: unknown) {
-      const err = error as Error;
-      const backendMessage = err.message || t('auth.errors.defaultError');
-      setGlobalError(backendMessage);
-      throw error;
-    }
+
+      try {
+        const savedStaff = editingMember
+          ? await mutations.updateStaffAsync({ id: editingMember.id, data: submitData })
+          : await mutations.createStaffAsync(submitData);
+
+        closeModal();
+
+        if (photoFile && savedStaff?.id) {
+          await mutations.uploadStaffPhotoAsync({ staffId: savedStaff.id, file: photoFile });
+        }
+      } catch (error: unknown) {
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.staffList(restaurantId) });
+        const err = error as Error;
+        const backendMessage = err.message || t('auth.errors.defaultError');
+        setGlobalError(backendMessage);
+        throw error;
+      }
+    });
   };
 
   const confirmDelete = async () => {
     if (deleteId) {
-      setOptimisticStaff({ type: 'DELETE', payload: deleteId });
-      try {
-        await mutations.deleteStaffAsync(deleteId);
-        setDeleteId(null);
-      } catch {
-        toast.error(t('auth.errors.defaultError'));
-      }
+      startTransition(async () => {
+        setOptimisticStaff({ type: 'DELETE', payload: deleteId });
+        try {
+          await mutations.deleteStaffAsync(deleteId);
+          setDeleteId(null);
+        } catch {
+          queryClient.invalidateQueries({ queryKey: QUERY_KEYS.staffList(restaurantId) });
+          toast.error(t('auth.errors.defaultError'));
+        }
+      });
     }
   };
 
-  const toggleStaffStatus = async (id: string, isActive: boolean) => {
-    setOptimisticStaff({ type: 'TOGGLE_STATUS', payload: { id, isActive } });
-    try {
-      await mutations.updateStaffAsync({ id, data: { isActive } });
-    } catch {
-      toast.error(t('auth.errors.defaultError'));
-    }
+  const toggleStaffStatus = (id: string, isActive: boolean) => {
+    startTransition(async () => {
+      setOptimisticStaff({ type: 'TOGGLE_STATUS', payload: { id, isActive } });
+      try {
+        await mutations.updateStaffAsync({ id, data: { isActive } });
+      } catch {
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.staffList(restaurantId) });
+        toast.error(t('auth.errors.defaultError'));
+      }
+    });
   };
 
   const filteredStaff = useMemo(() => {

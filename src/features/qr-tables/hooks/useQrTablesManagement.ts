@@ -7,6 +7,7 @@ import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 import { useUserStore } from '@/shared/store/useUserStore';
 import { tableSchema } from '@/features/qr-tables/schemas/tables.schema';
 import { tablesApi } from '@/features/qr-tables/api/tables.api';
+import { QUERY_KEYS } from '@/shared/api/query-keys';
 import toast from 'react-hot-toast';
 import type { Table, CreateTableDTO, UpdateTableDTO } from '@/features/qr-tables/types/tables.types';
 
@@ -43,7 +44,7 @@ export const useQrTablesManagement = () => {
   const printTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: tables = [], isLoading: isTablesLoading, isError } = useQuery({
-    queryKey: ['tables', restaurantId],
+    queryKey: QUERY_KEYS.tables(restaurantId),
     queryFn: () => tablesApi.getAll(restaurantId!, restaurantSlug),
     enabled: !!restaurantId,
   });
@@ -74,7 +75,7 @@ export const useQrTablesManagement = () => {
   const createTableMutation = useMutation<Table, ApiErrorResponse, CreateTableDTO>({
     mutationFn: (data: CreateTableDTO) => tablesApi.create(restaurantId!, data, restaurantSlug),
     onSuccess: (newTable) => {
-      queryClient.invalidateQueries({ queryKey: ['tables', restaurantId] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.tables(restaurantId) });
       setIsModalOpen(false);
       
       const tempConfig = localStorage.getItem('qr-style-new');
@@ -96,7 +97,7 @@ export const useQrTablesManagement = () => {
     mutationFn: ({ id, data }: { id: string; data: UpdateTableDTO }) => 
       tablesApi.update(restaurantId!, id, data, restaurantSlug),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tables', restaurantId] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.tables(restaurantId) });
       setIsModalOpen(false);
       toast.success(t('qr.notifications.updateSuccess'));
     },
@@ -110,7 +111,7 @@ export const useQrTablesManagement = () => {
   const deleteTableMutation = useMutation<void, ApiErrorResponse, string>({
     mutationFn: (id: string) => tablesApi.delete(restaurantId!, id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tables', restaurantId] });
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.tables(restaurantId) });
       setDeleteId(null);
       toast.success(t('qr.notifications.deleteSuccess'));
     },

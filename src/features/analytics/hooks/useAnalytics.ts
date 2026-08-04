@@ -5,7 +5,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useAccessStore } from '@/shared/store/useAccessStore';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
-import { analyticsApi } from '../api/analytics.api';
+import { analyticsApi } from '@/features/analytics/api/analytics.api';
+import { QUERY_KEYS } from '@/shared/api/query-keys';
 
 export const useAnalytics = () => {
   const { t } = useTranslation();
@@ -15,7 +16,7 @@ export const useAnalytics = () => {
   const restaurantId = activeRestaurant?.id ? Number(activeRestaurant.id) : null;
 
   const { data: summary, isLoading } = useQuery({
-    queryKey: ['analytics-summary', restaurantId],
+    queryKey: QUERY_KEYS.analyticsSummary(restaurantId),
     queryFn: () => analyticsApi.getSummary(restaurantId!),
     enabled: hasModule('analytics') && !!restaurantId,
   });

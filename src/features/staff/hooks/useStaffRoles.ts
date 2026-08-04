@@ -1,12 +1,18 @@
+'use client';
+
 import { useState } from 'react';
 import type { MouseEvent } from 'react';
+import toast from 'react-hot-toast';
 import { useStaff } from '@/features/staff/hooks/useStaff';
 import { useStaffMutations } from '@/features/staff/hooks/useStaffMutations';
+import { useTranslation } from '@/shared/hooks/useTranslation';
 
 export const useStaffRoles = () => {
+  const { t } = useTranslation();
   const { permissions } = useStaff();
   const mutations = useStaffMutations();
   const [newRoleName, setNewRoleName] = useState('');
+  const [editingRoleId, setEditingRoleId] = useState<string | null>(null);
   const [isCreatingRole, setIsCreatingRole] = useState(false);
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
 
@@ -17,13 +23,30 @@ export const useStaffRoles = () => {
   };
 
   const handleAddRoleClick = async () => {
+    if (editingRoleId) {
+      setIsCreatingRole(true);
+      try {
+        await mutations.updateRoleAsync({ id: editingRoleId, permissions: selectedPermissions });
+        setNewRoleName('');
+        setSelectedPermissions([]);
+        setEditingRoleId(null);
+      } catch {
+        toast.error(t('auth.errors.defaultError'));
+      } finally {
+        setIsCreatingRole(false);
+      }
+      return;
+    }
+
     if (!newRoleName.trim() || isCreatingRole) return;
     setIsCreatingRole(true);
     try {
       await mutations.createRoleAsync({ name: newRoleName.trim(), permissions: selectedPermissions });
       setNewRoleName('');
       setSelectedPermissions([]);
-    } catch {} finally {
+    } catch {
+      toast.error(t('auth.errors.defaultError'));
+    } finally {
       setIsCreatingRole(false);
     }
   };
@@ -33,7 +56,26 @@ export const useStaffRoles = () => {
     e.stopPropagation();
     try {
       await mutations.deleteRoleAsync(id);
-    } catch {}
+      if (editingRoleId === id) {
+        setNewRoleName('');
+        setSelectedPermissions([]);
+        setEditingRoleId(null);
+      }
+    } catch {
+      toast.error(t('auth.errors.defaultError'));
+    }
+  };
+
+  const loadRoleForEditing = (role: { id: string; name: string; permissions?: string[] }) => {
+    setEditingRoleId(role.id);
+    setNewRoleName(role.name);
+    setSelectedPermissions(role.permissions || []);
+  };
+
+  const cancelEditing = () => {
+    setEditingRoleId(null);
+    setNewRoleName('');
+    setSelectedPermissions([]);
   };
 
   return {
@@ -45,5 +87,8 @@ export const useStaffRoles = () => {
     togglePermission,
     handleAddRoleClick,
     handleRemoveRoleClick,
+    editingRoleId,
+    loadRoleForEditing,
+    cancelEditing,
   };
 };
