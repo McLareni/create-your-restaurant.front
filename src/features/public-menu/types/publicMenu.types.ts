@@ -34,6 +34,16 @@ export interface PublicMenuCategory {
 export interface PublicMenuResponse {
   restaurantId: number;
   restaurantName?: string;
+  visualSettings?: {
+    theme?: string;
+    primaryColor?: string;
+    backgroundColor?: string;
+    borderRadius?: string;
+    fontFamily?: string;
+    buttonStyle?: string;
+    shadowIntensity?: string;
+    cardStyle?: string;
+  } | null;
   categories: PublicMenuCategory[];
 }
 
@@ -56,6 +66,7 @@ export interface PublicOrderItemSummary {
 
 export interface PublicOrderSummary {
   id: string;
+  orderNumber?: number;
   status?: string;
   totalAmount: number;
   createdAt?: string;
@@ -92,6 +103,6 @@ export interface UsePublicMenuClientReturn {
   removeDish: (dishId: string) => void;
   placeOrder: () => void;
   isPlacingOrder: boolean;
-  callWaiter: () => void;
+  callWaiter: (type?: string) => void;
   isCallingWaiter: boolean;
 }

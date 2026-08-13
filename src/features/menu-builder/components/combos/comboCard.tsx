@@ -15,7 +15,7 @@ export const ComboCard = ({ combo, allDishes, onEdit, onDelete }: ComboCardProps
     const found = allDishes.find((dish) => dish.id === d.dishId);
     return {
       id: d.dishId,
-      name: found?.name || '',
+      name: found?.name,
       price: found?.price || 0,
     };
   });

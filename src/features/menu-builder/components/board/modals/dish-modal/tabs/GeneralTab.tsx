@@ -20,7 +20,7 @@ export const GeneralTab = ({ state, t, onOpenBadgePanel }: GeneralTabProps) => {
         name="name"
         label={t('menu.constructor.dishes.modal.nameLabel')}
         placeholder={t('menu.constructor.dishes.modal.namePlaceholder')}
-        defaultValue={state.editingDish?.name || ''}
+        defaultValue={state.editingDish?.name}
         error={state.formErrors.name ? t(state.formErrors.name) : undefined}
         disabled={state.isSaving}
       />

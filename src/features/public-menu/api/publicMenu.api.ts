@@ -25,10 +25,13 @@ export const publicMenuApi = {
       data,
     ),
 
-  callWaiter: (restaurantId: number, tableId: string) =>
-    apiClient.post<{ message: string; tableId: string }>(
-      `/restaurants/${restaurantId}/orders/public/tables/${tableId}/call-waiter`,
-    ),
+  callWaiter: async (restaurantId: number, tableId: string, type: string) => {
+    const { data } = await apiClient.post<{ data: unknown }>(
+      `/restaurants/${restaurantId}/live-calls/public/trigger`,
+      { tableId, type }
+    );
+    return data;
+  },
 
   findOrderByCode: (
     restaurantId: number,

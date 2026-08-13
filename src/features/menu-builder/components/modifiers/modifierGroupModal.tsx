@@ -48,7 +48,7 @@ export const ModifierGroupModal = ({
           id="groupName"
           name="name"
           label={t('menu.constructor.modifiers.modal.group.nameLabel')}
-          defaultValue={editingGroup?.name || ''}
+          defaultValue={editingGroup?.name}
           disabled={isLoading}
           error={errors.name}
         />
@@ -59,6 +59,7 @@ export const ModifierGroupModal = ({
             name="minSelections"
             type="text"
             inputMode="numeric"
+            onKeyDown={(e) => { if (e.key === '-' || e.key === 'e') e.preventDefault(); }}
             label={t('menu.constructor.modifiers.modal.group.minLabel')}
             placeholder="0"
             defaultValue={editingGroup?.minSelections ?? (isRequiredChecked ? '1' : '0')}
@@ -70,6 +71,7 @@ export const ModifierGroupModal = ({
             name="maxSelections"
             type="text"
             inputMode="numeric"
+            onKeyDown={(e) => { if (e.key === '-' || e.key === 'e') e.preventDefault(); }}
             label={t('menu.constructor.modifiers.modal.group.maxLabel')}
             placeholder={t('menu.constructor.modifiers.unlimited')}
             defaultValue={editingGroup?.maxSelections ?? ''}

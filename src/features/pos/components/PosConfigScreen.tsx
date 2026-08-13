@@ -90,7 +90,7 @@ export const PosConfigScreen = ({ state }: PosConfigScreenProps) => {
             id="maskedPosterToken"
             type="text"
             label={state.t('pos.apiTokenLabel')}
-            value={state.maskedApiKey || '•••• •••• •••• 4821'}
+            value={state.maskedApiKey || ''}
             disabled
             leftIcon={<KeyRound className="h-4 w-4 text-text-muted/50" />}
             className="h-11 border-border-main bg-bg-main/50 font-mono tracking-wide"

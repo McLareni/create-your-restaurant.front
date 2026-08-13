@@ -4,6 +4,13 @@ export const sidebar = {
     marketplace: "Маркетплейс модулів",
     billing: "Тарифи та Оплата"
   },
+  groups: {
+    main: "Головна",
+    catalog: "Каталог",
+    operations: "Операційна діяльність",
+    analytics: "Аналітика та Відгуки",
+    system: "Система"
+  },
   orgSelector: {
     switch: "Змінити заклад",
     addNew: "Додати новий заклад",
@@ -19,7 +26,6 @@ export const sidebar = {
     menu: "Меню",
     menuConstructor: "Конструктор",
     menuInventory: "Інвентаризація",
-    menuPrices: "Ціни",
     qrTables: "QR-Коди та Столи",
     staff: "Персонал",
     posSync: "Інтеграція з POS",
@@ -36,7 +42,6 @@ export const sidebar = {
   locked: {
     title: "Модуль заблоковано",
     description: "Цей модуль не активований або ваш тестовий період закінчився. Підключіть його в Маркетплейсі.",
-    modalTitle: "Активація модуля",
     modalDesc: "Цей модуль вже підключено до вашого закладу, але наразі він вимкнений. Бажаєте активувати його зараз, щоб відновити роботу?",
     activateBtn: "Активатувати"
   }

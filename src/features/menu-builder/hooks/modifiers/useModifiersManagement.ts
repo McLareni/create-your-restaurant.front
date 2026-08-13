@@ -64,7 +64,7 @@ export const useModifiersManagement = () => {
 
   const [groupFormState, groupFormAction, isGroupPending] = useAppActionState(
     async (formData) => {
-      const name = (formData.get('name') as string || '').trim();
+      const name = (formData.get('name') as string).trim();
       const isRequired = formData.get('isRequired') === 'on';
       const minSelectionsRaw = parseInt(formData.get('minSelections') as string, 10);
       const minSelections = isNaN(minSelectionsRaw) ? 0 : minSelectionsRaw;

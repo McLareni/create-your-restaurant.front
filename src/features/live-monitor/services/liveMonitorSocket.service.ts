@@ -1,7 +1,7 @@
 import { QueryClient } from '@tanstack/react-query';
 import type { Socket } from 'socket.io-client';
 import { QUERY_KEYS } from '@/shared/api/query-keys';
-import type { LiveMonitorSnapshot, OrdersChangedPayload } from '@/features/live-monitor/types/liveMonitor.types';
+import type { OrdersChangedPayload } from '@/features/live-monitor/types/liveMonitor.types';
 
 export const attachLiveMonitorListeners = (
   socket: Socket,
@@ -12,7 +12,7 @@ export const attachLiveMonitorListeners = (
 
   const handleOrdersChanged = (payload: OrdersChangedPayload) => {
     if (Number(payload.restaurantId) !== restaurantId) return;
-    queryClient.setQueryData<LiveMonitorSnapshot>(queryKey, payload.snapshot);
+    void queryClient.invalidateQueries({ queryKey });
   };
 
   socket.on('live-monitor:orders-changed', handleOrdersChanged);

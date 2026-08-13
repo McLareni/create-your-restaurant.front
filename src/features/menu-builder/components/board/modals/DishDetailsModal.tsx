@@ -112,13 +112,13 @@ export const DishDetailsModal = ({ isOpen, onClose, dish }: DishDetailsModalProp
           {dish.weight && (
             <div>
               {t('menu.constructor.dishes.modal.properties.weightLabel')}{' '}
-              <span className="text-text-main font-extrabold">{dish.weight} г</span>
+              <span className="text-text-main font-extrabold">{dish.weight} {t('dishes.modal.ingredients.units.g')}</span>
             </div>
           )}
           {dish.calories && (
             <div>
               {t('menu.constructor.dishes.modal.properties.caloriesLabel')}{' '}
-              <span className="text-text-main font-extrabold">{dish.calories} ккал</span>
+              <span className="text-text-main font-extrabold">{dish.calories} {t('dishes.modal.units.caloriesShort')}</span>
             </div>
           )}
         </div>

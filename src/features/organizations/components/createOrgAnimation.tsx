@@ -13,7 +13,7 @@ export const CreateOrgAnimation = ({ state }: CreateOrgAnimationProps) => {
       case 1:
         return t('organization.animation.step1');
       case 2:
-        return `${t('organization.animation.step2')} ${formData.slug}${process.env.NEXT_PUBLIC_DOMAIN_SUFFIX || '.gastro.com'}...`;
+        return `${t('organization.animation.step2')} ${formData.slug}${process.env.NEXT_PUBLIC_DOMAIN_SUFFIX}...`;
       case 3:
         return t('organization.animation.step3');
       case 4:

@@ -38,7 +38,7 @@ export const useQrGeneratorModal = ({
     let isMounted = true;
     Promise.resolve().then(() => {
       if (!isMounted) return;
-      const style = getQrStyle(editingTableId || 'new');
+      const style = getQrStyle(editingTableId || '');
       setPatternType(style.patternType);
       setLogoOverlay(style.logoOverlay);
     });
@@ -55,7 +55,11 @@ export const useQrGeneratorModal = ({
     let isCurrent = true;
     const fetchLogoAsBase64 = async () => {
       try {
-        const res = await fetch(restaurantImageUrl);
+        let fetchUrl = restaurantImageUrl;
+        if (fetchUrl.startsWith('http')) {
+          fetchUrl = `/api/proxy-image?url=${encodeURIComponent(restaurantImageUrl)}`;
+        }
+        const res = await fetch(fetchUrl);
         const blob = await res.blob();
         const base64 = await new Promise<string>((resolve) => {
           const reader = new FileReader();
@@ -85,7 +89,7 @@ export const useQrGeneratorModal = ({
 
     const generatePreview = async () => {
       const baseUrl = process.env.NEXT_PUBLIC_APP_URL || (typeof window !== 'undefined' ? window.location.origin : '');
-      const mockUrl = `${baseUrl}/menu/preview/${formData.tableNumber || '0'}`;
+      const mockUrl = `${baseUrl}/menu/preview/${formData.tableNumber}`;
       const activeTable = tables.find(t => t.id === editingTableId);
       const targetUrl = activeTable?.qrUrl || mockUrl;
 
@@ -143,7 +147,7 @@ export const useQrGeneratorModal = ({
   const handleFormAction = () => {
     startTransition(async () => {
       const config = { patternType, logoOverlay };
-      saveQrStyle(editingTableId || 'new', config);
+      saveQrStyle(editingTableId || '', config);
       if (editingTableId && onStyleConfigured) {
         onStyleConfigured(editingTableId, config);
       }

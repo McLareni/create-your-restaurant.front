@@ -46,18 +46,18 @@ export const useDishModal = ({ createDishAsync, updateDishAsync }: UseDishModalP
     setActiveCategoryId(categoryId);
     setFormErrors({});
     setActiveTab('general');
-    setModalSessionKey(`dish-modal-${dish?.id || 'new'}-${Date.now()}`);
+    setModalSessionKey(`dish-modal-${dish?.id}-${Date.now()}`);
 
     if (dish) {
       setEditingDish(dish);
       setDishForm({
-        name: dish.name,
+        name: dish.name || '',
         description: dish.description || '',
         price: dish.price,
         weight: dish.weight || null,
         cookingTime: dish.cookingTime || null,
         calories: dish.calories || null,
-        badge: dish.badge || '',
+        badge: dish.badge,
         isAvailable: dish.isAvailable,
         isVegan: dish.isVegan,
         isSpicy: dish.isSpicy,
@@ -77,8 +77,8 @@ export const useDishModal = ({ createDishAsync, updateDishAsync }: UseDishModalP
   const [formState, formAction, isPending] = useAppActionState(
     async (formData) => {
       setFormErrors({});
-      const name = (formData.get('name') as string || '').trim();
-      const description = (formData.get('description') as string || '').trim();
+      const name = (formData.get('name') as string).trim();
+      const description = (formData.get('description') as string).trim();
       const weightRaw = formData.get('weight');
       const cookingTimeRaw = formData.get('cookingTime');
       const caloriesRaw = formData.get('calories');
@@ -86,7 +86,7 @@ export const useDishModal = ({ createDishAsync, updateDishAsync }: UseDishModalP
       const currentFormPayload: DishFormValues = {
         ...dishForm,
         name,
-        description: description || '',
+        description: description,
         weight: weightRaw ? parseInt(weightRaw.toString(), 10) : null,
         cookingTime: cookingTimeRaw ? parseInt(cookingTimeRaw.toString(), 10) : null,
         calories: caloriesRaw ? parseInt(caloriesRaw.toString(), 10) : null,

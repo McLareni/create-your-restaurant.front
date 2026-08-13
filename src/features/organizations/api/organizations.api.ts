@@ -13,7 +13,7 @@ export const organizationApi = {
       slug: data.slug,
       type: data.type,
       currency: data.currency,
-      language: data.language || 'UA',
+      language: data.language,
       city: data.city || null,
       phoneNumber: data.phone || null,
       street: data.street || null,

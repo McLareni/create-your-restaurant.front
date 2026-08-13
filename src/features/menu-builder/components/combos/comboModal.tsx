@@ -48,7 +48,7 @@ export const ComboModal = ({ state }: ComboModalProps) => {
             name="name"
             label={state.t('menu.constructor.combos.modal.nameLabel')}
             placeholder={state.t('menu.constructor.combos.modal.namePlaceholder')}
-            defaultValue={state.editingCombo?.name || ''}
+            defaultValue={state.editingCombo?.name}
             error={state.errors.name}
             disabled={state.isSubmitting}
           />

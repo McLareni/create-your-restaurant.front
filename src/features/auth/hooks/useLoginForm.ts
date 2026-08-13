@@ -47,14 +47,13 @@ export const useLoginForm = () => {
     startTransition(async () => {
       try {
         await authApi.requestLoginCode(email);
-        setTimeLeft(120);
+        setTimeLeft(60);
         toast.success(t('auth.login.codeResent'));
       } catch (error: unknown) {
         const err = error as AuthApiError;
-        const errorKey = `auth.errors.${err.message}`;
-        const translated = t(errorKey);
+        const translated = t(err.message ?? 'auth.errors.defaultError');
         setEmailError(
-          translated === errorKey
+          translated === err.message
             ? t('auth.errors.defaultError')
             : translated,
         );
@@ -76,7 +75,7 @@ export const useLoginForm = () => {
           }
           await authApi.requestLoginCode(email);
           setStep(2);
-          setTimeLeft(120);
+          setTimeLeft(60);
         } else {
           const cleanCode = code.replace(/\D/g, '');
           const validation = verifySchema.safeParse({
@@ -94,13 +93,12 @@ export const useLoginForm = () => {
         }
       } catch (error: unknown) {
         const err = error as AuthApiError;
-        const errorKey = `auth.errors.${err.message}`;
-        const translated = t(errorKey);
+        const translated = t(err.message ?? 'auth.errors.defaultError');
         const fallback =
           step === 1
             ? t('auth.errors.defaultError')
             : t('auth.errors.verifyFailed');
-        const finalMessage = translated === errorKey ? fallback : translated;
+        const finalMessage = translated === err.message ? fallback : translated;
 
         if (step === 1) {
           setEmailError(finalMessage);

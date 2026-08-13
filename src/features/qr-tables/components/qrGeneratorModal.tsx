@@ -27,7 +27,7 @@ export const QrGeneratorModal = (props: QrGeneratorModalProps) => {
     if (!qrImage) return;
     const link = document.createElement('a');
     link.href = qrImage;
-    link.download = `qr-table-${formData.tableNumber || 'code'}.png`;
+    link.download = `qr-table-${formData.tableNumber}.png`;
     link.click();
   };
 

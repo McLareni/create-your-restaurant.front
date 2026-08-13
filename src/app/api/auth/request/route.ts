@@ -17,11 +17,21 @@ export async function POST(request: Request) {
     });
 
     if (!response.ok) {
-      return NextResponse.json({ errorCode: 'serverError' }, { status: response.status });
+      const errorText = await response.text();
+      console.error('Backend returned non-OK response:', response.status, errorText);
+      
+      let backendError = 'serverError';
+      try {
+        const errData = JSON.parse(errorText);
+        backendError = errData.message || backendError;
+      } catch {}
+      
+      return NextResponse.json({ errorCode: backendError }, { status: response.status });
     }
 
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (error) {
+    console.error('Fetch to backend failed:', error);
     return NextResponse.json({ errorCode: 'serverError' }, { status: 500 });
   }
 }

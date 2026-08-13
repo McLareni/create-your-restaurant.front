@@ -26,20 +26,33 @@ export const menu = {
     callWaiter: "Викликати офіціанта",
     waiterCalling: "Викликаємо офіціанта...",
     waiterCallSuccess: "Офіціанта викликано",
+    billRequested: "Запит на рахунок відправлено. Офіціант скоро підійде.",
     findOrderPlaceholder: "Впишіть номер замовлення",
     goToOrder: "Перейти",
-    findingOrder: "Шукаємо...",
     orderNotFound: "Замовлення не знайдено",
     orderCodeAmbiguous: "Знайдено кілька замовлень, уточніть код",
-    orderLookupFailed: "Не вдалося знайти замовлення"
+    orderLookupFailed: "Не вдалося знайти замовлення",
+    statusCompleted: "Готово",
+    statusCancelled: "Скасовано",
+    statusInProgress: "В процесі",
+    requestBill: "Попросити рахунок",
+    descriptionAndIngredients: "Опис та склад",
+    vegan: "Веганська",
+    notVegan: "Не веганська",
+    spicy: "Гостра страва",
+    notSpicy: "Лагідна",
+    lactoseFree: "Без лактози",
+    hasLactose: "Містить лактозу",
+    allergensWarning: "Алергени та інша корисна інформація про страву.",
+    tags: "Теги"
   },
   errors: {
     unavailable: "Цифрове меню цього закладу тимчасово недоступне. Зверніться до персоналу закладу.",
     tableValidationFailed: "Помилка верифікації столу. Будь ласка, відскануйте QR-код повторно.",
-    tableNotFound: "Стіл не знайдено або він деактивований у системі ресторану."
+    tableNotFound: "Стіл не знайдено або він деактивований у системі ресторану.",
+    orderClosedAction: "Ваше замовлення вже закрите офіціантом. Ми створили нове замовлення для вас."
   },
   constructor: {
-    charCreateTip: "Почніть вводити назву в поле пошуку, щоб створити новий тег або алерген, якого немає у списку.",
     createAction: "Створити",
     title: "Конструктор Меню",
     subtitle: "Керуйте категоріями, стравами та модифікаторами в єдиному просторі.",

@@ -10,7 +10,6 @@ export const auth = {
     resendCode: "Вислати ще раз",
     resendCodeTimer: "Вислати ще раз через",
     continueBtn: "Продовжити",
-    createAccountBtn: "Створити акаунт",
     verifyBtn: "Підтвердити код",
     termsPrefix: "Продовжуючи, ви погоджуєтеся з нашою ",
     privacyPolicy: "Політикою конфіденційності",

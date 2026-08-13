@@ -11,10 +11,14 @@ export async function POST(request: NextRequest) {
     try {
       await fetch(`${API_URL}/users/logout`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token }),
+        headers: { 
+          'Content-Type': 'application/json',
+          'Cookie': `gustio_session=${token}`
+        },
       });
-    } catch {}
+    } catch (error) {
+      console.error('Failed to call backend logout:', error);
+    }
   }
 
   const response = NextResponse.json({ success: true });

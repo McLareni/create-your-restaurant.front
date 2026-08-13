@@ -161,7 +161,7 @@ export const InventoryTab = () => {
           className="w-full max-w-md h-75"
         >
           <form
-            key={board.editingId || 'new'}
+            key={board.editingId}
             action={board.formAction}
             className="space-y-4 text-text-main p-4 flex flex-col h-full justify-between"
           >
@@ -172,7 +172,7 @@ export const InventoryTab = () => {
                   name="name"
                   label={board.t('inventory.modal.nameLabel')}
                   placeholder={board.t('inventory.modal.namePlaceholder')}
-                  defaultValue={board.editingItem?.name || ''}
+                  defaultValue={board.editingItem?.name}
                   error={board.validationErrors.name}
                 />
               </div>
@@ -194,7 +194,7 @@ export const InventoryTab = () => {
                     id="inventory-item-unit"
                     name="unit"
                     label={board.t('inventory.modal.unitLabel')}
-                    defaultValue={board.editingItem?.unit || 'kg'}
+                    defaultValue={board.editingItem?.unit}
                     error={board.validationErrors.unit}
                   >
                     {AVAILABLE_UNITS.map((unit) => (

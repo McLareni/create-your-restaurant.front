@@ -12,6 +12,9 @@ type LiveMonitorCardProps = {
   onToggleDetails: (tableId: string) => void;
   onResolveWaiterCall: (tableId: string) => void;
   isResolvingWaiterCall: boolean;
+  onUpdateOrderStatus: (orderId: string, status: string) => void;
+  isUpdatingOrderStatus: boolean;
+  updatingOrderId?: string;
 };
 
 const formatCurrency = (value: number) =>
@@ -42,6 +45,9 @@ export const LiveMonitorCard = ({
   onToggleDetails,
   onResolveWaiterCall,
   isResolvingWaiterCall,
+  onUpdateOrderStatus,
+  isUpdatingOrderStatus,
+  updatingOrderId,
 }: LiveMonitorCardProps) => {
   const { t } = useTranslation();
 
@@ -50,18 +56,29 @@ export const LiveMonitorCard = ({
       className={`group flex w-full flex-col justify-between overflow-visible rounded-xl border bg-bg-surface p-5 transition-all duration-300 ${
         isExpanded
           ? "border-brand-emerald/40 ring-1 ring-brand-emerald/10 shadow-md"
-          : "border-border-main shadow-table hover:border-border-main/80 hover:shadow-md"
+          : "border-border-main/60 shadow-table hover:border-border-main hover:shadow-md"
       }`}
     >
       <div className="flex items-start justify-between gap-4 text-text-main bg-bg-surface">
         <div className="space-y-1.5 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="flex h-7 px-2.5 items-center justify-center rounded-lg bg-bg-main border border-solid border-border-main/50 text-xs font-black text-text-main font-mono tracking-tight">
-              #{table.number}
-            </span>
-            <h3 className="text-sm font-bold text-text-main truncate">
-              {t('liveCalls.card.table')}
-            </h3>
+          <div className="flex items-center gap-3">
+            <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-solid font-black text-xs font-mono tracking-tight transition-colors ${
+              table.isWaiterCallActive 
+                ? 'bg-amber-500/20 border-amber-500/40 text-amber-600 dark:text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5)] animate-pulse'
+                : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+            }`}>
+              {table.number}
+            </div>
+            <div className="flex flex-col">
+              <h3 className="text-sm font-bold text-text-main truncate">
+                {t('liveCalls.card.table')}
+              </h3>
+              {table.isWaiterCallActive && (
+                <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-widest animate-pulse">
+                  {t('liveCalls.callingStaff')}
+                </span>
+              )}
+            </div>
           </div>
           
           <div className="flex items-center gap-2 text-[11px] text-text-muted font-medium">
@@ -81,15 +98,17 @@ export const LiveMonitorCard = ({
           </div>
           
           <div className="flex items-center gap-2 mt-2.5">
-            <Button
-              variant="brand"
-              disabled={isResolvingWaiterCall}
-              onClick={() => onResolveWaiterCall(table.id)}
-              className="h-8 text-[11px] font-bold px-3 rounded-lg bg-brand-emerald hover:bg-brand-emerald-hover text-white border-0 cursor-pointer flex items-center gap-1 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isResolvingWaiterCall && <Loader2 className="h-3 w-3 animate-spin" />}
-              <span>{t('liveCalls.doneBtn')}</span>
-            </Button>
+            {table.isWaiterCallActive && (
+              <Button
+                variant="brand"
+                disabled={isResolvingWaiterCall}
+                onClick={() => onResolveWaiterCall(table.id)}
+                className="h-8 text-[11px] font-bold px-3 rounded-lg bg-amber-500 hover:bg-amber-600 text-white border-0 cursor-pointer flex items-center gap-1 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isResolvingWaiterCall && <Loader2 className="h-3 w-3 animate-spin" />}
+                <span>{t('liveCalls.doneBtn')}</span>
+              </Button>
+            )}
 
             <Button
               variant="outline"
@@ -114,7 +133,7 @@ export const LiveMonitorCard = ({
             >
               <div className="mb-3 flex items-center justify-between gap-2">
                 <span className="text-[11px] font-bold text-text-muted font-mono uppercase tracking-wider">
-                  {t('liveCalls.card.order')} {order.id.slice(0, 8)}
+                  {t('liveCalls.card.order')} #{order.orderNumber}
                 </span>
                 <span className={`rounded-md border border-solid px-2 py-0.5 text-[9px] font-black uppercase tracking-widest ${getStatusStyles(order.status)}`}>
                   {t(`liveCalls.statuses.${order.status.toLowerCase()}`)}
@@ -139,6 +158,52 @@ export const LiveMonitorCard = ({
               <div className="mt-3.5 border-t border-dashed border-border-main/60 pt-2.5 flex items-center justify-between text-xs font-black text-text-main">
                 <span className="text-text-muted font-bold uppercase tracking-wider text-[10px]">{t('liveCalls.card.total')}</span>
                 <span className="font-mono text-brand-emerald text-sm font-extrabold">{formatCurrency(order.totalAmount)}</span>
+              </div>
+              
+              <div className="mt-3 flex justify-end gap-2">
+                {order.status === 'PENDING' && (
+                  <Button
+                    variant="brand"
+                    disabled={isUpdatingOrderStatus}
+                    onClick={() => onUpdateOrderStatus(order.id, 'IN_PROGRESS')}
+                    className="h-8 text-[11px] font-bold px-3 rounded-lg border-0 cursor-pointer flex items-center gap-1 shadow-sm"
+                  >
+                    {isUpdatingOrderStatus && updatingOrderId === order.id && <Loader2 className="h-3 w-3 animate-spin" />}
+                    {t('liveCalls.actions.takeToWork')}
+                  </Button>
+                )}
+                {order.status === 'IN_PROGRESS' && (
+                  <Button
+                    variant="brand"
+                    disabled={isUpdatingOrderStatus}
+                    onClick={() => onUpdateOrderStatus(order.id, 'READY')}
+                    className="h-8 text-[11px] font-bold px-3 rounded-lg border-0 cursor-pointer flex items-center gap-1 shadow-sm"
+                  >
+                    {isUpdatingOrderStatus && updatingOrderId === order.id && <Loader2 className="h-3 w-3 animate-spin" />}
+                    {t('liveCalls.actions.ready')}
+                  </Button>
+                )}
+                {order.status === 'READY' && (
+                  <Button
+                    variant="brand"
+                    disabled={isUpdatingOrderStatus}
+                    onClick={() => onUpdateOrderStatus(order.id, 'COMPLETED')}
+                    className="h-8 text-[11px] font-bold px-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white border-0 cursor-pointer flex items-center gap-1 shadow-sm"
+                  >
+                    {isUpdatingOrderStatus && updatingOrderId === order.id && <Loader2 className="h-3 w-3 animate-spin" />}
+                    {t('liveCalls.actions.complete')}
+                  </Button>
+                )}
+                {order.status !== 'COMPLETED' && order.status !== 'CANCELED' && (
+                  <Button
+                    variant="outline"
+                    disabled={isUpdatingOrderStatus}
+                    onClick={() => onUpdateOrderStatus(order.id, 'CANCELED')}
+                    className="h-8 text-[11px] font-bold px-3 rounded-lg cursor-pointer flex items-center gap-1 shadow-sm text-red-600 hover:bg-red-50 hover:border-red-200 border-red-100"
+                  >
+                    {t('liveCalls.actions.cancel')}
+                  </Button>
+                )}
               </div>
             </div>
           ))}

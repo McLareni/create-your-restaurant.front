@@ -172,7 +172,7 @@ export const ModifiersTab = () => {
       </div>
 
       <ModifierGroupModal
-        key={state.editingGroup?.id || 'new'} 
+        key={state.editingGroup?.id} 
         isOpen={state.isGroupModalOpen}
         onClose={() => state.setIsGroupModalOpen(false)}
         isEditing={!!state.editingGroup}

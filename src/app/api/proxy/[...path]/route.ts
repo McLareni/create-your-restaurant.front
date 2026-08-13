@@ -48,14 +48,19 @@ async function handleProxy(
       duplex: hasBody ? 'half' : undefined,
     } as RequestInit);
 
+    const resHeaders = new Headers();
+    const contentType = response.headers.get('Content-Type');
+    if (contentType) {
+      resHeaders.set('Content-Type', contentType);
+    }
+    resHeaders.set('Cache-Control', 'no-store, max-age=0, must-revalidate');
+
     return new NextResponse(response.body, {
       status: response.status,
-      headers: {
-        'Content-Type': response.headers.get('Content-Type') || 'application/json',
-        'Cache-Control': 'no-store, max-age=0, must-revalidate',
-      },
+      headers: resHeaders,
     });
-  } catch {
+  } catch (error) {
+    console.error('[Proxy Error]', request.method, path, error);
     return NextResponse.json({ errorCode: 'errors.server_error' }, { status: 500 });
   }
 }

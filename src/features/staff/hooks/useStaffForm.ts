@@ -13,7 +13,7 @@ export const useStaffForm = (
   const { t } = useTranslation();
   const [isActiveStatus, setIsActiveStatus] = useState(() => editingMember ? editingMember.isActive : true);
   const [selectedRole, setSelectedRole] = useState(() => editingMember ? editingMember.role : 'STAFF');
-  const [photoPreview, setPhotoPreview] = useState(() => editingMember ? editingMember.photo || '' : '');
+  const [photoPreview, setPhotoPreview] = useState(() => editingMember ? editingMember.photo : '');
   const [selectedPhotoFile, setSelectedPhotoFile] = useState<File | null>(null);
 
   const initialState: FormActionState = {
@@ -30,11 +30,11 @@ export const useStaffForm = (
   const [state, formAction, isPending] = useActionState(
     async (_prevState: FormActionState, formData: FormData): Promise<FormActionState> => {
       const currentValues = {
-        firstName: (formData.get('firstName') as string) || '',
-        lastName: (formData.get('lastName') as string) || '',
-        email: (formData.get('email') as string) || '',
-        phone: (formData.get('phone') as string) || '',
-        password: (formData.get('password') as string) || '',
+        firstName: (formData.get('firstName') as string),
+        lastName: (formData.get('lastName') as string),
+        email: (formData.get('email') as string),
+        phone: (formData.get('phone') as string),
+        password: (formData.get('password') as string),
       };
 
       const validation = validateStaffForm({
@@ -57,7 +57,7 @@ export const useStaffForm = (
           ...(password && password.trim() !== '' ? { password } : {}),
         };
 
-        await onSuccess(submitData, selectedPhotoFile, photoPreview);
+        await onSuccess(submitData, selectedPhotoFile, photoPreview || '');
 
         return {
           errors: {},
@@ -97,7 +97,7 @@ export const useStaffForm = (
     setSelectedRole,
     isActiveStatus,
     setIsActiveStatus,
-    photoPreview,
+    photoPreview: photoPreview || '',
     handlePhotoChange,
     errors: state.errors,
     formValues: state.values,

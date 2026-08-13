@@ -40,6 +40,13 @@ export const usePublicMenuClient = (
     queryKey: ['public-order', resolvedRestaurantId, tableId, orderId],
     queryFn: () => publicMenuApi.getOrderById(resolvedRestaurantId as number, tableId as string, orderId as string),
     enabled: Boolean(orderId) && hasTableId && Boolean(resolvedRestaurantId) && tableExists,
+    refetchInterval: (query) => {
+      const status = (query.state.data as any)?.order?.status;
+      if (status === 'COMPLETED' || status === 'CANCELLED' || status === 'REJECTED') {
+        return false;
+      }
+      return 5000;
+    },
   });
 
   const createOrderMutation = useMutation({
@@ -54,7 +61,7 @@ export const usePublicMenuClient = (
     },
     onSuccess: (response) => {
       setCart({});
-      toast.success(t('menu.public.orderSuccessNotification') || 'Замовлення надіслано!');
+      toast.success(t('menu.public.orderSuccessNotification'));
       const createdOrder = response?.order;
       if (!createdOrder?.id) return;
       if (typeof window !== 'undefined') {
@@ -66,19 +73,40 @@ export const usePublicMenuClient = (
       }
     },
     onError: (error: unknown) => {
-      const errorMessage = error instanceof Error ? error.message : t('errors.unknown');
-      toast.error(errorMessage);
+      const err = error as { response?: { data?: { message?: string }, status?: number }, message?: string };
+      const errorMessage = err?.response?.data?.message || err?.message || t('errors.unknown');
+      if (
+        errorMessage === 'errors.order_closed' || 
+        err?.response?.status === 400 || 
+        err?.response?.status === 404
+      ) {
+        if (typeof window !== 'undefined' && activeOrderStorageKey) {
+          window.sessionStorage.removeItem(activeOrderStorageKey);
+        }
+        setLastOrderSnapshot(null);
+        toast.error(t('menu.errors.orderClosedAction'));
+        // Reload page to clear URL orderId and start fresh
+        if (hasTableId) {
+          router.replace(`/menu/${restaurantSlug}/${tableId}`);
+        }
+      } else {
+        toast.error(errorMessage);
+      }
     },
   });
 
   const callWaiterMutation = useMutation({
-    mutationFn: () => {
+    mutationFn: (type: string = 'WAITER') => {
       if (!tableId) throw new Error('tableId is required');
       if (!resolvedRestaurantId) throw new Error('Restaurant was not resolved');
-      return publicMenuApi.callWaiter(resolvedRestaurantId, tableId);
+      return publicMenuApi.callWaiter(resolvedRestaurantId, tableId, type);
     },
-    onSuccess: () => {
-      toast.success(t('menu.public.waiterCallSuccess') || 'Офіціанта викликано');
+    onSuccess: (_, type) => {
+      if (type === 'BILL') {
+        toast.success(t('menu.public.billRequested'));
+      } else {
+        toast.success(t('menu.public.waiterCallSuccess'));
+      }
     },
     onError: (error: unknown) => {
       const errorMessage = error instanceof Error ? error.message : t('errors.unknown');
@@ -157,7 +185,7 @@ export const usePublicMenuClient = (
     removeDish,
     placeOrder: () => createOrderMutation.mutate(),
     isPlacingOrder: createOrderMutation.isPending,
-    callWaiter: () => callWaiterMutation.mutate(),
+    callWaiter: (type?: string) => callWaiterMutation.mutate(type || 'WAITER'),
     isCallingWaiter: callWaiterMutation.isPending,
   };
 };

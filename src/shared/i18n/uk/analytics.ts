@@ -7,5 +7,19 @@ export const analytics = {
   orders: "Кількість виконаних замовлень",
   averageCheck: "Середній чек ресторану",
   chartTitle: "Динаміка прибутку за останні 7 днів",
-  topDishesTitle: "Топ популярних страв за продажами"
+  topDishesTitle: "Топ популярних страв за продажами",
+  orderTypes: {
+    DINE_IN: "У закладі",
+    TAKEAWAY: "На винос",
+    DELIVERY: "Доставка"
+  },
+  filters: {
+    from: "Від",
+    to: "До"
+  },
+  pieces: "шт.",
+  ordersUnit: "зам.",
+  currency: "₴",
+  hourlyLoad: "Завантаженість по годинах",
+  waiterEfficiency: "Ефективність офіціантів",
 };

@@ -141,7 +141,7 @@ export const usePosIntegration = () => {
     setApiKey,
     validationError,
     isConnected: !!status?.isConnected && !isEditingToken,
-    maskedApiKey: status?.maskedApiKey || '',
+    maskedApiKey: status?.maskedApiKey,
     importMenu: !!status?.importMenu,
     syncStops: !!status?.syncStops,
     isSyncing: connectMutation.isPending || updateSettingsMutation.isPending || disconnectMutation.isPending,

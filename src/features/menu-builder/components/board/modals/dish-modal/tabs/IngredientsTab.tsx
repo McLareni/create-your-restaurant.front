@@ -80,7 +80,7 @@ export const IngredientsTab = ({ dishForm, setDishForm }: IngredientsTabProps) =
               <input
                 type="number"
                 placeholder="0"
-                value={state.quantity || ''}
+                value={state.quantity}
                 onChange={(e) => state.setQuantity(e.target.value)}
                 disabled={state.isLoading || !state.selectedItemId}
                 className="h-11 w-full bg-bg-surface border border-solid border-border-main/60 rounded-xl px-4 text-xs font-semibold text-text-main outline-none transition-all focus:border-brand-emerald/50 disabled:opacity-50 disabled:cursor-not-allowed pr-14"

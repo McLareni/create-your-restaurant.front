@@ -19,7 +19,7 @@ export const Badge = ({ type }: BadgeProps) => {
   };
 
   return (
-    <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md border border-solid ${badgeColors[type] || 'bg-bg-element text-text-muted'}`}>
+    <span className={`px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-md border border-solid ${badgeColors[type]}`}>
       {t(`menu.constructor.badges.${type}`)}
     </span>
   );

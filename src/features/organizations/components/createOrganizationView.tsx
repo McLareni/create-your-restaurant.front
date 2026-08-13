@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import { useCreateOrganization } from '../hooks/useCreateOrganization';
 import { CreateOrgAnimation } from './createOrgAnimation';
 import { CreateOrgForm } from './createOrgForm';
-import type { SidebarRestaurant } from '@/app/(dashboard)/_components/types/sidebar.types';
+import type { SidebarRestaurant } from '@/widgets/sidebar/types/sidebar.types';
 import type { User } from '@/shared/store/useUserStore';
 
 type ExtendedUser = User & {

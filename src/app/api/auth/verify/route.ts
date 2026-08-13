@@ -17,7 +17,12 @@ export async function POST(request: Request) {
     });
 
     if (!response.ok) {
-      return NextResponse.json({ errorCode: 'verifyFailed' }, { status: response.status });
+      let backendError = 'verifyFailed';
+      try {
+        const errData = await response.json();
+        backendError = errData.message || backendError;
+      } catch {}
+      return NextResponse.json({ errorCode: backendError }, { status: response.status });
     }
 
     const data = await response.json();

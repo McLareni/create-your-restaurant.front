@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import { useEffect, useRef, useMemo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Sidebar } from '@/app/(dashboard)/_components/sidebar';
+import { Sidebar } from '@/widgets/sidebar/components/sidebar';
 import { useUserStore } from '@/shared/store/useUserStore';
 import { useAccessStore } from '@/shared/store/useAccessStore';
 import { Loader2, ShieldAlert } from 'lucide-react';
