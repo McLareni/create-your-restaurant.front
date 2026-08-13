@@ -19,8 +19,15 @@ export const modifierGroupSchema = z
       .min(2, 'menu.constructor.modifiers.errors.nameMin')
       .max(100, 'menu.constructor.modifiers.errors.nameMax'),
     isRequired: z.boolean().default(false),
-    minSelections: z.number().min(0).max(100).default(0),
-    maxSelections: z.number().min(1).max(100).nullable().optional(),
+    minSelections: z.number({ error: 'menu.constructor.modifiers.errors.invalidNumber' })
+      .min(0, 'menu.constructor.modifiers.errors.valueMin')
+      .max(100, 'menu.constructor.modifiers.errors.valueMax')
+      .default(0),
+    maxSelections: z.number({ error: 'menu.constructor.modifiers.errors.invalidNumber' })
+      .min(1, 'menu.constructor.modifiers.errors.valueMin')
+      .max(100, 'menu.constructor.modifiers.errors.valueMax')
+      .nullable()
+      .optional(),
     options: z.array(modifierOptionSchema).default([]),
   })
   .refine(

@@ -60,7 +60,7 @@ export const useQrTablesManagement = () => {
   }, [tables]);
 
   const filteredTypes = useMemo<string[]>(() => {
-    const query = (formData.type || '').trim().toLowerCase();
+    const query = (formData.type).trim().toLowerCase();
     if (!query) return existingTypes;
     return existingTypes.filter((z) => z.toLowerCase().includes(query));
   }, [formData.type, existingTypes]);
@@ -153,7 +153,7 @@ export const useQrTablesManagement = () => {
     const validationResult = tableSchema.safeParse(formData);
     if (!validationResult.success) {
       const firstError = validationResult.error.issues[0]?.message;
-      setErrorMsg(t(firstError || 'qr.errors.formValidation'));
+      setErrorMsg(t(firstError));
       return;
     }
 

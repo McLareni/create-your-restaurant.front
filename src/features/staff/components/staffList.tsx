@@ -86,7 +86,7 @@ export const StaffList = () => {
       </div>
 
       <StaffModalView 
-        key={editingMember?.id || 'create-mode-active-key'}
+        key={editingMember?.id}
         {...listProps} 
         isOpen={isModalOpen} 
         onClose={closeModal} 

@@ -10,7 +10,7 @@ import { HasAccess } from '@/shared/components/hasAccess';
 
 export const StaffCard = ({ member, onEdit, onDelete, onStatusChange }: StaffCardProps) => {
   const { t } = useTranslation();
-  const initials = `${member.firstName?.[0] || ''}${member.lastName?.[0] || ''}`.toUpperCase();
+  const initials = `${member.firstName?.[0]}${member.lastName?.[0]}`.toUpperCase();
 
   const displayRole = (SYSTEM_ROLES as readonly string[]).includes(member.role)
     ? t(`roles.${member.role}`)

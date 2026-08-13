@@ -40,7 +40,7 @@ export const useInventoryTab = (): UseInventoryTabReturn => {
 
     const result = inventoryItemSchema.shape.stock.safeParse(qty);
     if (!result.success) {
-      const firstErrorMessage = result.error.issues[0]?.message || 'inventory.errors.stockNegative';
+      const firstErrorMessage = result.error.issues[0]?.message;
       toast.error(t(firstErrorMessage));
       return;
     }
@@ -70,10 +70,10 @@ export const useInventoryTab = (): UseInventoryTabReturn => {
 
   const [formState, formAction, isPending] = useAppActionState(
     async (formData) => {
-      const name = (formData.get('name') as string || '').trim();
+      const name = (formData.get('name') as string).trim();
       const stockRaw = formData.get('stock');
       const stock = stockRaw ? parseFloat(stockRaw.toString()) : 0;
-      const unit = (formData.get('unit') as InventoryUnit) || 'kg';
+      const unit = (formData.get('unit') as InventoryUnit);
 
       const validatedData = inventoryItemSchema.parse({
         name,

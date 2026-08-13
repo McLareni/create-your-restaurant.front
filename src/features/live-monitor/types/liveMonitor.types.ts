@@ -9,12 +9,19 @@ export type LiveMonitorOrderItem = {
 
 export type LiveMonitorOrder = {
   id: string;
+  orderNumber: number;
   type: string;
   status: 'PENDING' | 'IN_PROGRESS' | 'READY' | 'COMPLETED' | 'CANCELED';
   totalAmount: number;
   createdAt: string;
   updatedAt: string;
   items: LiveMonitorOrderItem[];
+  table?: {
+    id: string;
+    number: number;
+    type: string;
+    zone?: string | null;
+  };
 };
 
 export type LiveMonitorTable = {
@@ -24,6 +31,7 @@ export type LiveMonitorTable = {
   status: string;
   isWaiterCallActive: boolean;
   waiterCallRequestedAt: string | null;
+  waiterCallType: string | null;
   zone: string | null;
   activeOrderCount: number;
   activeOrdersTotalAmount: number;

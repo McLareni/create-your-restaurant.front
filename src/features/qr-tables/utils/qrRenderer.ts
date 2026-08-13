@@ -101,7 +101,11 @@ export const drawStyledQr = async ({ url, patternType, logoOverlay, logoUrl, isD
       let embeddedLogoUrl = logoUrl;
       if (!logoUrl.startsWith('data:')) {
         try {
-          const res = await fetch(logoUrl);
+          let fetchUrl = logoUrl;
+          if (fetchUrl.startsWith('http')) {
+            fetchUrl = `/api/proxy-image?url=${encodeURIComponent(logoUrl)}`;
+          }
+          const res = await fetch(fetchUrl);
           const blob = await res.blob();
           embeddedLogoUrl = await new Promise<string>((resolve) => {
             const reader = new FileReader();

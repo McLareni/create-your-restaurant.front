@@ -8,7 +8,9 @@ import {
   ArrowRightLeft, 
   MessageSquareQuote, 
   ShoppingBag, 
-  CreditCard 
+  CreditCard,
+  Package,
+  Paintbrush
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { PERMISSIONS, type PermissionKey } from '@/shared/api/menu.constants';
@@ -20,7 +22,7 @@ export interface AppRouteConfig {
   basePath: string;       
   extraPaths?: string[];   
   icon: LucideIcon;       
-  sidebarGroup?: 'main' | 'management' | 'marketing' | 'system'; 
+  sidebarGroup?: 'main' | 'catalog' | 'operations' | 'analytics' | 'system';
   titleKey: string;       
   ownerOnly?: boolean;    
 }
@@ -34,23 +36,22 @@ export const APP_ROUTES_CONFIG: AppRouteConfig[] = [
     titleKey: 'sidebar.items.home' 
   },
   { 
-    id: 'analytics', 
-    moduleKey: 'analytics',
-    permissionKey: PERMISSIONS.ANALYTICS_READ, 
-    basePath: '/dashboard/analytics', 
-    icon: BarChart3, 
-    sidebarGroup: 'management', 
-    titleKey: 'marketplace.modules.analytics.title' 
-  },
-  { 
     id: 'menu', 
     moduleKey: 'menu-engine',
     permissionKey: PERMISSIONS.MENU_READ, 
     basePath: '/dashboard/menu-builder', 
-    extraPaths: ['/dashboard/menu-inventory'], 
     icon: Utensils, 
-    sidebarGroup: 'management', 
+    sidebarGroup: 'catalog', 
     titleKey: 'marketplace.modules.menu-engine.title' 
+  },
+  { 
+    id: 'inventory', 
+    moduleKey: 'inventory',
+    permissionKey: PERMISSIONS.INVENTORY_READ, 
+    basePath: '/dashboard/menu-inventory', 
+    icon: Package, 
+    sidebarGroup: 'catalog', 
+    titleKey: 'marketplace.modules.inventory.title' 
   },
   { 
     id: 'qr', 
@@ -58,7 +59,7 @@ export const APP_ROUTES_CONFIG: AppRouteConfig[] = [
     permissionKey: PERMISSIONS.TABLES_READ, 
     basePath: '/dashboard/qr', 
     icon: QrCode, 
-    sidebarGroup: 'management', 
+    sidebarGroup: 'operations', 
     titleKey: 'marketplace.modules.qr-tables.title' 
   },
   { 
@@ -67,7 +68,7 @@ export const APP_ROUTES_CONFIG: AppRouteConfig[] = [
     permissionKey: PERMISSIONS.STAFF_READ, 
     basePath: '/dashboard/staff', 
     icon: Users, 
-    sidebarGroup: 'management', 
+    sidebarGroup: 'operations', 
     titleKey: 'marketplace.modules.staff.title' 
   },
   { 
@@ -76,7 +77,7 @@ export const APP_ROUTES_CONFIG: AppRouteConfig[] = [
     permissionKey: PERMISSIONS.POS_READ, 
     basePath: '/dashboard/pos', 
     icon: ArrowRightLeft, 
-    sidebarGroup: 'management', 
+    sidebarGroup: 'operations', 
     titleKey: 'marketplace.modules.pos-sync.title' 
   },
   { 
@@ -85,15 +86,24 @@ export const APP_ROUTES_CONFIG: AppRouteConfig[] = [
     permissionKey: PERMISSIONS.LIVE_READ, 
     basePath: '/dashboard/live-calls', 
     icon: BellRing, 
-    sidebarGroup: 'marketing', 
+    sidebarGroup: 'operations', 
     titleKey: 'marketplace.modules.live-calls.title' 
+  },
+  { 
+    id: 'analytics', 
+    moduleKey: 'analytics',
+    permissionKey: PERMISSIONS.ANALYTICS_READ, 
+    basePath: '/dashboard/analytics', 
+    icon: BarChart3, 
+    sidebarGroup: 'analytics', 
+    titleKey: 'marketplace.modules.analytics.title' 
   },
   { 
     id: 'feedback', 
     moduleKey: 'feedback', 
     basePath: '/dashboard/feedback', 
     icon: MessageSquareQuote, 
-    sidebarGroup: 'marketing', 
+    sidebarGroup: 'analytics', 
     titleKey: 'marketplace.modules.feedback.title' 
   },
   { 
@@ -110,6 +120,16 @@ export const APP_ROUTES_CONFIG: AppRouteConfig[] = [
     icon: CreditCard, 
     sidebarGroup: 'system', 
     titleKey: 'sidebar.items.billing', 
+    ownerOnly: true 
+  },
+  { 
+    id: 'visual', 
+    moduleKey: 'visual',
+    permissionKey: PERMISSIONS.VISUAL_MANAGE,
+    basePath: '/dashboard/visual', 
+    icon: Paintbrush,
+    sidebarGroup: 'system', 
+    titleKey: 'marketplace.modules.visual.title',
     ownerOnly: true 
   },
 ];

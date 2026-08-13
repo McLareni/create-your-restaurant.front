@@ -14,6 +14,8 @@ interface PublicMenuDishSectionsProps {
   onAddDish: (dishId: string) => void;
   onRemoveDish: (dishId: string) => void;
   onOpenDetails: (dish: PublicMenuDish) => void;
+  buttonStyle?: string;
+  cardStyle?: string;
 }
 
 export const PublicMenuDishSections = ({
@@ -26,13 +28,15 @@ export const PublicMenuDishSections = ({
   onAddDish,
   onRemoveDish,
   onOpenDetails,
+  buttonStyle,
+  cardStyle,
 }: PublicMenuDishSectionsProps) => {
   if (isAllDishesTabActive) {
     return (
       <div className="space-y-10">
         {categories.map((category) => (
           <section key={category.id} className="space-y-4">
-            <h2 className="text-sm font-extrabold uppercase tracking-wider text-brand-espresso border-b border-solid border-brand-copper/10 pb-2 font-serif">
+            <h2 className="text-sm font-extrabold uppercase tracking-wider text-brand-espresso border-b border-solid border-brand-copper/10 pb-2">
               {category.name}
             </h2>
             <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
@@ -46,6 +50,8 @@ export const PublicMenuDishSections = ({
                   onAddDish={onAddDish}
                   onRemoveDish={onRemoveDish}
                   onOpenDetails={onOpenDetails}
+                  buttonStyle={buttonStyle}
+                  cardStyle={cardStyle}
                 />
               ))}
             </div>
@@ -59,7 +65,7 @@ export const PublicMenuDishSections = ({
 
   return (
     <section className="space-y-4">
-      <h2 className="text-sm font-extrabold uppercase tracking-wider text-brand-espresso border-b border-solid border-brand-copper/10 pb-2 font-serif">
+      <h2 className="text-sm font-extrabold uppercase tracking-wider text-brand-espresso border-b border-solid border-brand-copper/10 pb-2">
         {activeCategory.name}
       </h2>
       <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
@@ -73,6 +79,8 @@ export const PublicMenuDishSections = ({
             onAddDish={onAddDish}
             onRemoveDish={onRemoveDish}
             onOpenDetails={onOpenDetails}
+            buttonStyle={buttonStyle}
+            cardStyle={cardStyle}
           />
         ))}
       </div>

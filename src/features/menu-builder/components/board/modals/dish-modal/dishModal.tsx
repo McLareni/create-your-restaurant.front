@@ -15,9 +15,13 @@ import { useDishesLookups } from '@/features/menu-builder/hooks/dishes/useDishes
 import type { DishModalProps } from '@/features/menu-builder/types/dishes.types';
 import type { DishFormValues } from '@/features/menu-builder/schemas/dishes.schema';
 import { DISH_MODAL_TABS, DISH_BADGES } from '@/shared/api/menu.constants';
+import { useAccessStore } from '@/shared/store/useAccessStore';
 
 export const DishModal = ({ isOpen, onClose, dish, state }: DishModalProps) => {
   const { t } = useTranslation();
+  const activeModules = useAccessStore((s) => s.activeModules);
+  const hasInventory = activeModules.includes('inventory');
+  
   const [isBadgePanelOpen, setIsBadgePanelOpen] = useState(false);
   const [badgeSearchQuery, setBadgeSearchQuery] = useState('');
   const [isCharacteristicsPanelOpen, setIsCharacteristicsPanelOpen] = useState(false);
@@ -78,7 +82,7 @@ export const DishModal = ({ isOpen, onClose, dish, state }: DishModalProps) => {
         <div className="flex flex-col md:grid md:grid-cols-3 gap-6 items-stretch w-full text-text-main h-full">
           <div className="md:col-span-2 flex flex-col min-h-0 pb-20">
             <div className="flex gap-4 border-b border-solid border-neutral-200 dark:border-neutral-800 mb-4 pb-2 select-none shrink-0 overflow-x-auto scrollbar-none">
-              {DISH_MODAL_TABS.map((tab) => (
+              {DISH_MODAL_TABS.filter(tab => tab !== 'ingredients' || hasInventory).map((tab) => (
                 <button
                   key={tab}
                   type="button"
@@ -102,9 +106,11 @@ export const DishModal = ({ isOpen, onClose, dish, state }: DishModalProps) => {
                 <div className={state.activeTab === 'characteristics' ? 'block' : 'hidden'}>
                   <CharacteristicsTab dishForm={state.dishForm} setDishForm={state.setDishForm} onOpenSidePanel={(type) => toggleCharPanel(true, type)} isSidePanelOpen={isCharacteristicsPanelOpen} activeType={charType} />
                 </div>
-                <div className={state.activeTab === 'ingredients' ? 'block' : 'hidden'}>
-                  <IngredientsTab dishForm={state.dishForm} setDishForm={state.setDishForm} />
-                </div>
+                {hasInventory && (
+                  <div className={state.activeTab === 'ingredients' ? 'block' : 'hidden'}>
+                    <IngredientsTab dishForm={state.dishForm} setDishForm={state.setDishForm} />
+                  </div>
+                )}
                 <div className={state.activeTab === 'modifiers' ? 'block' : 'hidden'}>
                   <DishModifiersTab state={state} t={t} />
                 </div>
@@ -195,7 +201,16 @@ export const DishModal = ({ isOpen, onClose, dish, state }: DishModalProps) => {
               <span>{t('menu.constructor.dishes.modal.createAction')} &ldquo;{charSearchQuery.trim().toUpperCase()}&rdquo;</span>
             </button>
           )}
-          {availableCharacteristics.length === 0 && (charSearchQuery.trim() === '' || exactMatchExists) ? (
+          {availableCharacteristics.length === 0 && charSearchQuery.trim() === '' ? (
+            <div className="flex flex-col items-center justify-center py-8 text-center px-4">
+              <span className="text-xs text-text-muted font-medium mb-1">
+                {t('menu.constructor.dishes.modal.properties.emptyList')}
+              </span>
+              <span className="text-[11px] text-text-muted/70 font-light">
+                {t('menu.constructor.dishes.modal.properties.typeToCreate')}
+              </span>
+            </div>
+          ) : availableCharacteristics.length === 0 && charSearchQuery.trim() !== '' ? (
             <span className="text-xs text-text-muted text-center py-6 font-light">{t('menu.constructor.dishes.modal.notFound')}</span>
           ) : (
             availableCharacteristics.map((item) => {

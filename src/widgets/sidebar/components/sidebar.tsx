@@ -5,7 +5,8 @@ import type { MouseEvent } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useTheme } from 'next-themes';
-import { useSidebarLogic } from '@/app/(dashboard)/_components/hooks/useSidebar';
+import { useSidebarLogic } from '@/widgets/sidebar/hooks/useSidebar';
+import { useLiveMonitorTracker } from '@/features/live-monitor/hooks/useLiveMonitorTracker';
 import { Button, Modal } from '@/shared/ui';
 import { 
   ChevronDown, LogOut, Plus, Trash2, 
@@ -31,6 +32,7 @@ export const Sidebar = () => {
   const sidebar = useSidebarLogic();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const { totalActiveTasks } = useLiveMonitorTracker();
   const menuGroups = sidebar.menuGroups as SidebarNavigationGroup[];
 
   useEffect(() => {
@@ -190,9 +192,14 @@ export const Sidebar = () => {
                             : 'text-text-muted hover:bg-bg-hover hover:text-text-main'
                         }`}
                       >
-                        <div className="flex items-center gap-3 min-w-0">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
                           {itemIcon}
                           <span className="truncate">{item.title}</span>
+                          {item.path === '/dashboard/live-calls' && totalActiveTasks > 0 && (
+                            <span className="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0">
+                              {totalActiveTasks}
+                            </span>
+                          )}
                         </div>
                       </Link>
                     )}

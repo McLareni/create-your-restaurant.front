@@ -14,7 +14,7 @@ import { formatZodErrors } from '@/shared/utils/validation';
 import { transliterate } from '@/shared/utils/transliterate';
 import type { CreateOrganizationValues } from '@/features/organizations/schemas/organization.schema';
 import type { UseCreateOrganizationReturn } from '@/features/organizations/types/organization.types';
-import type { SidebarRestaurant } from '@/app/(dashboard)/_components/types/sidebar.types';
+import type { SidebarRestaurant } from '@/widgets/sidebar/types/sidebar.types';
 import type { User } from '@/shared/store/useUserStore';
 
 type ExtendedUser = User & {
@@ -158,7 +158,7 @@ export const useCreateOrganization = (): UseCreateOrganizationReturn => {
       finalValue = value.toLowerCase().replace(/[\s_]+/g, '-').replace(/[^a-z0-9-]/g, '');
     }
 
-    let targetSlug = field === 'slug' ? finalValue : (formData.slug || '');
+    let targetSlug = field === 'slug' ? finalValue : (formData.slug);
 
     if (field === 'name' && !isManual) {
       targetSlug = transliterate(finalValue)
@@ -174,7 +174,7 @@ export const useCreateOrganization = (): UseCreateOrganizationReturn => {
     } else if (RESERVED_SLUGS.includes(targetSlug.toLowerCase().trim())) {
       setSlugAvailable(false);
       setIsCheckingSlug(false);
-    } else {
+    } else if (targetSlug !== formData.slug) {
       setSlugAvailable(null);
       setIsCheckingSlug(true);
     }
@@ -194,6 +194,13 @@ export const useCreateOrganization = (): UseCreateOrganizationReturn => {
 
   const handleImageChange = async (file: File) => {
     setImageError(undefined);
+    
+    // Client-side size validation (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      setImageError(t('organization.errors.fileTooLarge'));
+      return;
+    }
+
     try {
       const uploadData = new FormData();
       uploadData.append('photo', file);
@@ -208,7 +215,7 @@ export const useCreateOrganization = (): UseCreateOrganizationReturn => {
     ...actionState.errors,
     ...(imageError ? { imageUrl: imageError } : {}),
     ...(slugAvailable === false ? { slug: t('organization.errors.slugTaken') } : {}),
-    ...(RESERVED_SLUGS.includes(formData.slug?.toLowerCase().trim() || '') ? { slug: t('organization.errors.slugReserved') } : {})
+    ...(RESERVED_SLUGS.includes((formData.slug || '').toLowerCase().trim()) ? { slug: t('organization.errors.slugReserved') } : {})
   };
 
   return {

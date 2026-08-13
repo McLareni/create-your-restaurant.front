@@ -39,6 +39,7 @@ export const errors = {
   invalid_payload: "Передані невірні дані",
   invalid_categories_payload: "Невірний список категорій для сортування",
   category_not_found: "Категорію не знайдено",
+  category_already_exists: "Категорія з такою назвою вже існує",
   file_too_large: "Розмір файлу перевищує допустимий ліміт",
   invalid_layout_format: "Невірний формат даних розмітки",
   dish_not_found: "Страву не знайдено",
@@ -61,6 +62,7 @@ export const errors = {
   order_closed: "Це замовлення вже закрите",
   order_no_table: "Замовлення не прив'язане до столика",
   order_code_required: "Введіть номер замовлення",
+  waiter_call_already_active: "Офіціант вже в дорозі до цього столика",
   user_not_found: "Користувача не знайдено",
   pos_invalid_api_key: "Недійсний API ключ касової системи",
   pos_fetch_failed: "Помилка завантаження даних із касової системи",
@@ -100,5 +102,6 @@ export const errors = {
   invalid_code: "Невірний код доступу",
   code_expired: "Термін дії коду закінчився",
   account_locked: "Обліковий запис тимчасово заблоковано через підозрілу активність",
-  eslint_class_validator_missing_translation_key: "Системна помилка: відсутній ключ перекладу"
+  eslint_class_validator_missing_translation_key: "Системна помилка: відсутній ключ перекладу",
+  please_wait_before_requesting_again: "Зачекайте перед наступним запитом"
 };

@@ -136,7 +136,7 @@ export const QrTablesTab = () => {
       <QrPrintSection tables={tables} selectedIds={selectedIds} />
 
       <QrGeneratorModal 
-        key={isModalOpen ? (editingTable?.id || 'new') : 'closed'}
+        key={isModalOpen ? (editingTable?.id) : 'closed'}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSave={onSave}

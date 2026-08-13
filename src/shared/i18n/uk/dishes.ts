@@ -5,32 +5,21 @@ export const dishes = {
   addBtn: "Додати страву",
   editBtn: "Редагувати",
   deleteBtn: "Вилучити",
-  descTitle: "Опис страви",
-  moreBtn: "Детальніше...",
   deleteConfirm: "Ви впевнені, що хочете видалити цю страву? Вона зникне з меню для всіх гостей.",
-  statusAvailable: "В меню",
   statusStopped: "У стоп-листі",
   notifications: {
-    imageUploading: "Завантаження зображення...",
-    imageUploadSuccess: "Зображення завантажено успішно!",
     imageUploadError: "Помилка завантаження файлу",
     createSuccess: "Страва успішно створена",
     updateSuccess: "Дані про страву оновлено"
   },
   modal: {
-    charCreateTip: "Почніть вводити назву в поле пошуку, щоб створити новий тег або алерген, якого немає у списку.",
     createAction: "Створити",
     createTitle: "Нова страва",
     editTitle: "Редагування страви",
-    basicInfo: "Основна інформація",
     nameLabel: "Назва страви",
     namePlaceholder: "Наприклад: Паста Карбонара",
-    categoryLabel: "Категорія страви",
-    categoryPlaceholder: "Оберіть категорію для страви...",
-    descLabel: "Опис страви",
     descPlaceholder: "Склад, секрети приготування та смакові особливості...",
     priceLabel: "Базова ціна (₴)",
-    hasModifiers: "Має активні модифікатори",
     searchPlaceholder: "Почніть вводити назву...",
     notFound: "Нічого не знайдено",
     doneBtn: "Зберегти позицію",
@@ -45,17 +34,11 @@ export const dishes = {
       media: "Медіа"
     },
     weightLabel: "Вага / Об'єм одиниці",
-    weightPlaceholder: "350 г",
     unitLabel: "Одиниця виміру",
-    unitPlaceholder: "г, мл, шт, порція",
     timeLabel: "Час приготування (хв)",
-    timePlaceholder: "15",
     caloriesLabel: "Калорійність",
-    caloriesPlaceholder: "450 ккал",
     mediaTitle: "Галерея медіа",
     mediaHint: "Натисніть сюди, щоб додати фотографії страви",
-    changeImage: "Змінити фото",
-    availabilityLabel: "Активна позиція (показувати в QR-меню)",
     stockLabel: "Кількість за замовчуванням (для стоп-листів)",
     units: {
       minutesShort: "хв",
@@ -68,20 +51,15 @@ export const dishes = {
       noAllergens: "Для цієї страви немає зафіксованих алергенів"
     },
     properties: {
-      vegan: "Веганська",
-      spicy: "Гостра",
-      lactoseFree: "Без лактози",
-      allergensTitle: "Харчової алергени",
-      addAllergenPlaceholder: "Додати новий алерген",
+      allergensTitle: "Харчові алергени",
       tagsTitle: "Теги та Особливості",
-      addTagPlaceholder: "Додати новий тег",
       priceLabel: "Вартість страви",
       descriptionLabel: "Опис",
       weightLabel: "Вага:",
-      caloriesLabel: "Калорійність:"
+      caloriesLabel: "Калорійність:",
+      emptyList: "Список порожній",
+      typeToCreate: "Почніть вводити назву, щоб створити"
     },
-    allergensLabel: "Алергени",
-    noModifiers: "У вас ще немає створених груп модифікаторів для вибору.",
     badgeLabel: "Маркетинговий бейдж (Стікер)",
     ingredients: {
       title: "Складники страви",
@@ -91,7 +69,6 @@ export const dishes = {
       quantityLabel: "Кількість",
       empty: "Додайте перші інгредієнти для контролю залишків на складі",
       nameLabel: "Назва інгредієнта",
-      qtyLabel: "Кількість",
       unitLabel: "Од. вим.",
       units: {
         g: "г",
@@ -105,7 +82,6 @@ export const dishes = {
       }
     },
     media: {
-      mainPhotoBadge: "Головне фото",
       setAsMainBtn: "Зробити головним",
       deletePhotoBtn: "Видалити фото"
     },

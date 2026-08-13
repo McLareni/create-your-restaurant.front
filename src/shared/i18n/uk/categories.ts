@@ -17,5 +17,13 @@ export const categories = {
     namePlaceholder: "Наприклад: Гарячі закуски",
     cancel: "Скасувати",
     save: "Зберегти"
+  },
+  notifications: {
+    createSuccess: "Категорію успішно створено",
+    createError: "Помилка при створенні категорії",
+    updateSuccess: "Категорію успішно оновлено",
+    updateError: "Помилка при оновленні категорії",
+    deleteSuccess: "Категорію видалено",
+    deleteError: "Помилка при видаленні категорії"
   }
 };

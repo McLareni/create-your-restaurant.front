@@ -49,7 +49,14 @@ async function fetchClient<T>(endpoint: string, options: RequestOptions = {}): P
       if (onUnauthorizedHandler) {
         onUnauthorizedHandler();
       }
-      throw new Error('unauthorized');
+      
+      let errorMessage = 'unauthorized';
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorData.errorCode || errorMessage;
+      } catch {}
+      
+      throw new Error(errorMessage);
     }
 
     if (!response.ok) {

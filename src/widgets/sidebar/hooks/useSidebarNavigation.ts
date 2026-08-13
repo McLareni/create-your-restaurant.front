@@ -25,10 +25,11 @@ export const useSidebarNavigation = ({
   const isOwner = user?.role === 'OWNER';
 
   const menuGroups = useMemo(() => {
-    const groupKeys: Array<'main' | 'management' | 'marketing' | 'system'> = [
+    const groupKeys: Array<'main' | 'catalog' | 'operations' | 'analytics' | 'system'> = [
       'main',
-      'management',
-      'marketing',
+      'catalog',
+      'operations',
+      'analytics',
       'system',
     ];
 

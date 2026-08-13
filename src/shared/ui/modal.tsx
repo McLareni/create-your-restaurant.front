@@ -31,7 +31,7 @@ const DraggableSlotContent = ({ title, children, footer, onClose, coordinates, c
       style={style}
       className={`relative w-full rounded-3xl bg-bg-surface border border-solid border-border-main shadow-md flex flex-col pointer-events-auto overflow-hidden min-h-0 h-auto ${
         className && className.includes('max-w-') ? '' : 'max-w-md'
-      } ${className || ''}`}
+      } ${className}`}
     >
       <div
         {...attributes}

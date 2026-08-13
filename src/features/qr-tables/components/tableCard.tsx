@@ -15,6 +15,7 @@ export const TableCard = (props: TableCardProps) => {
     t,
     styledQr,
     zoneLabel,
+    cardRef,
     handleEditClick,
     handleDeleteClick,
     handleToggleStatus,
@@ -28,7 +29,7 @@ export const TableCard = (props: TableCardProps) => {
   }
 
   return (
-    <div className={cardClasses}>
+    <div className={cardClasses} ref={cardRef}>
       <div className="flex items-center justify-between w-full relative z-10 shrink-0">
         <div 
           className="p-1 flex items-center justify-center rounded-md bg-bg-element/60 hover:bg-bg-element transition-colors"

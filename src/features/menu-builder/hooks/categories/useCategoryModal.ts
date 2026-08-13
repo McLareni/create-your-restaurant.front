@@ -5,8 +5,8 @@ import { categorySchema } from '@/features/menu-builder/schemas/categories.schem
 import type { CategoryData } from '@/features/menu-builder/types/categories.types';
 
 export const useCategoryModal = (
-  createCategory: (name: string, options?: { onSuccess?: () => void }) => void,
-  updateCategory: (params: { id: string; name: string }, options?: { onSuccess?: () => void }) => void
+  createCategory: (name: string, options?: { onSuccess?: () => void; onError?: (err: any) => void }) => void,
+  updateCategory: (params: { id: string; name: string }, options?: { onSuccess?: () => void; onError?: (err: any) => void }) => void
 ) => {
   const [isCatModalOpen, setIsCatModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<CategoryData | null>(null);
@@ -33,12 +33,18 @@ export const useCategoryModal = (
     }
 
     setError(null);
-    const closeOnSuccess = { onSuccess: () => setIsCatModalOpen(false) };
+    const options = {
+      onSuccess: () => setIsCatModalOpen(false),
+      onError: (err: any) => {
+        const msg = err?.message || 'Помилка';
+        setError(msg);
+      }
+    };
 
     if (editingCategory) {
-      updateCategory({ id: editingCategory.id, name: catName }, closeOnSuccess);
+      updateCategory({ id: editingCategory.id, name: catName }, options);
     } else {
-      createCategory(catName, closeOnSuccess);
+      createCategory(catName, options);
     }
   };
 

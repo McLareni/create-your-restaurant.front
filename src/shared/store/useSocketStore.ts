@@ -34,7 +34,7 @@ export const useSocketStore = create<SocketState>((set, get) => ({
       }
 
       const socketUrl = getApiBaseUrl();
-      const socket = io(socketUrl, {
+      const socket = io(`${socketUrl}/live-monitor`, {
         path: '/socket.io',
         transports: ['websocket', 'polling'],
         withCredentials: true,

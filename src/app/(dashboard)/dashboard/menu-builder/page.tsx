@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Eye } from 'lucide-react';
-import { useMenuBuilder } from '@/app/(dashboard)/dashboard/menu-builder/hooks/useMenuBuilder';
+import { useMenuBuilder } from '@/features/menu-builder/hooks/useMenuBuilder';
 import { ModifiersTab } from '@/features/menu-builder/components/modifiers/modifiersTab';
 import { CombosTab } from '@/features/menu-builder/components/combos/combosTab';
 import { MenuBoard } from '@/features/menu-builder/components/board/menuBoard';

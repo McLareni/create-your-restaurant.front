@@ -88,11 +88,11 @@ export const useStaffList = () => {
     const temporaryId = Date.now().toString();
     const mockStaffMember: StaffMember = {
       id: editingMember?.id || temporaryId,
-      firstName: submitData.firstName,
+      firstName: submitData.firstName || '',
       lastName: submitData.lastName || '',
-      email: submitData.email,
+      email: submitData.email || '',
       phone: submitData.phone || '',
-      role: submitData.role || 'STAFF',
+      role: submitData.role,
       isActive: submitData.isActive ?? true,
       photo: previewUrl || null,
       avatarColor: 'bg-brand-copper',
@@ -155,7 +155,7 @@ export const useStaffList = () => {
   const filteredStaff = useMemo(() => {
     const lowerQuery = debouncedSearchQuery.toLowerCase();
     return optimisticStaff.filter((s: StaffMember) =>
-      `${s.firstName} ${s.lastName || ''} ${s.email} ${s.role}`.toLowerCase().includes(lowerQuery)
+      `${s.firstName} ${s.lastName} ${s.email} ${s.role}`.toLowerCase().includes(lowerQuery)
     );
   }, [optimisticStaff, debouncedSearchQuery]);
 

@@ -6,11 +6,11 @@ import { useTranslation } from '@/shared/hooks/useTranslation';
 import { Button, Card } from '@/shared/ui';
 import { PageLoader } from '@/shared/ui/pageLoader';
 import { User as UserIcon, Mail, Phone } from 'lucide-react';
-import type { UserProfileDto } from './types/profile.types';
+import type { User } from '@/shared/store/useUserStore';
 
 export default function ProfilePage() {
   const { t } = useTranslation();
-  const user = useUserStore((state) => state.user) as UserProfileDto | null;
+  const user = useUserStore((state) => state.user) as User | null;
   const logout = useUserStore((state) => state.logout);
 
   if (!user) {
@@ -74,7 +74,7 @@ export default function ProfilePage() {
                   <span className="block text-[10px] uppercase font-bold text-text-muted tracking-wider">
                     {t('profile.phoneLabel')}
                   </span>
-                  <span className="font-medium">{user.phone || '—'}</span>
+                  <span className="font-medium">{user.phone}</span>
                 </div>
               </div>
             </div>

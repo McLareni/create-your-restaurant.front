@@ -8,12 +8,30 @@ export const liveCalls = {
   typeWaiter: "Потрібен офіціант",
   typeBill: "Просить принести рахунок",
   doneBtn: "Прийнято й виконано",
+  tabs: {
+    active: "Активні",
+    history: "Історія",
+    calls: "Виклики"
+  },
+  date: "Дата:",
+  emptyCalls: "Немає активних викликів",
+  emptyHistory: "Немає історії замовлень за обрану дату.",
+  currency: "грн",
+  restoreOrder: "Відновити замовлення",
+  restore: "Відновити",
+  restoring: "Відновлення...",
+  callingStaff: "КЛИЧЕ ПЕРСОНАЛ",
+  actions: {
+    takeToWork: "Взяти в роботу",
+    ready: "Готово",
+    complete: "Завершити",
+    cancel: "Скасувати"
+  },
   card: {
     table: "Стіл",
     zone: "Зона",
     noZone: "Без зони",
     type: "Тип",
-    activeOrdersCount: "Активних замовлень",
     hide: "Сховати",
     details: "Детально",
     order: "Замовлення",
@@ -22,9 +40,11 @@ export const liveCalls = {
   },
   statuses: {
     pending: "Очікує",
-    in_progress: "В процесі",
+    in_progress: "В роботі",
     ready: "Готово",
-    completed: "Виконано",
+    completed: "Завершено",
     canceled: "Скасовано"
-  }
+  },
+  tableStatusUpdated: "Статус столу оновлено",
+  orderStatusUpdated: "Статус замовлення оновлено"
 };

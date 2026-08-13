@@ -37,14 +37,14 @@ export const PublicMenuHeader = ({
   };
 
   return (
-    <div className="sticky top-0 z-30 bg-brand-cream/90 backdrop-blur-xl border-b border-solid border-brand-copper/10 transition-all duration-300">
+    <div className="sticky top-0 z-30 bg-brand-cream/90 dark:bg-bg-surface/90 backdrop-blur-xl border-b border-solid border-brand-copper/10 dark:border-white/10 transition-all duration-300">
       <header className="w-full bg-transparent px-4 py-4 md:px-6">
         <div className="mx-auto flex max-w-5xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-0.5">
-            <h1 className="text-xl font-extrabold tracking-tight text-brand-espresso md:text-2xl font-serif">
+            <h1 className="text-xl font-extrabold tracking-tight text-brand-espresso dark:text-text-main md:text-2xl">
               {restaurantName}
             </h1>
-            <p className="text-xs font-medium text-brand-gray/80">
+            <p className="text-xs font-medium text-brand-gray/80 dark:text-text-muted">
               {t('menu.public.subtitle')}
             </p>
           </div>
@@ -57,7 +57,7 @@ export const PublicMenuHeader = ({
                   value={orderNumber}
                   onChange={(e) => setOrderNumber(e.target.value)}
                   placeholder={t('menu.public.findOrderPlaceholder')}
-                  className="w-full rounded-full border border-solid border-brand-gray/20 bg-white/60 pl-4 pr-24 py-2.5 text-xs font-semibold text-brand-espresso placeholder:text-brand-gray/50 outline-none focus:border-brand-copper/60 focus:bg-white focus:ring-2 focus:ring-brand-copper/10 transition-all"
+                  className="w-full rounded-full border border-solid border-brand-gray/20 dark:border-white/10 bg-white/60 dark:bg-black/20 pl-4 pr-24 py-2.5 text-xs font-semibold text-brand-espresso dark:text-text-main placeholder:text-brand-gray/50 dark:placeholder:text-text-muted outline-none focus:border-brand-copper/60 focus:bg-white dark:focus:bg-black/40 focus:ring-2 focus:ring-brand-copper/10 transition-all"
                 />
                 <button
                   type="submit"
@@ -86,7 +86,7 @@ export const PublicMenuHeader = ({
               className={`whitespace-nowrap rounded-full px-5 py-2 text-xs font-bold border border-solid transition-all duration-200 select-none cursor-pointer outline-none active:scale-95 ${
                 activeTabId === allDishesTabId
                   ? 'border-brand-copper bg-brand-copper text-white shadow-sm shadow-brand-copper/20'
-                  : 'border-brand-gray/15 bg-white text-brand-espresso hover:bg-brand-gray/5 hover:border-brand-gray/30'
+                  : 'border-brand-gray/15 dark:border-white/10 bg-white dark:bg-bg-main text-brand-espresso dark:text-text-main hover:bg-brand-gray/5 dark:hover:bg-white/5 hover:border-brand-gray/30'
               }`}
             >
               {t('menu.public.allDishes')}
@@ -102,7 +102,7 @@ export const PublicMenuHeader = ({
                   className={`whitespace-nowrap rounded-full px-5 py-2 text-xs font-bold border border-solid transition-all duration-200 select-none cursor-pointer outline-none active:scale-95 ${
                     isActive
                       ? 'border-brand-copper bg-brand-copper text-white shadow-sm shadow-brand-copper/20'
-                      : 'border-brand-gray/15 bg-white text-brand-espresso hover:bg-brand-gray/5 hover:border-brand-gray/30'
+                      : 'border-brand-gray/15 dark:border-white/10 bg-white dark:bg-bg-main text-brand-espresso dark:text-text-main hover:bg-brand-gray/5 dark:hover:bg-white/5 hover:border-brand-gray/30'
                   }`}
                 >
                   {category.name}

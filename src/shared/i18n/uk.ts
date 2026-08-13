@@ -12,6 +12,7 @@ import { analytics } from '@/shared/i18n/uk/analytics';
 import { liveCalls } from '@/shared/i18n/uk/live-calls';
 import { profile } from '@/shared/i18n/uk/profile';
 import { errors } from '@/shared/i18n/uk/errors';
+import { visual } from '@/shared/i18n/uk/visual';
 
 export const uk = {
   auth,
@@ -28,4 +29,5 @@ export const uk = {
   liveCalls,
   profile,
   errors,
+  visual,
 };

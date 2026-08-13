@@ -98,15 +98,15 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
           </div>
 
           <form action={formAction} className="space-y-5 w-full">
-            <input type="hidden" name="type" value={formData.type || ''} />
-            <input type="hidden" name="currency" value={formData.currency || ''} />
+            <input type="hidden" name="type" value={formData.type} />
+            <input type="hidden" name="currency" value={formData.currency} />
 
             <div className="space-y-4">
               <Input 
                 id="name" 
                 label={t('organization.create.nameLabel')} 
                 placeholder={t('organization.create.namePlaceholder')} 
-                value={formData.name || ''} 
+                value={formData.name} 
                 onChange={(e) => handleChange('name', e.target.value)} 
                 error={errors.name} 
                 disabled={isPending} 
@@ -117,14 +117,14 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
                 id="slug" 
                 label={t('organization.create.slugLabel')} 
                 hint={t('organization.create.slugHint')} 
-                value={formData.slug || ''}
+                value={formData.slug}
                 onChange={(e) => handleChange('slug', e.target.value)}
                 error={errors.slug}
                 disabled={isPending}
                 autoComplete="off"
                 rightElement={
                   <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-text-muted bg-bg-surface/80 backdrop-blur-xs px-2.5 py-1 rounded-lg border border-border-main h-7 shrink-0 shadow-2xs">
-                    <span>{process.env.NEXT_PUBLIC_DOMAIN_SUFFIX || '.gustio.com'}</span>
+                    <span>{process.env.NEXT_PUBLIC_DOMAIN_SUFFIX}</span>
                     {isCheckingSlug && <Loader2 className="h-3 w-3 animate-spin text-brand-emerald" />}
                     {slugAvailable === true && <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />}
                     {slugAvailable === false && <XCircle className="h-3.5 w-3.5 text-red-500" />}
@@ -141,7 +141,7 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
                     onClick={() => {
                       if (!isPending) setIsTypeOpen(!isTypeOpen);
                     }}
-                    className={`h-11 w-full bg-bg-main/40 border border-solid text-sm text-text-main px-4 flex items-center justify-between transition-all select-none rounded-xl cursor-pointer hover:border-neutral-400 dark:hover:border-neutral-600 ${
+                    className={`h-11 w-full bg-bg-main/40 border border-solid text-sm text-text-main px-4 flex items-center justify-between transition-all select-none rounded-lg cursor-pointer hover:border-neutral-400 dark:hover:border-neutral-600 ${
                       isTypeOpen ? 'border-brand-emerald! ring-1 ring-brand-emerald/20 bg-bg-surface!' : 'border-neutral-300 dark:border-neutral-700'
                     } ${errors.type ? 'border-red-500!' : ''}`}
                   >
@@ -151,17 +151,18 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
                     <ChevronDown className={`h-4 w-4 text-text-muted transition-transform duration-200 ${isTypeOpen ? 'rotate-180 text-brand-emerald' : ''}`} />
                   </div>
                   {isTypeOpen && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-bg-surface border border-solid border-border-main/60 shadow-lg flex flex-col p-1 rounded-xl max-h-48 overflow-y-auto custom-scrollbar">
+                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-bg-surface border border-solid border-border-main/60 shadow-lg flex flex-col py-1 rounded-lg max-h-48 overflow-y-auto custom-scrollbar">
                       {(['FAST_FOOD', 'CASUAL_DINING', 'CAFE', 'FINE_DINING', 'BUFFET', 'FOOD_TRUCK'] as const).map((typeOption) => (
-                        <button
-                          key={typeOption}
-                          type="button"
-                          onClick={() => { handleChange('type', typeOption); setIsTypeOpen(false); }}
-                          className="w-full flex items-center justify-between px-3 h-10 hover:bg-bg-hover text-left text-xs font-semibold text-text-main rounded-lg shrink-0"
-                        >
-                          <span>{t(`organization.create.types.${typeOption}`)}</span>
-                          {formData.type === typeOption && <Check className="h-4 w-4 text-brand-emerald shrink-0" />}
-                        </button>
+                        <div key={typeOption} className="px-1">
+                          <button
+                            type="button"
+                            onClick={() => { handleChange('type', typeOption); setIsTypeOpen(false); }}
+                            className="w-full flex items-center justify-between px-3 h-10 hover:bg-bg-hover text-left text-xs font-semibold text-text-main rounded-md shrink-0"
+                          >
+                            <span>{t(`organization.create.types.${typeOption}`)}</span>
+                            {formData.type === typeOption && <Check className="h-4 w-4 text-brand-emerald shrink-0" />}
+                          </button>
+                        </div>
                       ))}
                     </div>
                   )}
@@ -179,7 +180,7 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
                         setIsCurrencyOpen(!isCurrencyOpen);
                       }
                     }}
-                    className={`h-11 w-full bg-bg-main/40 border border-solid text-sm text-text-main px-4 flex items-center justify-between transition-all select-none rounded-xl cursor-pointer hover:border-neutral-400 dark:hover:border-neutral-600 ${
+                    className={`h-11 w-full bg-bg-main/40 border border-solid text-sm text-text-main px-4 flex items-center justify-between transition-all select-none rounded-lg cursor-pointer hover:border-neutral-400 dark:hover:border-neutral-600 ${
                       isCurrencyOpen ? 'border-brand-emerald! ring-1 ring-brand-emerald/20 bg-bg-surface!' : 'border-neutral-300 dark:border-neutral-700'
                     } ${errors.currency ? 'border-red-500!' : ''}`}
                   >
@@ -189,17 +190,18 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
                     <ChevronDown className={`h-4 w-4 text-text-muted transition-transform duration-200 ${isCurrencyOpen ? 'rotate-180 text-brand-emerald' : ''}`} />
                   </div>
                   {isCurrencyOpen && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-bg-surface border border-solid border-border-main/60 shadow-lg flex flex-col p-1 rounded-xl max-h-48 overflow-y-auto custom-scrollbar">
+                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-bg-surface border border-solid border-border-main/60 shadow-lg flex flex-col py-1 rounded-lg max-h-48 overflow-y-auto custom-scrollbar">
                       {(['UAH', 'USD', 'EUR', 'GBP', 'JPY', 'CNY', 'RUB', 'PLN'] as const).map((currOption) => (
-                        <button
-                          key={currOption}
-                          type="button"
-                          onClick={() => { handleChange('currency', currOption); setIsCurrencyOpen(false); }}
-                          className="w-full flex items-center justify-between px-3 h-10 hover:bg-bg-hover text-left text-xs font-semibold text-text-main rounded-lg shrink-0"
-                        >
-                          <span>{t(`organization.create.currencies.${currOption}`)}</span>
-                          {formData.currency === currOption && <Check className="h-4 w-4 text-brand-emerald shrink-0" />}
-                        </button>
+                        <div key={currOption} className="px-1">
+                          <button
+                            type="button"
+                            onClick={() => { handleChange('currency', currOption); setIsCurrencyOpen(false); }}
+                            className="w-full flex items-center justify-between px-3 h-10 hover:bg-bg-hover text-left text-xs font-semibold text-text-main rounded-md shrink-0"
+                          >
+                            <span>{t(`organization.create.currencies.${currOption}`)}</span>
+                            {formData.currency === currOption && <Check className="h-4 w-4 text-brand-emerald shrink-0" />}
+                          </button>
+                        </div>
                       ))}
                     </div>
                   )}
@@ -295,11 +297,11 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
                       <div className="grid grid-cols-2 gap-4 bg-bg-main/30 p-4 rounded-2xl border border-border-main/40">
                         <div className="flex flex-col gap-1">
                           <span className="text-[9px] font-bold uppercase tracking-wider text-text-muted">{t('organization.create.openLabel')}</span>
-                          <Input id="workHoursStart" type="time" value={formData.workHoursStart || '10:00'} onChange={(e) => handleChange('workHoursStart', e.target.value)} error={errors.workHoursStart} disabled={isPending} className="text-center font-mono font-bold border-none! bg-bg-surface!" />
+                          <Input id="workHoursStart" type="time" value={formData.workHoursStart} onChange={(e) => handleChange('workHoursStart', e.target.value)} error={errors.workHoursStart} disabled={isPending} className="text-center font-mono font-bold border-none! bg-bg-surface!" />
                         </div>
                         <div className="flex flex-col gap-1">
                           <span className="text-[9px] font-bold uppercase tracking-wider text-text-muted">{t('organization.create.closeLabel')}</span>
-                          <Input id="workHoursEnd" type="time" value={formData.workHoursEnd || '22:00'} onChange={(e) => handleChange('workHoursEnd', e.target.value)} error={errors.workHoursEnd} disabled={isPending} className="text-center font-mono font-bold border-none! bg-bg-surface!" />
+                          <Input id="workHoursEnd" type="time" value={formData.workHoursEnd} onChange={(e) => handleChange('workHoursEnd', e.target.value)} error={errors.workHoursEnd} disabled={isPending} className="text-center font-mono font-bold border-none! bg-bg-surface!" />
                         </div>
                       </div>
                     </div>
@@ -319,9 +321,9 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
               <div className={`grid transition-all duration-300 ease-in-out ${openSections.address ? 'grid-rows-[1fr] border-t border-border-main/40 opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                 <div className="overflow-hidden">
                   <div className="p-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <Input id="city" label={t('organization.create.cityLabel')} placeholder={t('organization.create.cityPlaceholder')} value={formData.city || ''} onChange={(e) => handleChange('city', e.target.value)} error={errors.city} disabled={isPending} autoComplete="address-level2" />
-                    <Input id="street" label={t('organization.create.streetLabel')} placeholder={t('organization.create.streetPlaceholder')} value={formData.street || ''} onChange={(e) => handleChange('street', e.target.value)} error={errors.street} disabled={isPending} autoComplete="address-line1" />
-                    <Input id="building" label={t('organization.create.buildingLabel')} placeholder={t('organization.create.buildingPlaceholder')} value={formData.building || ''} onChange={(e) => handleChange('building', e.target.value)} error={errors.building} disabled={isPending} autoComplete="off" />
+                    <Input id="city" label={t('organization.create.cityLabel')} placeholder={t('organization.create.cityPlaceholder')} value={formData.city} onChange={(e) => handleChange('city', e.target.value)} error={errors.city} disabled={isPending} autoComplete="address-level2" />
+                    <Input id="street" label={t('organization.create.streetLabel')} placeholder={t('organization.create.streetPlaceholder')} value={formData.street} onChange={(e) => handleChange('street', e.target.value)} error={errors.street} disabled={isPending} autoComplete="address-line1" />
+                    <Input id="building" label={t('organization.create.buildingLabel')} placeholder={t('organization.create.buildingPlaceholder')} value={formData.building} onChange={(e) => handleChange('building', e.target.value)} error={errors.building} disabled={isPending} autoComplete="off" />
                   </div>
                 </div>
               </div>
@@ -338,7 +340,7 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
               <div className={`grid transition-all duration-300 ease-in-out ${openSections.socials ? 'grid-rows-[1fr] border-t border-border-main/40 opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                 <div className="overflow-hidden">
                   <div className="p-4 space-y-4">
-                    <Input id="phone" label={t('organization.create.phoneLabel')} placeholder={t('organization.create.phonePlaceholder')} value={formData.phone || ''} onChange={(e) => handleChange('phone', e.target.value)} error={errors.phone} disabled={isPending} autoComplete="tel" />
+                    <Input id="phone" label={t('organization.create.phoneLabel')} placeholder={t('organization.create.phonePlaceholder')} value={formData.phone} onChange={(e) => handleChange('phone', e.target.value)} error={errors.phone} disabled={isPending} autoComplete="tel" />
                     
                     <div className="space-y-1.5">
                       <label className="text-xs font-bold uppercase tracking-wider text-text-main/80 block">{t('organization.create.mainChannel')}</label>
@@ -346,29 +348,30 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
                         <div className="w-1/3 relative" ref={social1Ref}>
                           <div
                             onClick={() => !isPending && setIsSocial1Open(!isSocial1Open)}
-                            className="h-11 w-full bg-bg-main/40 border border-solid border-neutral-300 dark:border-neutral-700 text-xs font-semibold text-text-main px-3 flex items-center justify-between transition-all rounded-xl cursor-pointer"
+                            className="h-11 w-full bg-bg-main/40 border border-solid border-neutral-300 dark:border-neutral-700 text-xs font-semibold text-text-main px-3 flex items-center justify-between transition-all rounded-lg cursor-pointer"
                           >
                             <span className="capitalize">{String(socialPlatform1)}</span>
                             <ChevronDown className="h-3.5 w-3.5 text-text-muted" />
                           </div>
                           {isSocial1Open && (
-                            <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-bg-surface border border-solid border-border-main/60 shadow-md flex flex-col p-1 rounded-xl">
+                            <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-bg-surface border border-solid border-border-main/60 shadow-md flex flex-col py-1 rounded-lg">
                               {(['instagram', 'facebook', 'telegram', 'tiktok'] as const).map((plat) => (
-                                <button
-                                  key={plat}
-                                  type="button"
-                                  onClick={() => { handleChange(socialPlatform1, ''); setSocialPlatform1(plat); setIsSocial1Open(false); }}
-                                  className="w-full flex items-center justify-between px-3 h-9 hover:bg-bg-hover text-left text-xs font-medium text-text-main rounded-lg"
-                                >
-                                  <span className="capitalize">{plat}</span>
-                                  {socialPlatform1 === plat && <Check className="h-3.5 w-3.5 text-brand-emerald" />}
-                                </button>
+                                <div key={plat} className="px-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => { handleChange(socialPlatform1, ''); setSocialPlatform1(plat); setIsSocial1Open(false); }}
+                                    className="w-full flex items-center justify-between px-3 h-9 hover:bg-bg-hover text-left text-xs font-medium text-text-main rounded-md"
+                                  >
+                                    <span className="capitalize">{plat}</span>
+                                    {socialPlatform1 === plat && <Check className="h-3.5 w-3.5 text-brand-emerald" />}
+                                  </button>
+                                </div>
                               ))}
                             </div>
                           )}
                         </div>
                         <div className="flex-1">
-                          <Input name={String(socialPlatform1)} id={String(socialPlatform1)} placeholder="username" value={(formData[socialPlatform1] as string) || ''} onChange={(e) => handleChange(socialPlatform1, e.target.value)} error={errors[socialPlatform1]} disabled={isPending} autoComplete="off" />
+                          <Input name={String(socialPlatform1)} id={String(socialPlatform1)} placeholder="username" value={(formData[socialPlatform1] as string)} onChange={(e) => handleChange(socialPlatform1, e.target.value)} error={errors[socialPlatform1]} disabled={isPending} autoComplete="off" />
                         </div>
                       </div>
                     </div>
@@ -379,29 +382,30 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
                         <div className="w-1/3 relative" ref={social2Ref}>
                           <div
                             onClick={() => !isPending && setIsSocial2Open(!isSocial2Open)}
-                            className="h-11 w-full bg-bg-main/40 border border-solid border-neutral-300 dark:border-neutral-700 text-xs font-semibold text-text-main px-3 flex items-center justify-between transition-all rounded-xl cursor-pointer"
+                            className="h-11 w-full bg-bg-main/40 border border-solid border-neutral-300 dark:border-neutral-700 text-xs font-semibold text-text-main px-3 flex items-center justify-between transition-all rounded-lg cursor-pointer"
                           >
                             <span className="capitalize">{String(socialPlatform2)}</span>
                             <ChevronDown className="h-3.5 w-3.5 text-text-muted" />
                           </div>
                           {isSocial2Open && (
-                            <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-bg-surface border border-solid border-border-main/60 shadow-md flex flex-col p-1 rounded-xl">
+                            <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-bg-surface border border-solid border-border-main/60 shadow-md flex flex-col py-1 rounded-lg">
                               {(['facebook', 'instagram', 'telegram', 'tiktok'] as const).map((plat) => (
-                                <button
-                                  key={plat}
-                                  type="button"
-                                  onClick={() => { handleChange(socialPlatform2, ''); setSocialPlatform2(plat); setIsSocial2Open(false); }}
-                                  className="w-full flex items-center justify-between px-3 h-9 hover:bg-bg-hover text-left text-xs font-medium text-text-main rounded-lg"
-                                >
-                                  <span className="capitalize">{plat}</span>
-                                  {socialPlatform2 === plat && <Check className="h-3.5 w-3.5 text-brand-emerald" />}
-                                </button>
+                                <div key={plat} className="px-1">
+                                  <button
+                                    type="button"
+                                    onClick={() => { handleChange(socialPlatform2, ''); setSocialPlatform2(plat); setIsSocial2Open(false); }}
+                                    className="w-full flex items-center justify-between px-3 h-9 hover:bg-bg-hover text-left text-xs font-medium text-text-main rounded-md"
+                                  >
+                                    <span className="capitalize">{plat}</span>
+                                    {socialPlatform2 === plat && <Check className="h-3.5 w-3.5 text-brand-emerald" />}
+                                  </button>
+                                </div>
                               ))}
                             </div>
                           )}
                         </div>
                         <div className="flex-1">
-                          <Input name={String(socialPlatform2)} id={String(socialPlatform2)} placeholder="username" value={(formData[socialPlatform2] as string) || ''} onChange={(e) => handleChange(socialPlatform2, e.target.value)} error={errors[socialPlatform2]} disabled={isPending} autoComplete="off" />
+                          <Input name={String(socialPlatform2)} id={String(socialPlatform2)} placeholder="username" value={(formData[socialPlatform2] as string)} onChange={(e) => handleChange(socialPlatform2, e.target.value)} error={errors[socialPlatform2]} disabled={isPending} autoComplete="off" />
                         </div>
                       </div>
                     </div>

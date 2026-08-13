@@ -6,7 +6,7 @@ import { useUserStore } from '@/shared/store/useUserStore';
 import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 import { useAccessStore } from '@/shared/store/useAccessStore';
 import { organizationApi } from '@/features/organizations/api/organizations.api';
-import type { SidebarRestaurant } from '@/app/(dashboard)/_components/types/sidebar.types';
+import type { SidebarRestaurant } from '@/widgets/sidebar/types/sidebar.types';
 import type { User } from '@/shared/store/useUserStore';
 
 type ExtendedUser = User & {

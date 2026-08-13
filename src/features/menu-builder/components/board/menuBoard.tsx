@@ -111,7 +111,7 @@ const MenuBoardContent = () => {
       />
       
       <DishModal 
-        key={board.dishModal.editingDish?.id || 'new-dish'}
+        key={board.dishModal.editingDish?.id}
         isOpen={board.dishModal.isDishModalOpen} 
         onClose={() => board.dishModal.setIsDishModalOpen(false)} 
         dish={board.dishModal.editingDish}

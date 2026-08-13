@@ -14,6 +14,8 @@ interface PublicMenuDishCardProps {
   onAddDish: (dishId: string) => void;
   onRemoveDish: (dishId: string) => void;
   onOpenDetails: (dish: PublicMenuDish) => void;
+  buttonStyle?: string;
+  cardStyle?: string;
 }
 
 const getDishPreview = (dish: PublicMenuDish) => {
@@ -31,6 +33,8 @@ export const PublicMenuDishCard = ({
   onAddDish,
   onRemoveDish,
   onOpenDetails,
+  buttonStyle,
+  cardStyle,
 }: PublicMenuDishCardProps) => {
   const { t } = useTranslation();
   const dishImage = getDishPreview(dish);
@@ -42,15 +46,34 @@ export const PublicMenuDishCard = ({
     }
   };
 
+  const getAddButtonClass = () => {
+    if (quantity > 0) return 'bg-white text-brand-espresso hover:brightness-95 shadow-xs';
+    if (buttonStyle === 'outline') return 'bg-transparent border border-solid border-brand-copper text-brand-copper hover:bg-brand-copper hover:text-white';
+    if (buttonStyle === 'soft') return 'bg-brand-copper/15 text-brand-copper hover:brightness-95';
+    return 'bg-brand-copper text-white hover:brightness-90 shadow-xs';
+  };
+
+  const getCardClasses = () => {
+    let base = "group relative flex flex-col overflow-hidden p-3 transition-all duration-300 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-brand-copper/50 ";
+    if (cardStyle === 'standard' || !cardStyle) {
+      base += "rounded-2xl border border-solid border-brand-gray/10 bg-white dark:bg-brand-mocha shadow-xs hover:border-brand-copper/30 hover:shadow-md hover:shadow-brand-espresso/5";
+    } else if (cardStyle === 'outline') {
+      base += "rounded-2xl border border-solid border-brand-espresso/15 bg-transparent hover:border-brand-copper";
+    } else if (cardStyle === 'flat') {
+      base += "rounded-2xl bg-transparent border-transparent hover:bg-brand-espresso/5 dark:hover:bg-brand-cream/5";
+    }
+    return base;
+  };
+
   return (
     <article
       onClick={() => onOpenDetails(dish)}
       onKeyDown={handleKeyDown}
       tabIndex={0}
-      className="group relative flex flex-col overflow-hidden rounded-2xl border border-solid border-brand-gray/10 bg-white p-3 shadow-xs transition-all duration-300 hover:border-brand-copper/30 hover:shadow-md hover:shadow-brand-espresso/5 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-brand-copper/50"
+      className={getCardClasses()}
       role="button"
     >
-      <div className="relative aspect-4/3 w-full overflow-hidden rounded-xl bg-brand-cream/40">
+      <div className="relative aspect-4/3 w-full overflow-hidden rounded-xl bg-neutral-100 dark:bg-neutral-800 border border-solid border-brand-espresso/5">
         {dishImage ? (
           <Image
             src={dishImage}
@@ -75,10 +98,10 @@ export const PublicMenuDishCard = ({
       </div>
 
       <div className="mt-3 flex flex-1 flex-col">
-        <h3 className="text-sm font-bold text-brand-espresso group-hover:text-brand-copper transition-colors line-clamp-1">
+        <h3 className="text-sm font-bold text-brand-espresso dark:text-brand-cream group-hover:text-brand-copper transition-colors line-clamp-1">
           {dish.name}
         </h3>
-        <p className="mt-1 line-clamp-2 text-xs font-light leading-relaxed text-brand-gray/80 min-h-8">
+        <p className="mt-1 line-clamp-2 text-xs font-light leading-relaxed text-brand-gray/80 dark:text-brand-gray/90 min-h-8">
           {dish.description || t('menu.public.noDescription')}
         </p>
 
@@ -100,7 +123,7 @@ export const PublicMenuDishCard = ({
                     type="button"
                     onClick={() => onRemoveDish(dish.id)}
                     disabled={isPlacingOrder}
-                    className="flex h-7 w-7 items-center justify-center rounded-full border-0 bg-white text-brand-espresso hover:bg-brand-copper hover:text-white shadow-xs transition-all active:scale-90 disabled:opacity-40 cursor-pointer outline-none"
+                    className="flex h-7 w-7 items-center justify-center rounded-full border-0 bg-white text-brand-espresso hover:brightness-95 shadow-xs transition-all active:scale-90 disabled:opacity-40 cursor-pointer outline-none"
                   >
                     <Minus className="h-3 w-3" />
                   </button>
@@ -113,11 +136,7 @@ export const PublicMenuDishCard = ({
                 type="button"
                 onClick={() => onAddDish(dish.id)}
                 disabled={isPlacingOrder}
-                className={`flex h-7 w-7 items-center justify-center rounded-full border-0 shadow-xs transition-all active:scale-90 disabled:opacity-40 cursor-pointer outline-none ${
-                  quantity > 0 
-                    ? 'bg-white text-brand-espresso hover:bg-brand-copper hover:text-white' 
-                    : 'bg-brand-copper text-white hover:bg-brand-espresso'
-                }`}
+                className={`flex h-7 w-7 items-center justify-center rounded-full transition-all active:scale-90 disabled:opacity-40 cursor-pointer outline-none ${getAddButtonClass()}`}
               >
                 <Plus className="h-3.5 w-3.5" />
               </button>

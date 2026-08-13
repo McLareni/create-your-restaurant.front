@@ -9,9 +9,9 @@ import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 import { useAccessStore } from '@/shared/store/useAccessStore';
 import { apiClient } from '@/shared/api/client';
 import { getSidebarCookie, setSidebarCookie } from '@/shared/utils/cookies';
-import { useSidebarNavigation } from '@/app/(dashboard)/_components/hooks/useSidebarNavigation';
+import { useSidebarNavigation } from '@/widgets/sidebar/hooks/useSidebarNavigation';
 import toast from 'react-hot-toast';
-import type { SidebarRestaurant } from '@/app/(dashboard)/_components/types/sidebar.types';
+import type { SidebarRestaurant } from '@/widgets/sidebar/types/sidebar.types';
 import type { User } from '@/shared/store/useUserStore';
 
 type ExtendedUser = User & {
@@ -56,9 +56,9 @@ export const useSidebarLogic = () => {
     if (!user || !user.restaurants) return [];
     return user.restaurants.map((res: SidebarRestaurant) => ({
       id: res.id,
-      name: res.name || res.title || '',
-      slug: res.slug,
-      imageUrl: res.imageUrl,
+      name: res.name || ('title' in res ? (res as { title?: string }).title : '') || '',
+      slug: res.slug || '',
+      imageUrl: res.imageUrl || null,
     }));
   }, [user]);
 

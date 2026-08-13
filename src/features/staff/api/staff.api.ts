@@ -13,7 +13,7 @@ const toUiStaff = (staff: BackendStaff): StaffMember => ({
   id: String(staff.id),
   firstName: staff.firstName || '',
   lastName: staff.lastName || '',
-  email: staff.email,
+  email: staff.email || '',
   phone: staff.phone || '',
   role: staff.role,
   isActive: staff.isActive,

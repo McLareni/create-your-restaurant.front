@@ -95,8 +95,8 @@ export const useCombosManagement = (): UseCombosManagementReturn => {
 
   const [formState, formAction, isPending] = useAppActionState(
     async (formData) => {
-      const name = (formData.get('name') as string || '').trim();
-      const currentPriceType = (formData.get('priceType') as ComboPriceType) || 'FIXED';
+      const name = (formData.get('name') as string).trim();
+      const currentPriceType = (formData.get('priceType') as ComboPriceType);
       const priceValueRaw = formData.get('priceValue');
       const priceValue = priceValueRaw ? parseFloat(priceValueRaw.toString()) : 0;
       const selectedDishesJson = formData.get('selectedDishesData') as string;

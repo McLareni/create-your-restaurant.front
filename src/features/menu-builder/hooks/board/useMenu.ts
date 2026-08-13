@@ -26,8 +26,6 @@ export const useMenu = () => {
 
   const invalidateAllMenuData = () => {
     void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.fullMenu(restaurantId) });
-    void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.dishesListAll(restaurantId) });
-    void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.dishesLookup(restaurantId) });
   };
 
   const createCategoryMutation = useMutation({
@@ -42,8 +40,14 @@ export const useMenu = () => {
       invalidateAllMenuData();
       toast.success(t('menu.constructor.categories.notifications.createSuccess'));
     },
-    onError: () => {
-      toast.error(t('menu.constructor.categories.notifications.createError'));
+    onError: (err: any) => {
+      console.error('createCategory error:', err);
+      const msg = err?.message || '';
+      let translation = msg && t(msg) !== msg ? t(msg) : t('menu.constructor.categories.notifications.createError');
+      if (!translation || translation === msg || translation === 'menu.constructor.categories.notifications.createError') {
+        translation = `Помилка: ${msg || 'Невідома помилка'}`;
+      }
+      toast.error(translation);
     },
   });
 
@@ -53,8 +57,14 @@ export const useMenu = () => {
       invalidateAllMenuData();
       toast.success(t('menu.constructor.categories.notifications.updateSuccess'));
     },
-    onError: () => {
-      toast.error(t('menu.constructor.categories.notifications.updateError'));
+    onError: (err: any) => {
+      console.error('updateCategory error:', err);
+      const msg = err?.message || '';
+      let translation = msg && t(msg) !== msg ? t(msg) : t('menu.constructor.categories.notifications.updateError');
+      if (!translation || translation === msg || translation === 'menu.constructor.categories.notifications.updateError') {
+        translation = `Помилка: ${msg || 'Невідома помилка'}`;
+      }
+      toast.error(translation);
     },
   });
 

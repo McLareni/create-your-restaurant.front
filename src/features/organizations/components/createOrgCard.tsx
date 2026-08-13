@@ -34,7 +34,7 @@ export const CreateOrgCard = ({ formData }: CreateOrgCardProps) => {
   const [isFlipped, setIsFlipped] = useState<boolean>(false);
   const isElegant = variant === 'elegant';
 
-  const domainSuffix = process.env.NEXT_PUBLIC_DOMAIN_SUFFIX || '.gustio.com';
+  const domainSuffix = process.env.NEXT_PUBLIC_DOMAIN_SUFFIX;
 
   const styles = {
     cardBg: isElegant 
@@ -133,7 +133,7 @@ export const CreateOrgCard = ({ formData }: CreateOrgCardProps) => {
               </div>
               <div className="flex items-center gap-3 text-xs">
                 <Clock className={`h-3.5 w-3.5 shrink-0 stroke-[2.2] ${styles.iconColor}`} />
-                <span className={styles.goldText}>{workDaysText}: {formData.workHoursStart || '10:00'} — {formData.workHoursEnd || '22:00'}</span>
+                <span className={styles.goldText}>{workDaysText}: {formData.workHoursStart} — {formData.workHoursEnd}</span>
               </div>
               <div className="flex items-center gap-3 w-full text-xs">
                 <MapPin className={`h-3.5 w-3.5 shrink-0 stroke-[2.2] ${styles.iconColor}`} />
