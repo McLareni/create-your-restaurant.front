@@ -19,7 +19,7 @@ export const inventory = {
     nameLabel: "Назва товару/інгредієнта",
     namePlaceholder: "Наприклад: Борошно вищого ґатунку",
     stockLabel: "Поточний запас",
-    unitLabel: "Одиниця виміру сировини",
+    unitLabel: "Одиниця вимірування",
     save: "Зберегти",
     cancel: "Скасувати"
   },

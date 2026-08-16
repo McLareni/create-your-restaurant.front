@@ -8,6 +8,7 @@ import { PublicMenuDish } from '../types/publicMenu.types';
 
 interface PublicMenuDishDetailsModalProps {
   dish: PublicMenuDish;
+  currency: string | null;
   onClose: () => void;
 }
 
@@ -18,7 +19,7 @@ const getDishImages = (dish: PublicMenuDish): string[] => {
   return [];
 };
 
-export const PublicMenuDishDetailsModal = ({ dish, onClose }: PublicMenuDishDetailsModalProps) => {
+export const PublicMenuDishDetailsModal = ({ dish, onClose, currency }: PublicMenuDishDetailsModalProps) => {
   const { t } = useTranslation();
   const dishImages = useMemo(() => getDishImages(dish), [dish]);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
@@ -111,7 +112,7 @@ export const PublicMenuDishDetailsModal = ({ dish, onClose }: PublicMenuDishDeta
               </div>
             </div>
             <span className="text-xl font-black text-brand-copper font-mono whitespace-nowrap bg-brand-copper/10 rounded-xl px-3 py-1.5">
-              {dish.price} {t('menu.currency')}
+              {dish.price} {currency}
             </span>
           </div>
 

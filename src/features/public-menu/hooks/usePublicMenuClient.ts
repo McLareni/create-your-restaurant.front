@@ -27,6 +27,7 @@ export const usePublicMenuClient = (
   });
 
   const resolvedRestaurantId = menuData?.restaurantId;
+  const currency = menuData?.currency ?? null;
 
   const { data: tableExistsData, isLoading: isTableLoading, isError: isTableError } = useQuery({
     queryKey: ['public-menu-table', resolvedRestaurantId, tableId],
@@ -168,6 +169,7 @@ export const usePublicMenuClient = (
 
   return {
     menuData,
+    currency,
     isMenuLoading,
     isMenuError,
     isTableLoading,

@@ -59,6 +59,7 @@ export const useSidebarLogic = () => {
       name: res.name || ('title' in res ? (res as { title?: string }).title : '') || '',
       slug: res.slug || '',
       imageUrl: res.imageUrl || null,
+      currency: res.currency ?? null,
     }));
   }, [user]);
 

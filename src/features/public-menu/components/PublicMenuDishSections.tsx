@@ -5,6 +5,7 @@ import { PublicMenuDishCard } from './PublicMenuDishCard';
 
 interface PublicMenuDishSectionsProps {
   categories: PublicMenuCategory[];
+  currency: string | null;
   activeCategory: PublicMenuCategory | null;
   isAllDishesTabActive: boolean;
   activeTabId: string;
@@ -20,6 +21,7 @@ interface PublicMenuDishSectionsProps {
 
 export const PublicMenuDishSections = ({
   categories,
+  currency,
   activeCategory,
   isAllDishesTabActive,
   canUseCart,
@@ -44,6 +46,7 @@ export const PublicMenuDishSections = ({
                 <PublicMenuDishCard
                   key={dish.id}
                   dish={dish}
+                  currency={currency}
                   quantity={cart[dish.id] ?? 0}
                   canUseCart={canUseCart}
                   isPlacingOrder={isPlacingOrder}
@@ -73,6 +76,7 @@ export const PublicMenuDishSections = ({
           <PublicMenuDishCard
             key={dish.id}
             dish={dish}
+            currency={currency}
             quantity={cart[dish.id] ?? 0}
             canUseCart={canUseCart}
             isPlacingOrder={isPlacingOrder}

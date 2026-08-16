@@ -158,7 +158,7 @@ export const InventoryTab = () => {
           isOpen={board.isModalOpen}
           onClose={() => board.setIsModalOpen(false)}
           title={board.editingId ? board.t('inventory.modal.editTitle') : board.t('inventory.modal.createTitle')}
-          className="w-full max-w-md h-75"
+          className="w-full max-w-md h-78"
         >
           <form
             key={board.editingId}

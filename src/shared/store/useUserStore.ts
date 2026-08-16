@@ -9,7 +9,18 @@ export interface UserRestaurant {
   name: string;
   slug?: string;
   imageUrl?: string | null;
+  currency?: string | null;
 }
+
+export const useRestaurantCurrency = (restaurantId?: string | number) =>
+  useUserStore((state) => {
+    const restaurants = state.user?.restaurants ?? [];
+    const targetRestaurant = restaurantId
+      ? restaurants.find((restaurant) => String(restaurant.id) === String(restaurantId))
+      : restaurants[0];
+
+    return targetRestaurant?.currency ?? null;
+  });
 
 export interface User {
   id: string | number;
