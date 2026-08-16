@@ -8,6 +8,7 @@ export interface SidebarRestaurant {
   name: string;
   slug?: string;
   imageUrl?: string | null;
+  currency?: string | null;
   title?: string;
 }
 

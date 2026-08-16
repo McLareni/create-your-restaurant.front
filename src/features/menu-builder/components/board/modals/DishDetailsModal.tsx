@@ -6,6 +6,7 @@ import { useTranslation } from '@/shared/hooks/useTranslation';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight, Image as ImageIcon } from 'lucide-react';
 import type { CharacteristicObject } from '@/features/menu-builder/types/dishes.types';
+import { useRestaurantStore, useRestaurantCurrency } from '@/shared/store/useRestaurantStore';
 
 interface DishDetailsModalProps {
   isOpen: boolean;
@@ -26,6 +27,8 @@ interface DishDetailsModalProps {
 export const DishDetailsModal = ({ isOpen, onClose, dish }: DishDetailsModalProps) => {
   const { t } = useTranslation();
   const [activeImgIdx, setActiveImgIdx] = useState(0);
+  const activeRestaurantId = useRestaurantStore((state) => state.activeRestaurant?.id ?? null);
+  const currency = useRestaurantCurrency(activeRestaurantId ?? undefined) ?? null;
 
   if (!isOpen) return null;
 
@@ -95,7 +98,7 @@ export const DishDetailsModal = ({ isOpen, onClose, dish }: DishDetailsModalProp
             {t('menu.constructor.dishes.modal.properties.priceLabel')}
           </span>
           <span className="text-base font-extrabold text-brand-emerald font-mono bg-brand-emerald/5 px-2.5 py-1 rounded-md">
-            {dish.price} ₴
+            {dish.price} {currency}
           </span>
         </div>
 
@@ -112,7 +115,7 @@ export const DishDetailsModal = ({ isOpen, onClose, dish }: DishDetailsModalProp
           {dish.weight && (
             <div>
               {t('menu.constructor.dishes.modal.properties.weightLabel')}{' '}
-              <span className="text-text-main font-extrabold">{dish.weight} {t('dishes.modal.ingredients.units.g')}</span>
+              <span className="text-text-main font-extrabold">{dish.weight} {t('menu.constructor.dishes.modal.ingredients.units.g')}</span>
             </div>
           )}
           {dish.calories && (

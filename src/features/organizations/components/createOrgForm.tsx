@@ -123,12 +123,14 @@ export const CreateOrgForm = ({ state }: CreateOrgFormProps) => {
                 disabled={isPending}
                 autoComplete="off"
                 rightElement={
-                  <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-text-muted bg-bg-surface/80 backdrop-blur-xs px-2.5 py-1 rounded-lg border border-border-main h-7 shrink-0 shadow-2xs">
+                  (formData.slug?.length || 0) >= 2 ? 
+                  (<div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-text-muted bg-bg-surface/80 backdrop-blur-xs px-2.5 py-1 rounded-lg border border-border-main h-7 shrink-0 shadow-2xs">
                     <span>{process.env.NEXT_PUBLIC_DOMAIN_SUFFIX}</span>
                     {isCheckingSlug && <Loader2 className="h-3 w-3 animate-spin text-brand-emerald" />}
                     {slugAvailable === true && <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />}
                     {slugAvailable === false && <XCircle className="h-3.5 w-3.5 text-red-500" />}
-                  </div>
+                  </div> ) 
+                  : undefined
                 }
               />
 

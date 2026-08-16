@@ -8,6 +8,7 @@ import { PublicMenuDish } from '../types/publicMenu.types';
 
 interface PublicMenuDishCardProps {
   dish: PublicMenuDish;
+  currency: string | null;
   quantity: number;
   canUseCart: boolean;
   isPlacingOrder: boolean;
@@ -27,6 +28,7 @@ const getDishPreview = (dish: PublicMenuDish) => {
 
 export const PublicMenuDishCard = ({
   dish,
+  currency,
   quantity,
   canUseCart,
   isPlacingOrder,
@@ -107,7 +109,7 @@ export const PublicMenuDishCard = ({
 
         <div className="mt-auto flex items-center justify-between pt-3 border-t border-solid border-brand-gray/5">
           <span className="text-base font-extrabold text-brand-copper font-mono">
-            {dish.price} {t('menu.currency')}
+            {dish.price} {currency}
           </span>
 
           {canUseCart && (

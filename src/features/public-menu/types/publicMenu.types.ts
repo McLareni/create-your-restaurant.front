@@ -34,6 +34,7 @@ export interface PublicMenuCategory {
 export interface PublicMenuResponse {
   restaurantId: number;
   restaurantName?: string;
+  currency?: string | null;
   visualSettings?: {
     theme?: string;
     primaryColor?: string;
@@ -86,6 +87,7 @@ export interface PublicMenuClientProps {
 
 export interface UsePublicMenuClientReturn {
   menuData: PublicMenuResponse | undefined;
+  currency: string | null;
   isMenuLoading: boolean;
   isMenuError: boolean;
   isTableLoading: boolean;

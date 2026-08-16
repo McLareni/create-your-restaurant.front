@@ -5,7 +5,12 @@ import { combos } from '@/shared/i18n/uk/combos';
 import { inventory } from '@/shared/i18n/uk/inventory';
 
 export const menu = {
-  currency: "₴",
+  currency: {
+    "PLN": "PLN",
+    "USD": "USD",
+    "EUR": "EUR",
+    "UAH": "UAH",
+  },
   public: {
     title: "Меню закладу",
     subtitle: "Оберіть улюблені страви та надішліть замовлення миттєво",

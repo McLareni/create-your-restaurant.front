@@ -21,6 +21,7 @@ export const PublicMenuClient = ({ restaurantSlug, tableId, orderId }: PublicMen
   const router = useRouter();
   const {
     menuData,
+    currency,
     isMenuLoading,
     isMenuError,
     isTableLoading,
@@ -190,6 +191,7 @@ export const PublicMenuClient = ({ restaurantSlug, tableId, orderId }: PublicMen
           <div className="space-y-8">
             <PublicMenuDishSections
               categories={categories}
+              currency={currency}
               activeCategory={activeCategory}
               isAllDishesTabActive={isAllDishesTabActive}
               activeTabId={activeTabId}
@@ -244,7 +246,7 @@ export const PublicMenuClient = ({ restaurantSlug, tableId, orderId }: PublicMen
 
                   <div className="mt-4 pt-3 border-t border-dashed border-brand-emerald/30 flex items-center justify-between text-sm font-black">
                     <span className="text-brand-espresso dark:text-brand-cream">{t('menu.public.activeOrderTotal')}</span>
-                    <span className="font-mono text-brand-emerald tracking-tight">{activeOrder.totalAmount} {t('menu.currency')}</span>
+                    <span className="font-mono text-brand-emerald tracking-tight">{activeOrder.totalAmount} {currency}</span>
                   </div>
                 </div>
               )}
@@ -273,7 +275,7 @@ export const PublicMenuClient = ({ restaurantSlug, tableId, orderId }: PublicMen
                       <div key={dishId} className="flex items-center justify-between group">
                         <div className="flex flex-col min-w-0 flex-1 pr-4">
                           <span className="truncate text-sm font-semibold text-brand-espresso dark:text-brand-cream transition-colors group-hover:text-brand-copper">{dish.name}</span>
-                          <span className="text-[11px] font-medium text-brand-gray">{dish.price} {t('menu.currency')}</span>
+                          <span className="text-[11px] font-medium text-brand-gray">{dish.price} {currency}</span>
                         </div>
                         <div className="flex items-center gap-3">
                           <div className="flex items-center gap-3 bg-brand-gray/5 dark:bg-white/5 rounded-full px-1 py-1 border border-solid border-brand-gray/10">
@@ -291,7 +293,7 @@ export const PublicMenuClient = ({ restaurantSlug, tableId, orderId }: PublicMen
               <div className="mt-6 border-t-2 border-dashed border-brand-gray/15 pt-5">
                 <div className="flex items-end justify-between mb-6">
                   <span className="text-sm font-bold uppercase tracking-wider text-brand-gray">{t('menu.public.total')}</span>
-                  <span className="text-2xl font-black font-mono text-brand-copper tracking-tight leading-none">{totalAmount} <span className="text-sm">{t('menu.currency')}</span></span>
+                  <span className="text-2xl font-black font-mono text-brand-copper tracking-tight leading-none">{totalAmount} <span className="text-sm">{currency}</span></span>
                 </div>
                 <button
                   type="button"
@@ -321,6 +323,7 @@ export const PublicMenuClient = ({ restaurantSlug, tableId, orderId }: PublicMen
 
       {selectedDish && (
         <PublicMenuDishDetailsModal
+          currency={currency}
           dish={selectedDish}
           onClose={() => setSelectedDish(null)}
         />

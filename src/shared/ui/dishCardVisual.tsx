@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Clock, EyeOff } from 'lucide-react';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import { Badge } from '@/shared/ui/badge';
+import { useRestaurantCurrency, useRestaurantStore } from '../store/useRestaurantStore';
 
 interface DishCardVisualProps extends HTMLAttributes<HTMLDivElement> {
   name: string;
@@ -39,6 +40,8 @@ export const DishCardVisual = ({
   ...props
 }: DishCardVisualProps) => {
   const { t } = useTranslation();
+  const activeRestaurantId = useRestaurantStore((state) => state.activeRestaurant?.id ?? null);
+  const currency = useRestaurantCurrency(activeRestaurantId ?? undefined) ?? null;
 
   return (
     <div
@@ -101,7 +104,7 @@ export const DishCardVisual = ({
 
         <div className="flex items-center justify-between mt-2 pt-1.5 border-t border-solid border-border-main/50 shrink-0">
           <span className="text-brand-emerald text-xs font-extrabold font-mono">
-            {price} {t('menu.currency')}
+            {price} {currency}
           </span>
           <div className="flex items-center gap-1.5 text-[9px] font-medium text-text-muted/60 font-mono">
             {weight && (
