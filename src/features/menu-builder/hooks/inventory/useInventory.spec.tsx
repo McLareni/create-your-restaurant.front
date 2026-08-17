@@ -53,10 +53,10 @@ describe('useInventory', () => {
     const { result } = renderHook(() => useInventory(), { wrapper });
 
     await act(async () => {
-      await result.current.createItem({ name: 'Cheese', unit: 'kg' });
+      await result.current.createItem({ name: 'Cheese', stock: 0, unit: 'kg' });
     });
 
-    expect(inventoryApi.create).toHaveBeenCalledWith({ name: 'Cheese', unit: 'kg' });
+    expect(inventoryApi.create).toHaveBeenCalledWith({ name: 'Cheese', stock: 0, unit: 'kg' });
   });
 
   it('should call updateItem', async () => {
