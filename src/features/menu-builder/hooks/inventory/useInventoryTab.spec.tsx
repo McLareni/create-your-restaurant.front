@@ -4,7 +4,6 @@
 
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useInventoryTab } from './useInventoryTab';
-import toast from 'react-hot-toast';
 import { useInventory } from '@/features/menu-builder/hooks/inventory/useInventory';
 
 jest.mock('@/features/menu-builder/hooks/inventory/useInventory', () => ({
@@ -45,8 +44,9 @@ describe('useInventoryTab', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    localStorage.clear();
     (useInventory as jest.Mock).mockReturnValue({
-      inventoryItems: [{ id: 'inv1', name: 'Tomato', stock: 10, unit: 'kg' }],
+      inventoryItems: [{ id: 'inv1', name: 'Tomato', stock: 10, unit: 'kg', createdAt: '2026-08-17T00:00:00.000Z', updatedAt: '2026-08-17T00:00:00.000Z' }],
       isLoading: false,
       createItem: mockCreateItem,
       updateItem: mockUpdateItem,
@@ -54,12 +54,13 @@ describe('useInventoryTab', () => {
     });
   });
 
-  it('should initialize correctly', () => {
+  it('should initialize correctly', async () => {
     const { result } = renderHook(() => useInventoryTab());
 
     expect(result.current.isLoading).toBe(false);
     expect(result.current.filteredItems.length).toBe(1);
     expect(result.current.searchQuery).toBe('');
+    await waitFor(() => expect(result.current.selectedItemId).toBe('inv1'));
   });
 
   it('should filter items based on search query', () => {
@@ -78,14 +79,26 @@ describe('useInventoryTab', () => {
     expect(result.current.filteredItems.length).toBe(1);
   });
 
-  it('should handle stock blur update', () => {
+  it('should handle stock blur update', async () => {
     const { result } = renderHook(() => useInventoryTab());
 
-    act(() => {
-      result.current.handleStockBlur('inv1', '20');
+    await act(async () => {
+      await result.current.handleStockBlur('inv1', '20');
     });
 
     expect(mockUpdateItem).toHaveBeenCalledWith({ id: 'inv1', stock: 20 });
+  });
+
+  it('should persist history when stock changes', async () => {
+    const { result } = renderHook(() => useInventoryTab());
+
+    await act(async () => {
+      await result.current.handleStockBlur('inv1', '20');
+    });
+
+    const saved = JSON.parse(localStorage.getItem('inventory-history-v2:1') || '{}');
+    expect(saved.inv1).toHaveLength(1);
+    expect(saved.inv1[0].nextStock).toBe(20);
   });
 
   it('should open create modal', () => {
@@ -101,7 +114,7 @@ describe('useInventoryTab', () => {
 
   it('should start edit', () => {
     const { result } = renderHook(() => useInventoryTab());
-    const mockItem = { id: 'inv1', name: 'Tomato', stock: 10, unit: 'kg' };
+    const mockItem = { id: 'inv1', name: 'Tomato', stock: 10, unit: 'kg', createdAt: '2026-08-17T00:00:00.000Z', updatedAt: '2026-08-17T00:00:00.000Z' };
 
     act(() => {
       result.current.startEdit(mockItem as any);

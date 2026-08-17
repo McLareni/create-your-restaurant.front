@@ -10,9 +10,27 @@ export interface InventoryItem {
   unit: InventoryUnit;
   createdAt: string;
   updatedAt: string;
+  lastAuditedAt?: string;
+  lastAuditBy?: string;
 }
 
 export type CreateInventoryItemDTO = InventoryFormValues;
+
+export type InventoryHistoryAction = 'created' | 'updated' | 'adjusted' | 'deleted';
+
+export interface InventoryHistoryEntry {
+  id: string;
+  itemId: string;
+  restaurantId: number;
+  itemName: string;
+  action: InventoryHistoryAction;
+  previousStock: number;
+  nextStock: number;
+  delta: number;
+  recordedAt: string;
+  recordedBy: string;
+  note?: string;
+}
 
 export interface ApiErrorResponse {
   response?: {
@@ -33,6 +51,8 @@ export interface UseInventoryTabReturn {
   t: (key: string) => string;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
+  auditAt: string;
+  setAuditAt: (value: string) => void;
   filteredItems: InventoryItem[];
   isModalOpen: boolean;
   setIsModalOpen: (open: boolean) => void;
@@ -47,4 +67,12 @@ export interface UseInventoryTabReturn {
   openCreateModal: () => void;
   handleDeleteConfirm: () => void;
   formAction: (payload: FormData) => void;
+  selectedItemId: string | null;
+  setSelectedItemId: (id: string | null) => void;
+  selectedItemHistory: InventoryHistoryEntry[];
+  totalItems: number;
+  totalHistoryEntries: number;
+  lastAuditAt: string | null;
+  lowStockItems: number;
+  lastAuditByItem: Record<string, string>;
 }
