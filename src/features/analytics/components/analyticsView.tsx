@@ -28,10 +28,14 @@ const StatCard = ({
 );
 
 import { useTranslation } from '@/shared/hooks/useTranslation';
+import { useRestaurantCurrency } from '@/shared/store/useUserStore';
+import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 
 export const AnalyticsView = () => {
   const { t } = useTranslation();
   const state = useAnalytics();
+  const activeRestaurantId = useRestaurantStore((state) => state.activeRestaurant?.id ?? null);
+  const currency = useRestaurantCurrency(activeRestaurantId ?? undefined) ?? null;
 
   if (!state.hasModule) {
     return (
@@ -103,7 +107,7 @@ export const AnalyticsView = () => {
         <StatCard 
           icon={Wallet} 
           title={state.t('analytics.revenue')} 
-          value={`${state.summary.totalRevenue} ₴`} 
+          value={`${state.summary.totalRevenue} ${currency}`} 
           colorClass="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/10" 
         />
         <StatCard 
@@ -115,7 +119,7 @@ export const AnalyticsView = () => {
         <StatCard 
           icon={Percent} 
           title={state.t('analytics.averageCheck')} 
-          value={`${Math.round(state.summary.averageCheck)} ₴`} 
+          value={`${Math.round(state.summary.averageCheck)} ${currency}`} 
           colorClass="bg-brand-emerald/10 text-brand-emerald border-brand-emerald/10" 
         />
         {state.summary.ordersByType?.map(typeStat => (
@@ -123,7 +127,7 @@ export const AnalyticsView = () => {
             key={typeStat.type}
             icon={PieChart} 
             title={state.t(`analytics.orderTypes.${typeStat.type}`)} 
-            value={`${typeStat.revenue} ₴ (${typeStat.count})`} 
+            value={`${typeStat.revenue} ${currency} (${typeStat.count})`} 
             colorClass="bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/10" 
           />
         ))}
@@ -142,7 +146,7 @@ export const AnalyticsView = () => {
               return (
                 <div key={day.date} className="flex-1 flex flex-col items-center gap-2 h-full justify-end group">
                   <span className="text-[9px] font-bold text-brand-emerald opacity-0 group-hover:opacity-100 transition-all duration-200 whitespace-nowrap bg-bg-main border border-solid border-border-main/40 px-1.5 py-0.5 rounded font-mono shadow-2xs scale-90 group-hover:scale-100">
-                    {day.revenue} ₴
+                    {day.revenue} {currency}
                   </span>
                   <div 
                     style={{ height: `${heightPercent}%` }} 
@@ -226,7 +230,7 @@ export const AnalyticsView = () => {
                   <div key={waiter.waiterId} className="flex flex-col gap-1.5">
                     <div className="flex justify-between items-center text-xs font-semibold">
                       <span className="text-text-main line-clamp-1 flex-1 pr-2 font-medium">{waiter.name}</span>
-                      <span className="text-text-muted shrink-0 text-[11px] font-mono font-bold">{waiter.completedOrders} {t('analytics.ordersUnit')} ({waiter.revenueGenerated} {t('analytics.currency')})</span>
+                      <span className="text-text-muted shrink-0 text-[11px] font-mono font-bold">{waiter.completedOrders} {t('analytics.ordersUnit')} ({waiter.revenueGenerated}) {currency}</span>
                     </div>
                     <div className="w-full bg-bg-main h-2 rounded-full overflow-hidden border border-solid border-border-main/40">
                       <div style={{ width: `${barWidth}%` }} className="bg-purple-500 h-full rounded-full transition-all duration-500 border-r border-solid border-purple-500/20" />

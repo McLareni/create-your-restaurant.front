@@ -6,7 +6,7 @@ import { useTranslation } from '@/shared/hooks/useTranslation';
 
 interface FloatingActionMenuProps {
   onCallWaiter: () => void;
-  onAskBill: () => void;
+  onAskBill: (paymentMethod: 'CASH' | 'CARD') => void;
   isCallingWaiter: boolean;
 }
 
@@ -19,6 +19,7 @@ export const FloatingActionMenu = ({
   const [isOpen, setIsOpen] = useState(false);
   const [waiterCooldown, setWaiterCooldown] = useState(0);
   const [billCooldown, setBillCooldown] = useState(0);
+  const [isBillMethodOpen, setIsBillMethodOpen] = useState(false);
   
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -51,8 +52,13 @@ export const FloatingActionMenu = ({
 
   const handleAskBill = () => {
     if (billCooldown > 0 || isCallingWaiter) return;
-    onAskBill();
+    setIsBillMethodOpen(true);
+  };
+
+  const handleBillMethodSelected = (paymentMethod: 'CASH' | 'CARD') => {
+    onAskBill(paymentMethod);
     setBillCooldown(60);
+    setIsBillMethodOpen(false);
     setIsOpen(false);
   };
 
@@ -64,22 +70,33 @@ export const FloatingActionMenu = ({
           isOpen ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-50 translate-y-8 pointer-events-none'
         }`}
       >
-        <button
-          type="button"
-          onClick={handleAskBill}
-          disabled={isCallingWaiter || billCooldown > 0}
-          className="flex items-center gap-3 rounded-full bg-brand-emerald pl-4 pr-2 py-2 text-xs font-bold text-white shadow-xl shadow-brand-emerald/20 transition-transform hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 border-0 outline-none cursor-pointer group"
-        >
-          <span className="uppercase tracking-wider">
-            {billCooldown > 0 
-              ? `${billCooldown}с` 
-              : t('menu.public.requestBill')
-            }
-          </span>
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
-            <Receipt className="h-4 w-4 text-white" />
+        {isBillMethodOpen ? (
+          <div className="flex flex-col items-stretch gap-2 rounded-2xl bg-brand-emerald p-3 text-xs font-bold text-white shadow-xl shadow-brand-emerald/20">
+            <span className="px-1 text-center uppercase tracking-wider">{t('menu.public.paymentMethod')}</span>
+            <div className="flex gap-2">
+              <button type="button" onClick={() => handleBillMethodSelected('CASH')} className="rounded-xl border-0 bg-white/20 px-3 py-2 text-white hover:bg-white/30 cursor-pointer">
+                {t('menu.public.cash')}
+              </button>
+              <button type="button" onClick={() => handleBillMethodSelected('CARD')} className="rounded-xl border-0 bg-white/20 px-3 py-2 text-white hover:bg-white/30 cursor-pointer">
+                {t('menu.public.card')}
+              </button>
+            </div>
           </div>
-        </button>
+        ) : (
+          <button
+            type="button"
+            onClick={handleAskBill}
+            disabled={isCallingWaiter || billCooldown > 0}
+            className="flex items-center gap-3 rounded-full bg-brand-emerald pl-4 pr-2 py-2 text-xs font-bold text-white shadow-xl shadow-brand-emerald/20 transition-transform hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50 border-0 outline-none cursor-pointer group"
+          >
+            <span className="uppercase tracking-wider">
+              {billCooldown > 0 ? `${billCooldown}с` : t('menu.public.requestBill')}
+            </span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
+              <Receipt className="h-4 w-4 text-white" />
+            </div>
+          </button>
+        )}
 
         <button
           type="button"

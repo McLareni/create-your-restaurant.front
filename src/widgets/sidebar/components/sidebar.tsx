@@ -32,7 +32,7 @@ export const Sidebar = () => {
   const sidebar = useSidebarLogic();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-  const { totalActiveTasks } = useLiveMonitorTracker();
+  const { activeWaiterCallsCount } = useLiveMonitorTracker();
   const menuGroups = sidebar.menuGroups as SidebarNavigationGroup[];
 
   useEffect(() => {
@@ -195,9 +195,9 @@ export const Sidebar = () => {
                         <div className="flex items-center gap-3 min-w-0 flex-1">
                           {itemIcon}
                           <span className="truncate">{item.title}</span>
-                          {item.path === '/dashboard/live-calls' && totalActiveTasks > 0 && (
+                          {item.path === '/dashboard/live-calls' && activeWaiterCallsCount > 0 && (
                             <span className="ml-auto bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0">
-                              {totalActiveTasks}
+                              {activeWaiterCallsCount}
                             </span>
                           )}
                         </div>

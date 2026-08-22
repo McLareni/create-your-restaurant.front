@@ -25,10 +25,10 @@ export const publicMenuApi = {
       data,
     ),
 
-  callWaiter: async (restaurantId: number, tableId: string, type: string) => {
+  callWaiter: async (restaurantId: number, tableId: string, type: string, paymentMethod?: 'CASH' | 'CARD') => {
     const { data } = await apiClient.post<{ data: unknown }>(
       `/restaurants/${restaurantId}/live-calls/public/trigger`,
-      { tableId, type }
+      { tableId, type, paymentMethod }
     );
     return data;
   },
@@ -49,5 +49,11 @@ export const publicMenuApi = {
   ) =>
     apiClient.get<PublicOrderResponse>(
       `/restaurants/${restaurantId}/orders/public/tables/${tableId}/${orderId}`,
+    ),
+
+  payOrder: (restaurantId: number, tableId: string, orderId: string) =>
+    apiClient.post<PublicOrderResponse>(
+      `/restaurants/${restaurantId}/orders/public/tables/${tableId}/${orderId}/pay`,
+      {},
     ),
 };

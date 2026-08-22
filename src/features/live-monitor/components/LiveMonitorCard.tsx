@@ -32,6 +32,8 @@ const getStatusStyles = (status: LiveMonitorOrder["status"]) => {
       return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20';
     case 'READY':
       return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20';
+    case 'PAID':
+      return 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20';
     case 'CANCELED':
       return 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20';
     default:
@@ -59,8 +61,8 @@ export const LiveMonitorCard = ({
           : "border-border-main/60 shadow-table hover:border-border-main hover:shadow-md"
       }`}
     >
-      <div className="flex items-start justify-between gap-4 text-text-main bg-bg-surface">
-        <div className="space-y-1.5 min-w-0">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-4 text-text-main bg-bg-surface">
+        <div className="min-w-0 space-y-1.5">
           <div className="flex items-center gap-3">
             <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-solid font-black text-xs font-mono tracking-tight transition-colors ${
               table.isWaiterCallActive 
@@ -69,57 +71,63 @@ export const LiveMonitorCard = ({
             }`}>
               {table.number}
             </div>
-            <div className="flex flex-col">
+            <div className="flex min-w-0 flex-col">
               <h3 className="text-sm font-bold text-text-main truncate">
                 {t('liveCalls.card.table')}
               </h3>
               {table.isWaiterCallActive && (
-                <span className="text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-widest animate-pulse">
+                <span className="max-w-full text-[10px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-widest leading-tight animate-pulse">
                   {t('liveCalls.callingStaff')}
+                </span>
+              )}
+              {table.isWaiterCallActive && table.waiterCallType === 'BILL' && table.waiterCallPaymentMethod && (
+                <span className="text-[10px] font-bold text-brand-emerald uppercase tracking-widest">
+                  {t(table.waiterCallPaymentMethod === 'CASH' ? 'menu.public.cash' : 'menu.public.card')}
                 </span>
               )}
             </div>
           </div>
           
-          <div className="flex items-center gap-2 text-[11px] text-text-muted font-medium">
-            <span className="flex items-center gap-1">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-text-muted font-medium">
+            <span className="flex min-w-0 items-center gap-1">
               <Layers className="h-3 w-3 opacity-60 shrink-0" />
-              {table.zone ? table.zone : t('liveCalls.card.noZone')}
+              <span className="truncate">{table.zone ? table.zone : t('liveCalls.card.noZone')}</span>
             </span>
             <span className="text-border-main/60">•</span>
-            <span className="capitalize font-light">{table.type}</span>
+            <span className="max-w-full truncate capitalize font-light">{table.type}</span>
           </div>
         </div>
 
-        <div className="flex flex-col items-end gap-2 shrink-0">
+        <div className="flex min-w-0 flex-col items-end gap-2 shrink-0">
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-bg-main/60 border border-solid border-border-main/40 text-[11px] font-bold text-text-main">
             <Receipt className="h-3.5 w-3.5 text-brand-emerald shrink-0" />
             <span>{table.activeOrderCount}</span>
           </div>
           
-          <div className="flex items-center gap-2 mt-2.5">
-            {table.isWaiterCallActive && (
-              <Button
-                variant="brand"
-                disabled={isResolvingWaiterCall}
-                onClick={() => onResolveWaiterCall(table.id)}
-                className="h-8 text-[11px] font-bold px-3 rounded-lg bg-amber-500 hover:bg-amber-600 text-white border-0 cursor-pointer flex items-center gap-1 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isResolvingWaiterCall && <Loader2 className="h-3 w-3 animate-spin" />}
-                <span>{t('liveCalls.doneBtn')}</span>
-              </Button>
-            )}
-
-            <Button
-              variant="outline"
-              className="h-8 text-[11px] font-bold px-3 border-solid rounded-lg flex items-center gap-1"
-              onClick={() => onToggleDetails(table.id)}
-            >
-              <span>{isExpanded ? t('liveCalls.card.hide') : t('liveCalls.card.details')}</span>
-              {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-            </Button>
-          </div>
         </div>
+      </div>
+
+      <div className="mt-3 flex w-full items-center justify-end gap-2 border-t border-solid border-border-main/30 pt-3">
+        {table.isWaiterCallActive && (
+          <Button
+            variant="brand"
+            disabled={isResolvingWaiterCall}
+            onClick={() => onResolveWaiterCall(table.id)}
+            className="h-8 text-[11px] font-bold px-3 rounded-lg bg-amber-500 hover:bg-amber-600 text-white border-0 cursor-pointer flex items-center gap-1 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isResolvingWaiterCall && <Loader2 className="h-3 w-3 animate-spin" />}
+            <span>{t('liveCalls.doneBtn')}</span>
+          </Button>
+        )}
+
+        <Button
+          variant="outline"
+          className="h-8 text-[11px] font-bold px-3 border-solid rounded-lg flex items-center gap-1"
+          onClick={() => onToggleDetails(table.id)}
+        >
+          <span>{isExpanded ? t('liveCalls.card.hide') : t('liveCalls.card.details')}</span>
+          {isExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+        </Button>
       </div>
 
       <div className={`grid transition-all duration-300 ease-in-out overflow-hidden ${

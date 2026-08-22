@@ -11,7 +11,7 @@ export type LiveMonitorOrder = {
   id: string;
   orderNumber: number;
   type: string;
-  status: 'PENDING' | 'IN_PROGRESS' | 'READY' | 'COMPLETED' | 'CANCELED';
+  status: 'PENDING' | 'IN_PROGRESS' | 'READY' | 'COMPLETED' | 'PAID' | 'CANCELED';
   totalAmount: number;
   createdAt: string;
   updatedAt: string;
@@ -32,6 +32,7 @@ export type LiveMonitorTable = {
   isWaiterCallActive: boolean;
   waiterCallRequestedAt: string | null;
   waiterCallType: string | null;
+  waiterCallPaymentMethod: 'CASH' | 'CARD' | null;
   zone: string | null;
   activeOrderCount: number;
   activeOrdersTotalAmount: number;

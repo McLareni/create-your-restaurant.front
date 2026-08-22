@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useEffect, useMemo, useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import toast from 'react-hot-toast';
@@ -15,6 +15,7 @@ export const usePublicMenuClient = (
 ): UsePublicMenuClientReturn => {
   const { t } = useTranslation();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [cart, setCart] = useState<Record<string, number>>({});
   const [lastOrderSnapshot, setLastOrderSnapshot] = useState<PublicOrderSummary | null>(null);
   const hasTableId = Boolean(tableId);
@@ -37,18 +38,26 @@ export const usePublicMenuClient = (
 
   const tableExists = useMemo(() => tableExistsData?.exists === true, [tableExistsData]);
 
-  const { data: activeOrderResponse } = useQuery({
+  const { data: activeOrderResponse, isError: isActiveOrderError } = useQuery({
     queryKey: ['public-order', resolvedRestaurantId, tableId, orderId],
     queryFn: () => publicMenuApi.getOrderById(resolvedRestaurantId as number, tableId as string, orderId as string),
     enabled: Boolean(orderId) && hasTableId && Boolean(resolvedRestaurantId) && tableExists,
     refetchInterval: (query) => {
       const status = (query.state.data as any)?.order?.status;
-      if (status === 'COMPLETED' || status === 'CANCELLED' || status === 'REJECTED') {
+      if (status === 'COMPLETED' || status === 'PAID' || status === 'CANCELED' || status === 'REJECTED') {
         return false;
       }
       return 5000;
     },
   });
+
+  useEffect(() => {
+    if (!orderId || !isActiveOrderError) return;
+    if (typeof window !== 'undefined' && activeOrderStorageKey) {
+      window.sessionStorage.removeItem(activeOrderStorageKey);
+    }
+    router.replace(`/menu/${encodeURIComponent(restaurantSlug)}/${encodeURIComponent(tableId || '')}`);
+  }, [activeOrderStorageKey, isActiveOrderError, orderId, restaurantSlug, router, tableId]);
 
   const createOrderMutation = useMutation({
     mutationFn: () => {
@@ -97,13 +106,13 @@ export const usePublicMenuClient = (
   });
 
   const callWaiterMutation = useMutation({
-    mutationFn: (type: string = 'WAITER') => {
+    mutationFn: ({ type, paymentMethod }: { type: string; paymentMethod?: 'CASH' | 'CARD' }) => {
       if (!tableId) throw new Error('tableId is required');
       if (!resolvedRestaurantId) throw new Error('Restaurant was not resolved');
-      return publicMenuApi.callWaiter(resolvedRestaurantId, tableId, type);
+      return publicMenuApi.callWaiter(resolvedRestaurantId, tableId, type, paymentMethod);
     },
-    onSuccess: (_, type) => {
-      if (type === 'BILL') {
+    onSuccess: (_, variables) => {
+      if (variables.type === 'BILL') {
         toast.success(t('menu.public.billRequested'));
       } else {
         toast.success(t('menu.public.waiterCallSuccess'));
@@ -112,6 +121,27 @@ export const usePublicMenuClient = (
     onError: (error: unknown) => {
       const errorMessage = error instanceof Error ? error.message : t('errors.unknown');
       toast.error(errorMessage);
+    },
+  });
+
+  const payOrderMutation = useMutation({
+    mutationFn: () => {
+      if (!tableId || !orderId) throw new Error('orderId and tableId are required');
+      if (!resolvedRestaurantId) throw new Error('Restaurant was not resolved');
+      return publicMenuApi.payOrder(resolvedRestaurantId, tableId, orderId);
+    },
+    onSuccess: (response) => {
+      setLastOrderSnapshot(response.order);
+      if (activeOrderStorageKey && typeof window !== 'undefined') {
+        window.sessionStorage.setItem(activeOrderStorageKey, JSON.stringify(response.order));
+      }
+      void queryClient.invalidateQueries({
+        queryKey: ['public-order', resolvedRestaurantId, tableId, orderId],
+      });
+      toast.success(t('menu.public.paymentSuccess'));
+    },
+    onError: (error: unknown) => {
+      toast.error(error instanceof Error ? error.message : t('errors.unknown'));
     },
   });
 
@@ -187,7 +217,9 @@ export const usePublicMenuClient = (
     removeDish,
     placeOrder: () => createOrderMutation.mutate(),
     isPlacingOrder: createOrderMutation.isPending,
-    callWaiter: (type?: string) => callWaiterMutation.mutate(type || 'WAITER'),
+    callWaiter: (type?: string, paymentMethod?: 'CASH' | 'CARD') => callWaiterMutation.mutate({ type: type || 'WAITER', paymentMethod }),
     isCallingWaiter: callWaiterMutation.isPending,
+    payOrder: () => payOrderMutation.mutate(),
+    isPayingOrder: payOrderMutation.isPending,
   };
 };

@@ -89,9 +89,12 @@ export const useSidebarLogic = () => {
         return;
       }
 
-      if (!activeRestaurant) {
-        setActiveRestaurant(restaurants[0]);
-        setSidebarCookie('gustio_active_restaurant_id', String(restaurants[0].id));
+      const fallbackRestaurant = restaurants[0];
+      if (!fallbackRestaurant) return;
+
+      if (!activeRestaurant || !restaurants.some((restaurant) => String(restaurant.id) === String(activeRestaurant.id))) {
+        setActiveRestaurant(fallbackRestaurant);
+        setSidebarCookie('gustio_active_restaurant_id', String(fallbackRestaurant.id));
       }
     }
   }, [restaurants, activeRestaurant, setActiveRestaurant, maxAllowed, router, isLoadingAccess, isAccessUninitialized]);

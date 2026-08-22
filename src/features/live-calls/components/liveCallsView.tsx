@@ -88,6 +88,11 @@ export const LiveCallsView = () => {
                   <div className="text-sm font-bold text-brand-espresso dark:text-brand-cream mb-2">
                     {isWaiter ? state.t('liveCalls.typeWaiter') : state.t('liveCalls.typeBill')}
                   </div>
+                  {!isWaiter && call.paymentMethod && (
+                    <div className="text-xs font-semibold text-brand-emerald dark:text-brand-emerald mb-2">
+                      {state.t(call.paymentMethod === 'CASH' ? 'menu.public.cash' : 'menu.public.card')}
+                    </div>
+                  )}
 
                   <div className="flex items-center gap-1.5 text-xs text-brand-gray dark:text-brand-gray/70">
                     <Clock className="h-3.5 w-3.5" />

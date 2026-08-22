@@ -105,6 +105,8 @@ export interface UsePublicMenuClientReturn {
   removeDish: (dishId: string) => void;
   placeOrder: () => void;
   isPlacingOrder: boolean;
-  callWaiter: (type?: string) => void;
+  callWaiter: (type?: string, paymentMethod?: 'CASH' | 'CARD') => void;
   isCallingWaiter: boolean;
+  payOrder: () => void;
+  isPayingOrder: boolean;
 }

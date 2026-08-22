@@ -43,6 +43,7 @@ export const liveCalls = {
     in_progress: "В роботі",
     ready: "Готово",
     completed: "Завершено",
+    paid: "Оплачено",
     canceled: "Скасовано"
   },
   tableStatusUpdated: "Статус столу оновлено",

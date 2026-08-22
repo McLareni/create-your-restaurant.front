@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 
-import { Receipt } from 'lucide-react';
+import { CreditCard, Receipt, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 import { useTranslation } from '@/shared/hooks/useTranslation';
@@ -41,6 +41,8 @@ export const PublicMenuClient = ({ restaurantSlug, tableId, orderId }: PublicMen
     isPlacingOrder,
     callWaiter,
     isCallingWaiter,
+    payOrder,
+    isPayingOrder,
   } = usePublicMenuClient(restaurantSlug, tableId, orderId);
 
   const categories = useMemo(
@@ -50,6 +52,16 @@ export const PublicMenuClient = ({ restaurantSlug, tableId, orderId }: PublicMen
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
   const [selectedDish, setSelectedDish] = useState<PublicMenuDish | null>(null);
   const [isOrderLookupLoading, setIsOrderLookupLoading] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+
+  const handleAskBill = (paymentMethod: 'CASH' | 'CARD') => {
+    callWaiter('BILL', paymentMethod);
+    toast.success(
+      paymentMethod === 'CARD'
+        ? t('menu.public.billRequestedCard')
+        : t('menu.public.billRequestedCash'),
+    );
+  };
 
   const activeCategory = useMemo(() => {
     if (!categories.length) return null;
@@ -67,6 +79,7 @@ export const PublicMenuClient = ({ restaurantSlug, tableId, orderId }: PublicMen
   const restaurantName = (menuData?.restaurantName?.trim() || restaurantSlug)
     .replace(/[-_]+/g, ' ')
     .replace(/\b\w/g, (char) => char.toUpperCase());
+  const displayedOrderStatus = activeOrder?.status;
 
   const handleGoToOrder = async (rawOrderNumber: string) => {
     if (!resolvedRestaurantId || !tableId) return;
@@ -218,15 +231,15 @@ export const PublicMenuClient = ({ restaurantSlug, tableId, orderId }: PublicMen
                         {t('menu.public.orderNumber')}: <span className="font-bold">#{activeOrder.orderNumber || activeOrderId.split('-')[0]}</span>
                       </p>
                     </div>
-                    <div className={`flex items-center gap-2 px-2.5 py-1 rounded-full border ${activeOrder.status === 'COMPLETED' ? 'bg-brand-emerald/10 border-brand-emerald/20' : activeOrder.status === 'CANCELLED' ? 'bg-red-500/10 border-red-500/20' : 'bg-brand-copper/10 border-brand-copper/20'}`}>
-                      {activeOrder.status === 'IN_PROGRESS' && (
+                    <div className={`flex items-center gap-2 px-2.5 py-1 rounded-full border ${displayedOrderStatus === 'PAID' || displayedOrderStatus === 'COMPLETED' ? 'bg-brand-emerald/10 border-brand-emerald/20' : displayedOrderStatus === 'CANCELED' ? 'bg-red-500/10 border-red-500/20' : 'bg-brand-copper/10 border-brand-copper/20'}`}>
+                      {displayedOrderStatus === 'PENDING' && (
                         <span className="relative flex h-2 w-2">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-copper opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-copper"></span>
                         </span>
                       )}
-                      <span className={`text-[9px] font-bold uppercase tracking-wider ${activeOrder.status === 'COMPLETED' ? 'text-brand-emerald' : activeOrder.status === 'CANCELLED' ? 'text-red-500' : 'text-brand-copper'}`}>
-                        {activeOrder.status === 'COMPLETED' ? t('menu.public.statusCompleted') : activeOrder.status === 'CANCELLED' ? t('menu.public.statusCancelled') : t('menu.public.statusInProgress')}
+                      <span className={`text-[9px] font-bold uppercase tracking-wider ${displayedOrderStatus === 'PAID' || displayedOrderStatus === 'COMPLETED' ? 'text-brand-emerald' : displayedOrderStatus === 'CANCELED' ? 'text-red-500' : 'text-brand-copper'}`}>
+                        {displayedOrderStatus === 'PENDING' ? t('menu.public.statusPending') : displayedOrderStatus === 'IN_PROGRESS' ? t('menu.public.statusInProgress') : displayedOrderStatus === 'READY' ? t('menu.public.statusReady') : displayedOrderStatus === 'COMPLETED' ? t('menu.public.statusCompleted') : displayedOrderStatus === 'PAID' ? t('menu.public.statusPaid') : t('menu.public.statusCancelled')}
                       </span>
                     </div>
                   </div>
@@ -315,6 +328,17 @@ export const PublicMenuClient = ({ restaurantSlug, tableId, orderId }: PublicMen
                     )}
                   </span>
                 </button>
+                {activeOrderId && activeOrder && (
+                  <button
+                    type="button"
+                    onClick={() => setIsPaymentModalOpen(true)}
+                    disabled={isPayingOrder || activeOrder.status === 'PAID' || activeOrder.status === 'CANCELED'}
+                    className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-2xl border border-solid border-brand-emerald bg-brand-emerald/10 text-xs font-extrabold uppercase tracking-wider text-brand-emerald transition-colors hover:bg-brand-emerald hover:text-white disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <CreditCard className="h-4 w-4" />
+                    {isPayingOrder ? t('menu.public.paymentProcessing') : activeOrder.status === 'PAID' ? t('menu.public.paymentSuccessShort') : t('menu.public.payByCard')}
+                  </button>
+                )}
               </div>
             </aside>
           )}
@@ -329,10 +353,79 @@ export const PublicMenuClient = ({ restaurantSlug, tableId, orderId }: PublicMen
         />
       )}
 
+      {isPaymentModalOpen && activeOrder && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-brand-espresso/40 p-4 backdrop-blur-md"
+          onClick={() => {
+            if (!isPayingOrder) setIsPaymentModalOpen(false);
+          }}
+          role="presentation"
+        >
+          <div
+            className="w-full max-w-md rounded-3xl border border-solid border-white/20 bg-brand-cream p-6 shadow-2xl dark:bg-bg-surface"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="mb-6 flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-extrabold text-brand-espresso dark:text-text-main">
+                  {t('menu.public.cardPaymentTitle')}
+                </h2>
+                <p className="mt-1 text-xs text-brand-gray">
+                  {t('menu.public.cardPaymentOrder')} #{activeOrder.orderNumber || activeOrderId}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsPaymentModalOpen(false)}
+                disabled={isPayingOrder}
+                className="flex h-8 w-8 items-center justify-center rounded-full border-0 bg-brand-espresso/5 text-brand-espresso hover:bg-brand-espresso/10 disabled:opacity-50 cursor-pointer"
+                aria-label={t('actions.close')}
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <label className="block text-xs font-bold text-brand-espresso dark:text-text-main">
+                {t('menu.public.cardNumber')}
+                <input
+                  type="text"
+                  placeholder="0000 0000 0000 0000"
+                  className="mt-1.5 h-11 w-full rounded-xl border border-solid border-brand-gray/20 bg-white/70 px-3 text-sm font-mono text-brand-espresso outline-none focus:border-brand-copper dark:bg-bg-main dark:text-text-main"
+                />
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block text-xs font-bold text-brand-espresso dark:text-text-main">
+                  {t('menu.public.cardExpiry')}
+                  <input type="text" placeholder="MM/YY" className="mt-1.5 h-11 w-full rounded-xl border border-solid border-brand-gray/20 bg-white/70 px-3 text-sm font-mono text-brand-espresso outline-none focus:border-brand-copper dark:bg-bg-main dark:text-text-main" />
+                </label>
+                <label className="block text-xs font-bold text-brand-espresso dark:text-text-main">
+                  {t('menu.public.cardCvc')}
+                  <input type="text" placeholder="CVC" className="mt-1.5 h-11 w-full rounded-xl border border-solid border-brand-gray/20 bg-white/70 px-3 text-sm font-mono text-brand-espresso outline-none focus:border-brand-copper dark:bg-bg-main dark:text-text-main" />
+                </label>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                payOrder();
+                setIsPaymentModalOpen(false);
+              }}
+              disabled={isPayingOrder}
+              className="mt-6 flex h-12 w-full items-center justify-center gap-2 rounded-2xl border-0 bg-brand-emerald text-sm font-extrabold uppercase tracking-wider text-white hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+            >
+              <CreditCard className="h-4 w-4" />
+              {t('menu.public.confirmCardPayment')}
+            </button>
+          </div>
+        </div>
+      )}
+
       {canUseCart && (
         <FloatingActionMenu 
           onCallWaiter={() => callWaiter('WAITER')} 
-          onAskBill={() => callWaiter('BILL')}
+          onAskBill={handleAskBill}
           isCallingWaiter={isCallingWaiter} 
         />
       )}

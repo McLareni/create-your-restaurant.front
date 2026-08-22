@@ -62,7 +62,7 @@ export const PublicMenuHeader = ({
                 <button
                   type="submit"
                   disabled={isOrderLookupLoading}
-                  className="absolute right-1.5 inline-flex h-8 items-center gap-1.5 rounded-full bg-brand-espresso px-4 text-[11px] font-bold text-white hover:bg-brand-copper transition-colors disabled:opacity-50 select-none cursor-pointer border-0"
+                  className="absolute right-1.5 inline-flex h-8 items-center gap-1.5 rounded-full bg-brand-copper px-4 text-[11px] font-bold text-white hover:bg-brand-emerald transition-colors disabled:opacity-50 select-none cursor-pointer border-0"
                 >
                   {isOrderLookupLoading ? (
                     <Loader2 className="h-3 w-3 animate-spin" />

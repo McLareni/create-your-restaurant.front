@@ -6,6 +6,8 @@ import { useRestaurantStore } from '@/shared/store/useRestaurantStore';
 import { drawStyledQr, getQrStyle } from '@/features/qr-tables/utils/qrRenderer';
 import type { TableCardProps } from '@/features/qr-tables/types/tables.types';
 
+const URL = process.env.NEXT_PUBLIC_URL || 'http://localhost:3000';
+
 export const useTableCard = ({
   table,
   onEdit,
@@ -46,7 +48,7 @@ export const useTableCard = ({
       const style = getQrStyle(table.id);
 
       const dataUrl = await drawStyledQr({
-        url: table.qrUrl,
+        url: `${URL}${table.qrUrl}`,
         patternType: style.patternType,
         logoOverlay: style.logoOverlay,
         logoUrl: restaurantImageUrl,
